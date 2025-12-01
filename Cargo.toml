@@ -1,0 +1,16 @@
+[package]
+name = "BuffBuddies"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+iced = { version ="0.13.1", features = ["image", "advanced"] }
+iced_core = "0.13.2"
+serde = "1.0.228"
+serde_json = "1.0.145"
+tokio = "1.48.0"
+sqlx = "0.8.6"
+axum = "0.8.7"
+strum = "0.27.2"
+strum_macros = "0.27.2"
+
