@@ -8,6 +8,10 @@ use iced_core::Theme;
 use iced_core::widget::text;
 use crate::client::bb_theme;
 
+const TAB_BUTTON_WIDTH: f32 = 225.0;
+const TAB_BUTTON_HEIGHT: f32 = 45.0;
+const DEFAULT_BUTTON_BORDER_RADIUS: f32 = 193.0;
+
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ButtonStyle {
     #[default]
@@ -26,7 +30,7 @@ fn create_preset_button(element: Element<'_, Message,Theme,Renderer>,
 
             let mut style = button::Style::default();
 
-            style.border.radius = border::radius(193.0);
+            style.border.radius = border::radius(DEFAULT_BUTTON_BORDER_RADIUS);
 
             match status {
                 button::Status::Active => {
@@ -71,14 +75,14 @@ pub fn create_elem_button<'a>(app: &'a App, element: Element<'a,Message, Theme, 
                                                                 color::DARKER_CONTAINER_COLOR,
                                                                 color::CONTAINER_COLOR,
                                                                 color::HIGHLIGHTED_CONTAINER_COLOR)
-            .width(225)
-            .height(44),
+            .width(TAB_BUTTON_WIDTH)
+            .height(TAB_BUTTON_HEIGHT),
         ButtonStyle::ClickedTabButton => create_preset_button(element,
                                                               color::HIGHLIGHTED_CONTAINER_COLOR,
                                                               color::CONTAINER_COLOR,
                                                               color::HIGHLIGHTED_CONTAINER_COLOR)
-            .width(225)
-            .height(44),
+            .width(TAB_BUTTON_WIDTH)
+            .height(TAB_BUTTON_HEIGHT),
         ButtonStyle::ClickableSelection => create_preset_button(element,
                                                                 Color::TRANSPARENT,
                                                                 app.active_mascot.get_disabled_color(),
