@@ -1,27 +1,29 @@
-use iced::{Element, Task};
+use crate::client::app::App;
 use iced::widget::button;
-use iced_core::Size;
+use iced::{Element, Task};
 use iced_core::window::{Position, Settings};
-use crate::client::mascots::Mascot;
+use iced_core::Size;
 
 mod client;
 
 #[derive(Default)]
 struct UserInterface {
-    active_mascot: Mascot,
+    app: App,
 }
 
 #[derive(Debug, Clone, Copy)]
 enum Message {
-
+    Test
 }
 
 impl UserInterface {
     fn update(&mut self, message: Message) -> Task<Message>{
-        Task::none()
+        match message {
+            Message::Test => Task::none()
+        }
     }
     fn view(&self) -> Element<'_, Message>{
-        let test_button = button("test");
+        let test_button = button("test").on_press(Message::Test);
 
         test_button.into()
     }
