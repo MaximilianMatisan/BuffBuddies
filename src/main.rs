@@ -1,5 +1,6 @@
 use crate::client::app::App;
-use iced::widget::button;
+use crate::client::bb_theme::custom_button;
+use crate::client::bb_theme::custom_button::ButtonStyle;
 use iced::{Element, Task};
 use iced_core::window::{Position, Settings};
 use iced_core::Size;
@@ -23,7 +24,9 @@ impl UserInterface {
         }
     }
     fn view(&self) -> Element<'_, Message>{
-        let test_button = button("test").on_press(Message::Test);
+        let test_button =
+            custom_button::create_text_button(&self.app, "test", ButtonStyle::ClickableSelection)
+                .on_press(Message::Test);
 
         test_button.into()
     }
