@@ -15,10 +15,11 @@ const DEFAULT_BUTTON_BORDER_RADIUS: f32 = 193.0;
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ButtonStyle {
     #[default]
-    ClickableTabButton,
-    ClickedTabButton,
-    ClickedSelection,
-    ClickableSelection
+    InactiveTab,
+    ActiveTab,
+    Active,
+    InactiveTransparent,
+    InactiveSolid
 }
 fn create_preset_button(element: Element<'_, Message,Theme,Renderer>,
                         active_color: Color,
@@ -71,25 +72,29 @@ pub fn create_text_button<'a>(app: &'a App, text: &'a str, button_style: ButtonS
 pub fn create_elem_button<'a>(app: &'a App, element: Element<'a,Message, Theme, Renderer>, button_style: ButtonStyle)
                               -> Button<'a, Message, Theme, Renderer> {
     match button_style {
-        ButtonStyle::ClickableTabButton => create_preset_button(element,
-                                                                color::DARKER_CONTAINER_COLOR,
-                                                                color::CONTAINER_COLOR,
-                                                                color::HIGHLIGHTED_CONTAINER_COLOR)
+        ButtonStyle::InactiveTab => create_preset_button(element,
+                                                         color::DARKER_CONTAINER_COLOR,
+                                                         color::CONTAINER_COLOR,
+                                                         color::HIGHLIGHTED_CONTAINER_COLOR)
             .width(TAB_BUTTON_WIDTH)
             .height(TAB_BUTTON_HEIGHT),
-        ButtonStyle::ClickedTabButton => create_preset_button(element,
-                                                              color::HIGHLIGHTED_CONTAINER_COLOR,
-                                                              color::CONTAINER_COLOR,
-                                                              color::HIGHLIGHTED_CONTAINER_COLOR)
+        ButtonStyle::ActiveTab => create_preset_button(element,
+                                                       color::HIGHLIGHTED_CONTAINER_COLOR,
+                                                       color::CONTAINER_COLOR,
+                                                       color::HIGHLIGHTED_CONTAINER_COLOR)
             .width(TAB_BUTTON_WIDTH)
             .height(TAB_BUTTON_HEIGHT),
-        ButtonStyle::ClickableSelection => create_preset_button(element,
-                                                                Color::TRANSPARENT,
-                                                                app.active_mascot.get_disabled_color(),
-                                                                app.active_mascot.get_primary_color()),
-        ButtonStyle::ClickedSelection => create_preset_button(element,
-                                                              app.active_mascot.get_primary_color(),
-                                                              app.active_mascot.get_disabled_color(),
-                                                              app.active_mascot.get_secondary_color())
+        ButtonStyle::InactiveTransparent => create_preset_button(element,
+                                                                 Color::TRANSPARENT,
+                                                                 app.active_mascot.get_disabled_color(),
+                                                                 app.active_mascot.get_primary_color()),
+        ButtonStyle::InactiveSolid => create_preset_button(element,
+                                                           app.active_mascot.get_disabled_color(),
+                                                           app.active_mascot.get_disabled_color(),
+                                                           app.active_mascot.get_primary_color()),
+        ButtonStyle::Active => create_preset_button(element,
+                                                    app.active_mascot.get_primary_color(),
+                                                    app.active_mascot.get_disabled_color(),
+                                                    app.active_mascot.get_secondary_color())
     }
 }
