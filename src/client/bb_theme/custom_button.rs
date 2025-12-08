@@ -60,17 +60,17 @@ fn create_preset_button(element: Element<'_, Message,Theme,Renderer>,
             }
         })
 }
-pub fn create_text_button<'a>(app: &'a App, text: &'a str, button_style: ButtonStyle)
-    -> Button<'a, Message, Theme, Renderer>{
+pub fn create_text_button(app: &App, text: String, button_style: ButtonStyle)
+                          -> Button<Message, Theme, Renderer> {
 
     let text_elem: Element<Message> =
         <Element<Message>>::from(bb_theme::text_format::format_button_text(text::Text::new(text)));
 
-    create_elem_button(app, text_elem, button_style)
+    create_element_button(app, text_elem, button_style)
 }
 
-pub fn create_elem_button<'a>(app: &'a App, element: Element<'a,Message, Theme, Renderer>, button_style: ButtonStyle)
-                              -> Button<'a, Message, Theme, Renderer> {
+pub fn create_element_button<'a>(app: &'a App, element: Element<'a,Message, Theme, Renderer>, button_style: ButtonStyle)
+                                 -> Button<'a, Message, Theme, Renderer> {
     match button_style {
         ButtonStyle::InactiveTab => create_preset_button(element,
                                                          color::DARKER_CONTAINER_COLOR,
