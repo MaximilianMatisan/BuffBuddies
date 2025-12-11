@@ -10,6 +10,7 @@ use iced_core::window::{Position, Settings};
 use iced_core::Length::Fill;
 use iced_core::{Border, Size, Theme};
 use strum::IntoEnumIterator;
+use crate::client::bb_widget::workout_preset::WorkoutPresetWidget;
 
 mod client;
 
@@ -55,7 +56,11 @@ impl UserInterface {
                 shadow: Default::default(),
             })
             .height(Fill);
-        container(row![tab_container])
+
+
+        let workout_preset: Element<Message> = WorkoutPresetWidget::default().into();
+
+        let frame_container = container(row![tab_container, workout_preset])
             .width(size::FRAME_WIDTH)
             .height(size::FRAME_HEIGHT)
             .style(|_theme: &Theme| container::Style{
@@ -64,7 +69,9 @@ impl UserInterface {
                 border: Default::default(),
                 shadow: Default::default(),
             }).padding(20)
-            .into()
+            .into();
+
+        frame_container
     }
 }
 
