@@ -15,7 +15,7 @@ const DEFAULT_DESCRIPTION_FONT_SIZE: f32 = 15.0;
 const IMAGE_HEIGHT: f32 = 125.0;
 
 pub struct WorkoutPresetWidget<Renderer>
-    where Renderer: image::Renderer
+    where Renderer: image::Renderer + iced_core::text::Renderer
 {
     image: image::Image<<Renderer as image::Renderer>::Handle>,
     title: String,
@@ -24,9 +24,10 @@ pub struct WorkoutPresetWidget<Renderer>
     description_font_size: f32,
     width: f32,
     height: f32,
+    font: <Renderer as iced_core::text::Renderer>::Font
 }
 impl<Renderer> Default for WorkoutPresetWidget<Renderer>
-    where Renderer: image::Renderer<Handle = image::Handle>
+    where Renderer: image::Renderer<Handle = image::Handle> + iced_core::text::Renderer<Font = iced::Font>
 {
     fn default() -> Self {
         Self {
@@ -43,11 +44,12 @@ impl<Renderer> Default for WorkoutPresetWidget<Renderer>
             description_font_size: DEFAULT_DESCRIPTION_FONT_SIZE,
             width: DEFAULT_PRESET_WIDTH,
             height: DEFAULT_PRESET_HEIGHT,
+            font: bb_theme::text_format::FIRA_SANS_EXTRABOLD
         }
     }
 }
 impl<Renderer> WorkoutPresetWidget<Renderer>
-    where Renderer: image::Renderer
+    where Renderer: image::Renderer + iced_core::text::Renderer
 {
     pub fn set_image(mut self, img: image::Image<<Renderer as iced_core::image::Renderer>::Handle>)
         -> Self
@@ -111,7 +113,7 @@ impl<Renderer> Widget<Message, Theme, Renderer> for WorkoutPresetWidget<Renderer
             bounds: layout.bounds().size(),
             size: self.title_font_size.into(),
             line_height: Default::default(),
-            font: renderer.default_font(),
+            font: self.font,
             horizontal_alignment: alignment::Horizontal::Center,
             vertical_alignment: alignment::Vertical::Center,
             shaping: Default::default(),
