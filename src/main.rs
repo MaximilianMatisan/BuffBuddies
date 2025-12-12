@@ -14,6 +14,7 @@ use iced_core::Length::Fill;
 use iced_core::{Border, Size, Theme};
 use strum::IntoEnumIterator;
 use crate::client::bb_widget::shop;
+use crate::client::bb_widget::activity::activity::ActivityMessage;
 
 mod client;
 
@@ -23,8 +24,9 @@ struct UserInterface {
 }
 
 #[derive(Debug, Clone, Copy)]
-enum Message {
+pub enum Message {
     Select(Tab),
+    Activity(ActivityMessage),
     BuyMascot()
 }
 
@@ -39,6 +41,9 @@ impl UserInterface {
             Message::BuyMascot() => {
                 self.app.screen = Tab::Settings;
                 Task::none()
+            }
+            Message::Activity(activity_message) => {
+                self.app.activity_widget.update(activity_message)
             }
         }
     }
