@@ -11,10 +11,10 @@ use iced_core::border::Radius;
 use iced_core::image::{Handle, Image};
 use iced_core::window::{Position, Settings};
 use iced_core::Length::Fill;
-use iced_core::{Border, Size, Theme};
+use iced_core::{Background, Border, Size, Theme};
 use strum::IntoEnumIterator;
 use crate::client::bb_widget::shop;
-use crate::client::bb_widget::activity::activity::ActivityMessage;
+use crate::client::bb_widget::activity::activity::{ActivityMessage, ActivityWidget};
 
 mod client;
 
@@ -75,6 +75,7 @@ impl UserInterface {
 
 
         let workout_preset: Element<Message> = WorkoutPresetWidget::default().into();
+        let activity_widget: Element<Message> = ActivityWidget::new(self.app.active_mascot.clone()).into();
 
         let mut shop_widgets = row![
             shop::ShopWidget::new("Random rare mascot-egg".to_string(), 50, self.app.active_mascot.clone(), Message::BuyMascot()),
@@ -84,7 +85,11 @@ impl UserInterface {
 
         shop_widgets = shop_widgets.spacing(30).padding(20);
 
-        let contents: Element<Message> = column![workout_preset, shop_widgets].padding(30).into();
+        let contents = Column::new()
+            .push(activity_widget)
+            .push(shop_widgets)
+            .push(workout_preset)
+            .spacing(10);
 
         let frame_container = container(row![tab_container, contents])
             .width(size::FRAME_WIDTH)

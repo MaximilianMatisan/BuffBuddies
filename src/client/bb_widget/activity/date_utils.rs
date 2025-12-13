@@ -1,4 +1,4 @@
-use chrono::{Datelike, Days, Duration, Months, NaiveDate};
+use chrono::{Datelike, Days, Duration, Months, NaiveDate, Weekday};
 use strum_macros::{Display, EnumIter};
 use crate::client::bb_widget::activity::activity::SquareDimensions;
 
@@ -18,7 +18,6 @@ pub const WEEK_SQUARE_DIMENSION: SquareDimensions = SquareDimensions {
     spacing: 3.0,
     max_squares_per_col: 1
 };
-
 #[derive(Debug, Clone, Copy, EnumIter, Display, Eq, PartialEq)]
 pub enum DateScope {
     Year,
@@ -118,4 +117,19 @@ pub fn get_date_by_offset(offset_dates: OffsetDates, offset: Offset) -> NaiveDat
         Offset::Previous => offset_dates.previous,
         Offset::BeforePrevious => offset_dates.before_previous
     }
+}
+pub fn started_weeks_in_period(start: NaiveDate, end: NaiveDate) -> u32{
+    if start > end {
+        return 0;
+    }
+    let mut first_week_monday_finder = start;
+    while first_week_monday_finder.weekday() != Weekday::Mon {
+        first_week_monday_finder -= Duration::days(1);
+    }
+    let mut last_week_sunday_finder = end;
+    while last_week_sunday_finder.weekday() != Weekday::Sun {
+        last_week_sunday_finder += Duration::days(1);
+    }
+
+    (((last_week_sunday_finder - first_week_monday_finder).num_days()+1) / 7) as u32
 }
