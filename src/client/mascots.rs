@@ -1,6 +1,6 @@
 use iced::{color, Color};
 
-#[derive(Default,Clone)]
+#[derive(Default, Clone, Debug)]
 pub enum Mascot{
     #[default]
     Duck,

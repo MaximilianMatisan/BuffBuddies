@@ -9,10 +9,11 @@ pub struct App {
 }
 impl Default for App {
     fn default() -> Self {
+        let default_mascot = Mascot::default();
         App {
             screen: Tab::Home,
-            active_mascot: Mascot::Duck,
-            activity_widget: ActivityWidget::default()
+            active_mascot: default_mascot.clone(),
+            activity_widget: ActivityWidget::new(default_mascot)
         }
     }
 }

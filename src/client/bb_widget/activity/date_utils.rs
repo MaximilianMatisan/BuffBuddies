@@ -1,11 +1,38 @@
 use chrono::{Datelike, Days, Duration, Months, NaiveDate};
 use strum_macros::{Display, EnumIter};
+use crate::client::bb_widget::activity::activity::SquareDimensions;
+
+pub const DAYS_PER_WEEK: u32 = 7;
+pub const YEAR_SQUARE_DIMENSION: SquareDimensions = SquareDimensions {
+    side_length: 10.0,
+    spacing: 1.5,
+    max_squares_per_col: DAYS_PER_WEEK
+};
+pub const MONTH_SQUARE_DIMENSION: SquareDimensions = SquareDimensions {
+    side_length: 1.5 * YEAR_SQUARE_DIMENSION.side_length,
+    spacing: 3.0,
+    max_squares_per_col: DAYS_PER_WEEK
+};
+pub const WEEK_SQUARE_DIMENSION: SquareDimensions = SquareDimensions {
+    side_length: 2.5 * YEAR_SQUARE_DIMENSION.side_length,
+    spacing: 3.0,
+    max_squares_per_col: 1
+};
 
 #[derive(Debug, Clone, Copy, EnumIter, Display, Eq, PartialEq)]
 pub enum DateScope {
     Year,
     Month,
     Week
+}
+impl DateScope {
+    pub fn dimensions(&self) -> SquareDimensions {
+        match self {
+            DateScope::Week => WEEK_SQUARE_DIMENSION,
+            DateScope::Month => MONTH_SQUARE_DIMENSION,
+            DateScope::Year => YEAR_SQUARE_DIMENSION
+        }
+    }
 }
 #[derive(Debug, Clone, Copy, EnumIter, Display, Eq, PartialEq)]
 pub enum Offset {
@@ -83,5 +110,12 @@ pub fn get_end_dates_of_offsets(today: NaiveDate, scope: DateScope) -> OffsetDat
                 before_previous: sunday_cur_week - Days::new(14),
             }
         }
+    }
+}
+pub fn get_date_by_offset(offset_dates: OffsetDates, offset: Offset) -> NaiveDate {
+    match offset {
+        Offset::Current => offset_dates.current,
+        Offset::Previous => offset_dates.previous,
+        Offset::BeforePrevious => offset_dates.before_previous
     }
 }
