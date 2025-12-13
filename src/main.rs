@@ -11,6 +11,9 @@ use iced_core::Length::Fill;
 use iced_core::{Border, Size, Theme};
 use strum::IntoEnumIterator;
 use crate::client::bb_widget::workout_preset::WorkoutPresetWidget;
+use crate::client::bb_widget::shop::ShopWidget;
+use iced_core::image::{Image,Handle};
+use iced::widget::column;
 
 mod client;
 
@@ -21,14 +24,16 @@ struct UserInterface {
 
 #[derive(Debug, Clone, Copy)]
 enum Message {
-    Select(Tab)
+    Select(Tab),
+    BuyMascot()
 }
 
 impl UserInterface {
     fn update(&mut self, message: Message) -> Task<Message>{
         match message {
             Message::Select(Tab::Exit) => iced::exit(),
-            Message::Select(_) => Task::none()
+            Message::Select(_) => Task::none(),
+            Message::BuyMascot() => Task::none()
         }
     }
     fn view(&self) -> Element<'_, Message>{
@@ -60,7 +65,21 @@ impl UserInterface {
 
         let workout_preset: Element<Message> = WorkoutPresetWidget::default().into();
 
-        let frame_container = container(row![tab_container, workout_preset])
+        let shop_widget_rare: Element<Message> = ShopWidget::default()
+            .set_title("Random rare pet-egg".to_string())
+            .on_press(Message::BuyMascot()).set_image(
+            Image::new(Handle::from_path("assets/images/rare_gacha.png")))
+            .set_font(client::bb_theme::text_format::FIRA_SANS_EXTRABOLD)
+            .into();
+
+        let shop_widget_epic: Element<Message> = ShopWidget::default().on_press(Message::BuyMascot()).set_image(
+            Image::new(Handle::from_path("assets/images/gacha_purple.png")))
+            .set_font(client::bb_theme::text_format::FIRA_SANS_EXTRABOLD)
+            .into();
+
+        let shop_widgets:Element<Message> = column![shop_widget_rare,shop_widget_epic].spacing(30).into();
+
+        let frame_container = container(row![tab_container, workout_preset,shop_widgets])
             .width(size::FRAME_WIDTH)
             .height(size::FRAME_HEIGHT)
             .style(|_theme: &Theme| container::Style{
