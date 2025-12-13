@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use chrono::NaiveDate;
+use chrono::{Local, NaiveDate};
 use iced::{Element, Task};
 use iced::widget::Column;
 use iced_core::{renderer, Layout, Length, Rectangle, Size, Theme, Widget};
@@ -8,12 +8,20 @@ use iced_core::mouse::Cursor;
 use iced_core::renderer::Style;
 use iced_core::widget::Tree;
 use crate::client::app::App;
-use crate::client::bb_widget::activity::date_utils::{DateScope, Offset};
+use crate::client::bb_widget::activity::date_utils::{get_date_by_offset, get_end_dates_of_offsets, get_start_dates_of_offsets, DateScope, Offset};
+use crate::client::mascots::Mascot;
 use crate::Message;
 
 //TODO adjust dynamically
 const TEMP_WIDTH: f32 = 200.0;
 const TEMP_HEIGHT: f32 = 150.0;
+
+#[derive(Debug, Clone)]
+pub struct SquareDimensions {
+    pub(crate) side_length: f32,
+    pub(crate) spacing: f32,
+    pub(crate) max_squares_per_col: u32
+}
 
 type AmountOfWorkouts = usize;
 #[derive(Debug, Clone)]
@@ -22,8 +30,10 @@ pub struct ActivityWidget {
     height: f32,
     current_scope: DateScope,
     current_offset: Offset,
-    activity: HashMap<NaiveDate, AmountOfWorkouts>
+    activity: HashMap<NaiveDate, AmountOfWorkouts>,
     //TODO zukünftig ergänzbar um map auf Vec<Exercise> / handle user-input
+    active_mascot: Mascot, //TODO Update nach Message::SelectMascot(...)
+    today: NaiveDate
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -32,19 +42,28 @@ pub enum ActivityMessage {
     TimeOffset(Offset)
 }
 
-impl Default for ActivityWidget {
-    fn default() -> Self {
+impl ActivityWidget {
+    pub fn new(active_mascot: Mascot) -> Self {
         ActivityWidget {
             width: TEMP_WIDTH,
             height: TEMP_HEIGHT,
             current_scope: DateScope::Month,
             current_offset: Offset::Current,
             activity: HashMap::new(),
+            active_mascot,
+            today: Local::now().date_naive(),
         }
     }
-}
+    pub fn update_current_mascot(&mut self, mascot: Mascot) {
+        self.active_mascot = mascot
+    }
 
-impl ActivityWidget {
+    pub fn start_date(&self) -> NaiveDate {
+        get_date_by_offset(get_start_dates_of_offsets(self.today, self.current_scope), self.current_offset)
+    }
+    pub fn end_date(&self) -> NaiveDate {
+        get_date_by_offset(get_end_dates_of_offsets(self.today, self.current_scope), self.current_offset)
+    }
     pub fn update(&mut self, message: ActivityMessage) -> Task<Message> {
         match message {
             ActivityMessage::TimeScope(scope) => {
