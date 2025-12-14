@@ -1,9 +1,9 @@
 use crate::client::app::App;
 use crate::client::bb_tab::tab::Tab;
 use crate::client::bb_theme::color;
-use crate::client::bb_theme::custom_button::{create_text_button, ButtonStyle};
+use crate::client::bb_theme::custom_button::{create_element_button, create_text_button, ButtonStyle};
 use crate::client::size;
-use iced::widget::{container, row, Column};
+use iced::widget::{button, container, row, Column};
 use iced::{Element, Task};
 use iced_core::border::Radius;
 use iced_core::window::{Position, Settings};
@@ -14,6 +14,7 @@ use crate::client::bb_widget::workout_preset::WorkoutPresetWidget;
 use crate::client::bb_widget::shop::ShopWidget;
 use iced_core::image::{Image,Handle};
 use iced::widget::column;
+use crate::client::mascots::Mascot;
 
 mod client;
 
@@ -65,15 +66,18 @@ impl UserInterface {
 
         let workout_preset: Element<Message> = WorkoutPresetWidget::default().into();
 
-        let shop_widget_rare: Element<Message> = ShopWidget::default()
-            .set_title("Random rare pet-egg".to_string())
-            .on_press(Message::BuyMascot()).set_image(
-            Image::new(Handle::from_path("assets/images/rare_gacha.png")))
+        let rare_buy_button = button("Buy 50 coins").into();
+
+        let shop_widget_rare: Element<Message> = ShopWidget::new("Random rare pet-egg".to_string(),self.app.active_mascot.clone(),rare_buy_button)
+            .set_image(Image::new(Handle::from_path("assets/images/rare_gacha.png")))
             .set_font(client::bb_theme::text_format::FIRA_SANS_EXTRABOLD)
             .into();
 
-        let shop_widget_epic: Element<Message> = ShopWidget::default().on_press(Message::BuyMascot()).set_image(
-            Image::new(Handle::from_path("assets/images/gacha_purple.png")))
+        let epic_buy_button = button("Buy 100 coins").into();
+
+        let shop_widget_epic: Element<Message> = ShopWidget::new("Random epic pet-egg".to_string(),self.app.active_mascot.clone(),epic_buy_button)
+            .set_image(
+            Image::new(Handle::from_path("assets/images/epic_gacha.png")))
             .set_font(client::bb_theme::text_format::FIRA_SANS_EXTRABOLD)
             .into();
 
