@@ -1,3 +1,4 @@
+use std::io;
 use crate::client::app::App;
 use crate::client::bb_tab::tab::Tab;
 use crate::client::bb_theme::custom_button::{create_text_button, ButtonStyle};
@@ -14,8 +15,10 @@ use crate::client::bb_widget::shop;
 use crate::client::bb_theme::container::ContainerStyle;
 use crate::client::bb_widget::activity::activity::{ActivityMessage};
 use crate::client::bb_widget::widget_utils::INDENT;
+use crate::server::server_main::server_main;
 
 mod client;
+mod server;
 
 #[derive(Default)]
 struct UserInterface {
@@ -93,7 +96,45 @@ impl UserInterface {
     }
 }
 
-pub fn main() -> iced::Result {
+enum LaunchType {
+    Server,
+    Client,
+}
+
+fn input_launch_type() -> LaunchType {
+    let mut input = String::new();
+    println!("Please type what you want to launch (Server/Client): ");
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read line");
+    let formated_input = input.trim().to_lowercase();
+    if formated_input == "server" {
+        return LaunchType::Server;
+    } else if formated_input == "client" {
+        return LaunchType::Client;
+    } else {
+        input_launch_type()
+    }
+}
+
+#[tokio::main]
+pub async fn main() -> iced::Result {
+
+    match input_launch_type() {
+        LaunchType::Client => {
+            client_main()
+        },
+        LaunchType::Server => {
+            let server = server_main();
+            server.await;
+            Ok(())
+        },
+    }
+
+    
+}
+
+fn client_main() -> iced::Result {
     let settings: Settings = Settings {
         size: Size::new(size::FRAME_WIDTH, size::FRAME_HEIGHT),
         position: Position::Default,
