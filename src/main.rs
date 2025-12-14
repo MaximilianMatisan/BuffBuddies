@@ -15,6 +15,7 @@ use crate::client::bb_widget::shop::ShopWidget;
 use iced_core::image::{Image,Handle};
 use iced::widget::column;
 use crate::client::mascots::Mascot;
+use crate::Message::BuyMascot;
 
 mod client;
 
@@ -68,14 +69,14 @@ impl UserInterface {
 
         let rare_buy_button = button("Buy 50 coins").into();
 
-        let shop_widget_rare: Element<Message> = ShopWidget::new("Random rare pet-egg".to_string(),self.app.active_mascot.clone(),rare_buy_button)
+        let shop_widget_rare: Element<Message> = ShopWidget::new("Random rare pet-egg".to_string(),self.app.active_mascot.clone(),rare_buy_button,Message::BuyMascot())
             .set_image(Image::new(Handle::from_path("assets/images/rare_gacha.png")))
             .set_font(client::bb_theme::text_format::FIRA_SANS_EXTRABOLD)
             .into();
 
         let epic_buy_button = button("Buy 100 coins").into();
 
-        let shop_widget_epic: Element<Message> = ShopWidget::new("Random epic pet-egg".to_string(),self.app.active_mascot.clone(),epic_buy_button)
+        let shop_widget_epic: Element<Message> = ShopWidget::new("Random epic pet-egg".to_string(),self.app.active_mascot.clone(),epic_buy_button,Message::BuyMascot())
             .set_image(
             Image::new(Handle::from_path("assets/images/epic_gacha.png")))
             .set_font(client::bb_theme::text_format::FIRA_SANS_EXTRABOLD)

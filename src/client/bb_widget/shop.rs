@@ -4,15 +4,19 @@ use iced::advanced::{
     widget::Widget,
     {renderer, Clipboard, Shell}
 };
-use iced::{event, Event};
+use iced::{event, Event, Renderer};
 use iced::{mouse, Element};
 use iced::{Length, Rectangle, Size};
+use iced::widget::Button;
 use iced_core::layout::{Limits, Node};
 use iced_core::renderer::Quad;
 use iced_core::widget::Tree;
 use iced_core::{alignment, layout, Alignment, Point, Theme, Vector};
 use iced_core::{image, Border, Shadow};
 use crate::client::mascots::Mascot;
+use crate::Message;
+use iced_core::event::Status;
+use iced_core::mouse::Cursor;
 
 const INDENT: f32 = DEFAULT_PRESET_HEIGHT/13.0 * SCALE;
 const TITLE_FONT_SIZE: f32 = 27.5 * SCALE;
@@ -34,8 +38,8 @@ where Renderer: iced_core::image::Renderer + iced_core::text::Renderer
     active_mascot: Mascot
 }
 
-impl<'a,Message, Renderer> ShopWidget<'a,  Message, Renderer>
-where Renderer: iced_core::image::Renderer + iced_core::text::Renderer
+impl<'a> ShopWidget<'a,  Message, Renderer>
+where Renderer: iced_core::image::Renderer + iced_core::text::Renderer + 'a, Message: std::clone::Clone + 'a
 {
 
     pub fn update_active_mascot (mut self, mascot: Mascot) -> Self{
@@ -51,20 +55,20 @@ where Renderer: iced_core::image::Renderer + iced_core::text::Renderer
         self.font = Some(font);
         self
     }
-    pub(crate) fn new(name: String, mascot: Mascot, buy_element: iced_core::Element<'a, Message, Theme, Renderer>) -> Self {
+    pub(crate) fn new(name: String, mascot: Mascot, buy_button:iced::widget::Button<'a, Message>, message: crate::Message) -> Self {
         ShopWidget {
             image: None,
             title: name,
             width: DEFAULT_PRESET_WIDTH,
             height: DEFAULT_PRESET_HEIGHT,
-            buy_element: buy_element,
+            buy_element: buy_button.on_press(message).into(),
             font: None,
             active_mascot: mascot
         }
     }
 }
 
-impl<'a,Message, Theme, Renderer> Widget<Message, Theme, Renderer> for ShopWidget<'a, Message, Renderer>
+impl<'a,Message, Renderer> Widget<Message, Theme, Renderer> for ShopWidget<'a, Message, Renderer>
 where
     Renderer: renderer::Renderer + iced_core::text::Renderer + iced_core::image::Renderer,
     Message: Clone,
@@ -94,7 +98,7 @@ where
         let child_x = (widget_size.width - child_size.width) / 2.0;
         let child_y = widget_size.height - child_size.height - 10.0;
 
-        child_node = child_node.translate(Vector::new(child_x, child_y));
+        child_node = child_node.move_to(Point::new(child_x, child_y));
 
         Node::with_children(widget_size, vec![child_node])
 
@@ -102,7 +106,7 @@ where
 
     fn draw(&self, tree: &Tree,
             renderer: &mut Renderer,
-            _theme: &Theme,
+            theme: &Theme,
             style: &renderer::Style,
             layout: Layout<'_>,
             cursor: mouse::Cursor,
@@ -147,7 +151,7 @@ where
         self.buy_element.as_widget().draw(
             &tree.children[0],
             renderer,
-            &iced::Theme::CatppuccinFrappe,
+            theme,
             style,
             layout.children().next().unwrap(),
             cursor,
@@ -155,25 +159,33 @@ where
         );
     }
 
-    fn mouse_interaction(
-        &self,
-        _tree: &Tree,
-        layout: Layout<'_>,
-        cursor: mouse::Cursor,
-        _viewport: &Rectangle,
-        _renderer: &Renderer,
-    ) -> mouse::Interaction {
 
-        let is_mouse_over = cursor.is_over(layout.bounds());
-        if is_mouse_over  {
-            mouse::Interaction::Pointer
-        } else {
-            mouse::Interaction::default()
+    fn on_event(&mut self,
+                state: &mut Tree,
+                event: Event,
+                layout: Layout<'_>,
+                cursor: Cursor,
+                renderer: &Renderer,
+                clipboard: &mut dyn Clipboard,
+                shell: &mut Shell<'_, Message>,
+                viewport: &Rectangle) -> Status
+    {
+        if state.children.is_empty() {
+            return Status::Ignored;
         }
+        let child_layout = match layout.children().next() {
+            None => return Status::Ignored,
+            Some(layout) => layout
+        };
+
+        let child_tree = &mut state.children[0];
+            self.buy_element
+                .as_widget_mut()
+                .on_event(child_tree,event,child_layout,cursor,renderer,clipboard,shell,viewport)
     }
 }
 
-impl<'a, Message: 'a, Theme, Renderer> From<ShopWidget<'a, Message, Renderer>> for Element<'a, Message, Theme, Renderer>
+impl<'a, Message: 'a, Renderer> From<ShopWidget<'a, Message, Renderer>> for Element<'a, Message, Theme, Renderer>
 where Message: Clone,
       Renderer: 'a +
       iced_core::image::Renderer
