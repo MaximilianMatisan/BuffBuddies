@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use chrono::{Datelike, Duration, Local, NaiveDate};
+use chrono::{Datelike, Duration, Local, NaiveDate, Weekday};
 use iced::{Element, Task};
 use iced::widget::{container, row, Column};
 use iced_core::{renderer, Border, Color, Layout, Length, Rectangle, Size, Theme, Widget};
@@ -11,7 +11,9 @@ use iced_core::renderer::{Quad, Style};
 use iced_core::widget::Tree;
 use strum::IntoEnumIterator;
 use crate::client::app::App;
+use crate::client::bb_theme;
 use crate::client::bb_theme::{color, custom_button};
+use crate::client::bb_theme::container::ContainerStyle;
 use crate::client::bb_theme::custom_button::{ButtonStyle, DEFAULT_BUTTON_RADIUS};
 use crate::client::bb_widget::activity::date_utils::{get_date_by_offset, get_end_dates_of_offsets, get_start_dates_of_offsets, started_weeks_in_period, DateScope, Offset, DAYS_PER_WEEK};
 use crate::client::bb_widget::widget_utils::INDENT;
@@ -62,6 +64,18 @@ impl ActivityWidget {
         activity_widget.width = activity_widget.compute_widget_width();
         activity_widget.height = activity_widget.compute_widget_height();
 
+        //EXAMPLES
+        let mut map: HashMap<NaiveDate, AmountOfWorkouts> = HashMap::new();
+        let mut cursor = activity_widget.start_date();
+
+        while cursor < activity_widget.today {
+            if cursor.weekday() == Weekday::Mon || cursor.weekday() == Weekday::Fri {
+                map.insert(cursor, 1);
+            }
+            cursor += Duration::days(1);
+        }
+        activity_widget.activity = map;
+        
         activity_widget
     }
     pub fn update_active_mascot(&mut self, mascot: Mascot) {
@@ -173,16 +187,7 @@ impl ActivityWidget {
                 time_offset_buttons
             ].spacing(10)
                 .align_y(Vertical::Center))
-            .style(|_theme: &Theme| container::Style {
-                text_color: None,
-                background: Some(iced::Background::Color(color::CONTAINER_COLOR)),
-                border: Border {
-                    color: color::DARKER_CONTAINER_COLOR,
-                    width: 1.0,
-                    radius: Radius::new(15.0),
-                },
-                shadow: Default::default(),
-            })
+            .style(bb_theme::container::create_style_container(ContainerStyle::Default))
             .padding(INDENT);
 
         row![widget_offset_container, time_scope_buttons.spacing(10)]

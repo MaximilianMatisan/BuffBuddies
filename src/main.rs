@@ -1,20 +1,18 @@
 use crate::client::app::App;
 use crate::client::bb_tab::tab::Tab;
 use crate::client::bb_theme::custom_button::{create_text_button, ButtonStyle};
-use crate::client::bb_theme::color;
 use crate::client::bb_widget::workout_preset::WorkoutPresetWidget;
-use crate::client::size;
-use iced::widget::column;
 use iced::widget::{container, row, Column};
 use iced::{Element, Task};
-use iced_core::border::Radius;
 use iced_core::image::{Handle, Image};
+use crate::client::{bb_theme, size};
 use iced_core::window::{Position, Settings};
 use iced_core::Length::Fill;
-use iced_core::{Border, Size, Theme};
+use iced_core::{Size};
 use strum::IntoEnumIterator;
 use crate::client::bb_widget::shop;
-use crate::client::bb_widget::activity::activity::{ActivityMessage, ActivityWidget};
+use crate::client::bb_theme::container::ContainerStyle;
+use crate::client::bb_widget::activity::activity::{ActivityMessage};
 use crate::client::bb_widget::widget_utils::INDENT;
 
 mod client;
@@ -63,16 +61,7 @@ impl UserInterface {
         }
         let tab_container = container(tab_bar.spacing(10).padding(30))
             .padding(10)
-            .style(|_theme: &Theme| container::Style {
-                text_color: None,
-                background: Some(iced::Background::Color(color::CONTAINER_COLOR)),
-                border: Border {
-                    color: color::DARKER_CONTAINER_COLOR,
-                    width: 1.0,
-                    radius: Radius::new(15.0),
-                },
-                shadow: Default::default(),
-            })
+            .style(bb_theme::container::create_style_container(ContainerStyle::Default))
             .height(Fill);
 
 
@@ -86,7 +75,7 @@ impl UserInterface {
             .set_image(Image::new(Handle::from_path("assets/images/epic_gacha.png")))
         ];
 
-        shop_widgets = shop_widgets.spacing(30).padding(20);
+        shop_widgets = shop_widgets.spacing(30);
 
         let contents = Column::new()
             .push(activity_widget)
@@ -97,12 +86,7 @@ impl UserInterface {
         let frame_container = container(row![tab_container, contents].spacing(INDENT))
             .width(size::FRAME_WIDTH)
             .height(size::FRAME_HEIGHT)
-            .style(|_theme: &Theme| container::Style{
-                text_color: None,
-                background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
-                border: Default::default(),
-                shadow: Default::default(),
-            }).padding(20)
+            .style(bb_theme::container::create_style_container(ContainerStyle::Background)).padding(20)
             .into();
 
         frame_container
