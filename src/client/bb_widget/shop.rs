@@ -21,10 +21,10 @@ use iced_core::mouse::Cursor;
 const INDENT: f32 = DEFAULT_PRESET_HEIGHT/13.0 * SCALE;
 const TITLE_FONT_SIZE: f32 = 27.5 * SCALE;
 const DEFAULT_PRESET_WIDTH: f32 = 389.0 * SCALE;
-const DEFAULT_PRESET_HEIGHT: f32 = 377.0 * SCALE;
+const DEFAULT_PRESET_HEIGHT: f32 = 415.0 * SCALE;
 const IMAGE_WIDTH: f32 = 184.0 * SCALE;
 const IMAGE_HEIGHT: f32 = 256.0 * SCALE;
-const SCALE: f32 = 1.0;
+const SCALE: f32 = 0.9;
 
 pub struct ShopWidget <'a,Message, Renderer>
 where Renderer: iced_core::image::Renderer + iced_core::text::Renderer
@@ -96,7 +96,7 @@ where
         let child_size = child_node.size();
 
         let child_x = (widget_size.width - child_size.width) / 2.0;
-        let child_y = widget_size.height - child_size.height - 10.0;
+        let child_y = widget_size.height - child_size.height - 18.0;
 
         child_node = child_node.move_to(Point::new(child_x, child_y));
 

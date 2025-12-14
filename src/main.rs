@@ -1,14 +1,14 @@
 use crate::client::app::App;
 use crate::client::bb_tab::tab::Tab;
-use crate::client::bb_theme::color;
+use crate::client::bb_theme::{color, text_format};
 use crate::client::bb_theme::custom_button::{create_element_button, create_text_button, ButtonStyle};
 use crate::client::size;
-use iced::widget::{button, container, row, Column};
-use iced::{Element, Task};
+use iced::widget::{button, container, image, row, text, Column};
+use iced::{Element, Renderer, Task};
 use iced_core::border::Radius;
 use iced_core::window::{Position, Settings};
 use iced_core::Length::Fill;
-use iced_core::{Border, Size, Theme};
+use iced_core::{ Border, Size, Theme};
 use strum::IntoEnumIterator;
 use crate::client::bb_widget::workout_preset::WorkoutPresetWidget;
 use crate::client::bb_widget::shop::ShopWidget;
@@ -17,6 +17,9 @@ use iced::widget::column;
 use crate::client::mascots::Mascot;
 use crate::Message::BuyMascot;
 
+use iced_core::{border, color, Background, Gradient, Widget};
+use iced_core::alignment::Vertical;
+use iced_core::gradient::{ColorStop, Linear};
 mod client;
 
 #[derive(Default)]
@@ -67,7 +70,42 @@ impl UserInterface {
 
         let workout_preset: Element<Message> = WorkoutPresetWidget::default().into();
 
-        let rare_buy_button = button("Buy 50 coins").into();
+        let rare_buy_button: iced::widget::Button<'_, Message, Theme, Renderer> =
+            button(row![text("Buy").font(text_format::FIRA_SANS_EXTRABOLD),
+                 row![text("50").font(text_format::FIRA_SANS_EXTRABOLD),image(Handle::from_path("assets/images/coin.png")).width(25).height(25)].align_y(Vertical::Center).spacing(5)].spacing(85).align_y(Vertical::Center))
+                .style(move |_, status: button::Status| {
+
+                    let mut style = button::Style::default();
+
+                    style.border.radius = border::radius(12.0);
+                    style.text_color = color!(255,255,255);
+
+                    match status {
+                        button::Status::Active => {
+                            style.background = Some(Background::Color(self.app.active_mascot.get_primary_color()));
+                            style
+                        }
+                        button::Status::Disabled =>  {
+                            style.background = Some(Background::Color(self.app.active_mascot.get_primary_color()));
+                            style
+                        }
+                        button::Status::Hovered => {
+                            style.background = Some(Background::Color(self.app.active_mascot.get_secondary_color()));
+                            style
+                        }
+                        button::Status::Pressed => {
+                            let mut linear = Linear::new(0);
+                            linear.stops = [
+                                Some(ColorStop { offset: 0.0, color: self.app.active_mascot.get_primary_color()}),
+                                Some(ColorStop { offset: 1.0, color: self.app.active_mascot.get_secondary_color()}),
+                                None, None, None, None, None, None
+                            ];
+
+                            style.background = Some(Background::Gradient(Gradient::Linear(linear)));
+                            style
+                        }
+                    }
+                }).width(182).height(35);
 
         let shop_widget_rare: Element<Message> = ShopWidget::new("Random rare pet-egg".to_string(),self.app.active_mascot.clone(),rare_buy_button,Message::BuyMascot())
             .set_image(Image::new(Handle::from_path("assets/images/rare_gacha.png")))
