@@ -15,9 +15,9 @@ pub const FIRA_SANS_EXTRABOLD: Font = Font{
 };
 pub const ARIAL_ROUNDED_B: Font = Font::with_name("Arial Rounded MT Bold");
 
-pub fn format_button_text(msg: Text<'_, Theme, Renderer>) -> Text<'_, Theme, Renderer>{
+pub fn format_button_text(msg: Text<Theme, Renderer>) -> Text<Theme, Renderer>{
     msg.font(FIRA_SANS_EXTRABOLD).color(color::TEXT_COLOR).center()
 }
-pub fn format_description_text(msg: Text<'_, Theme, Renderer>) -> Text<'_, Theme, Renderer> {
+pub fn format_description_text(msg: Text<Theme, Renderer>) -> Text<Theme, Renderer> {
     msg.font(FIRA_SANS_EXTRABOLD).color(color::DESCRIPTION_TEXT_COLOR).size(15)
 }

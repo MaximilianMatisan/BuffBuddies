@@ -74,7 +74,7 @@ where Renderer: iced_core::image::Renderer + iced_core::text::Renderer + 'a, Mes
                                         .spacing(5)]
                                    .align_y(Vertical::Center)
                                    .into(),
-                               ButtonStyle::Active)
+                               ButtonStyle::Active, None)
                 .width(182)
                 .height(35);
 

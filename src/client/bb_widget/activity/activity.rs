@@ -1,18 +1,25 @@
 use std::collections::HashMap;
 use chrono::{Datelike, Duration, Local, NaiveDate};
 use iced::{Element, Task};
-use iced::widget::Column;
+use iced::widget::{container, row, Column};
 use iced_core::{renderer, Border, Color, Layout, Length, Rectangle, Size, Theme, Widget};
+use iced_core::alignment::Vertical;
+use iced_core::border::Radius;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::{Quad, Style};
 use iced_core::widget::Tree;
+use strum::IntoEnumIterator;
 use crate::client::app::App;
-use crate::client::bb_theme;
+use crate::client::bb_theme::{color, custom_button};
+use crate::client::bb_theme::custom_button::{ButtonStyle, DEFAULT_BUTTON_RADIUS};
 use crate::client::bb_widget::activity::date_utils::{get_date_by_offset, get_end_dates_of_offsets, get_start_dates_of_offsets, started_weeks_in_period, DateScope, Offset, DAYS_PER_WEEK};
+use crate::client::bb_widget::widget_utils::INDENT;
 use crate::client::mascots::Mascot;
 use crate::Message;
 
+const DEFAULT_NAVIGATION_BUTTON_WIDTH: f32 = 130.0;
+const DEFAULT_NAVIGATION_BUTTON_HEIGHT: f32 = 40.0;
 const ACTIVITY_SQUARE_BORDER_RADIUS: f32 = 3.0;
 
 #[derive(Debug, Clone)]
@@ -46,7 +53,7 @@ impl ActivityWidget {
         let mut activity_widget = ActivityWidget {
             width: 0.0,
             height: 0.0,
-            current_scope: DateScope::Year,
+            current_scope: DateScope::Month,
             current_offset: Offset::Current,
             activity: Default::default(),
             active_mascot,
@@ -57,7 +64,7 @@ impl ActivityWidget {
 
         activity_widget
     }
-    pub fn update_current_mascot(&mut self, mascot: Mascot) {
+    pub fn update_active_mascot(&mut self, mascot: Mascot) {
         self.active_mascot = mascot
     }
     fn compute_widget_width(&self) -> f32 {
@@ -85,6 +92,15 @@ impl ActivityWidget {
     pub fn end_date(&self) -> NaiveDate {
         get_date_by_offset(get_end_dates_of_offsets(self.today, self.current_scope), self.current_offset)
     }
+    pub fn offset_title(&self, offset: Offset) -> String {
+        let start_dates = get_start_dates_of_offsets(self.today, self.current_scope);
+        let start_date = get_date_by_offset(start_dates, offset);
+        match self.current_scope {
+            DateScope::Year => start_date.year().to_string(),
+            DateScope::Month => start_date.format("%B").to_string(),
+            DateScope::Week => format!("Week {}", start_date.iso_week().week().to_string()),
+        }
+    }
 
     pub fn update(&mut self, message: ActivityMessage) -> Task<Message> {
         match message {
@@ -100,9 +116,78 @@ impl ActivityWidget {
         self.height = self.compute_widget_height();
         Task::none()
     }
-    pub fn view<'a>(&self, _app: &'a App) -> Element<'a, Message> {
-        //TODO
-        Column::new().into()
+    pub fn view<'a>(&self, app: &'a App) -> Element<'a, Message> {
+
+        let mut time_scope_buttons: Column<Message> = Column::new();
+
+        let time_scope_border_radius = Radius {
+            top_left: 0.0,
+            top_right: DEFAULT_BUTTON_RADIUS,
+            bottom_right: DEFAULT_BUTTON_RADIUS,
+            bottom_left: 0.0,
+        };
+
+        for time in DateScope::iter() {
+            let style_of_button = if self.current_scope == time
+            {ButtonStyle::Active } else {ButtonStyle::InactiveSolid};
+            let width_of_button = if self.current_scope == time
+            {DEFAULT_NAVIGATION_BUTTON_WIDTH} else {DEFAULT_NAVIGATION_BUTTON_WIDTH  - 20.0};
+
+            time_scope_buttons = time_scope_buttons
+                .push(custom_button::create_text_button(self.active_mascot.clone(),
+                                                        time.to_string(),
+                                                        style_of_button,
+                                                        Some(time_scope_border_radius))
+                    .width(width_of_button)
+                    .height(DEFAULT_NAVIGATION_BUTTON_HEIGHT)
+                    .on_press(Message::Activity(ActivityMessage::TimeScope(time)))
+                );
+        };
+
+        let mut time_offset_buttons: Column<Message> = Column::new();
+
+        let offset_button_width = match self.current_scope {
+            DateScope::Year => Length::Shrink,
+            DateScope::Week | DateScope::Month => Length::Fixed(DEFAULT_NAVIGATION_BUTTON_WIDTH)
+        };
+
+        for offset in Offset::iter() {
+            let style_of_button = if self.current_offset == offset {ButtonStyle::Active}
+            else {ButtonStyle::InactiveTransparent};
+
+            time_offset_buttons = time_offset_buttons
+                .push(custom_button::create_text_button(self.active_mascot.clone(),
+                                                        self.offset_title(offset),
+                                                        style_of_button,
+                                                        None)
+                    .width(offset_button_width)
+                    .height(DEFAULT_NAVIGATION_BUTTON_HEIGHT)
+                    .on_press(Message::Activity(ActivityMessage::TimeOffset(offset)))
+                );
+        }
+        time_offset_buttons = time_offset_buttons.spacing(INDENT);
+
+        let widget_offset_container = container(
+            row![
+                app.activity_widget.clone(), //TODO ohne clone?
+                time_offset_buttons
+            ].spacing(10)
+                .align_y(Vertical::Center))
+            .style(|_theme: &Theme| container::Style {
+                text_color: None,
+                background: Some(iced::Background::Color(color::CONTAINER_COLOR)),
+                border: Border {
+                    color: color::DARKER_CONTAINER_COLOR,
+                    width: 1.0,
+                    radius: Radius::new(15.0),
+                },
+                shadow: Default::default(),
+            })
+            .padding(INDENT);
+
+        row![widget_offset_container, time_scope_buttons.spacing(10)]
+            .align_y(Vertical::Center)
+            .into()
     }
 }
 
@@ -144,6 +229,7 @@ where
                 None | Some(0) => Color::TRANSPARENT,
                 Some(_) => self.active_mascot.get_primary_color()
             };
+
             let activity_border = match self.activity.get(&date_iterator){
                 _ if date_iterator == self.today => Border{
                     color: Color::WHITE,
@@ -151,12 +237,12 @@ where
                     radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
                 },
                 None | Some(0) => Border{
-                    color: bb_theme::color::HIGHLIGHTED_CONTAINER_COLOR,
+                    color: color::HIGHLIGHTED_CONTAINER_COLOR,
                     width: 1.0,
                     radius: ACTIVITY_SQUARE_BORDER_RADIUS.into()
                 },
                 Some(_) => Border{
-                    color: bb_theme::color::HIGHLIGHTED_CONTAINER_COLOR,
+                    color: Color::TRANSPARENT,
                     width: 0.0,
                     radius: ACTIVITY_SQUARE_BORDER_RADIUS.into()
                 },
