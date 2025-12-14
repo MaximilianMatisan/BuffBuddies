@@ -11,10 +11,11 @@ use iced_core::border::Radius;
 use iced_core::image::{Handle, Image};
 use iced_core::window::{Position, Settings};
 use iced_core::Length::Fill;
-use iced_core::{Background, Border, Size, Theme};
+use iced_core::{Border, Size, Theme};
 use strum::IntoEnumIterator;
 use crate::client::bb_widget::shop;
 use crate::client::bb_widget::activity::activity::{ActivityMessage, ActivityWidget};
+use crate::client::bb_widget::widget_utils::INDENT;
 
 mod client;
 
@@ -55,7 +56,8 @@ impl UserInterface {
                                    tab.to_string(),
                                    if self.app.screen == tab
                                    { ButtonStyle::ActiveTab }
-                                   else { ButtonStyle::InactiveTab })
+                                   else { ButtonStyle::InactiveTab },
+                                   None)
                     .on_press(Message::Select(tab))
             );
         }
@@ -75,7 +77,8 @@ impl UserInterface {
 
 
         let workout_preset: Element<Message> = WorkoutPresetWidget::default().into();
-        let activity_widget: Element<Message> = ActivityWidget::new(self.app.active_mascot.clone()).into();
+
+        let activity_widget: Element<Message> = self.app.activity_widget.view(&self.app);
 
         let mut shop_widgets = row![
             shop::ShopWidget::new("Random rare mascot-egg".to_string(), 50, self.app.active_mascot.clone(), Message::BuyMascot()),
@@ -89,9 +92,9 @@ impl UserInterface {
             .push(activity_widget)
             .push(shop_widgets)
             .push(workout_preset)
-            .spacing(10);
+            .spacing(INDENT).padding(INDENT);
 
-        let frame_container = container(row![tab_container, contents])
+        let frame_container = container(row![tab_container, contents].spacing(INDENT))
             .width(size::FRAME_WIDTH)
             .height(size::FRAME_HEIGHT)
             .style(|_theme: &Theme| container::Style{
