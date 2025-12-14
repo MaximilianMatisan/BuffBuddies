@@ -1,22 +1,21 @@
 use crate::client::bb_theme;
+use crate::client::mascots::Mascot;
+use crate::Message;
 use iced::advanced::{
     layout::Layout,
     widget::Widget,
     {renderer, Clipboard, Shell}
 };
-use iced::{event, Event, Renderer};
 use iced::{mouse, Element};
+use iced::{Event, Renderer};
 use iced::{Length, Rectangle, Size};
-use iced::widget::Button;
+use iced_core::event::Status;
 use iced_core::layout::{Limits, Node};
+use iced_core::mouse::Cursor;
 use iced_core::renderer::Quad;
 use iced_core::widget::Tree;
-use iced_core::{alignment, layout, Alignment, Point, Theme, Vector};
+use iced_core::{alignment, Point, Theme};
 use iced_core::{image, Border, Shadow};
-use crate::client::mascots::Mascot;
-use crate::Message;
-use iced_core::event::Status;
-use iced_core::mouse::Cursor;
 
 const INDENT: f32 = DEFAULT_PRESET_HEIGHT/13.0 * SCALE;
 const TITLE_FONT_SIZE: f32 = 27.5 * SCALE;
@@ -75,14 +74,6 @@ where
 {
     fn size(&self) -> Size<Length> {
         Size::new(Length::Fixed(self.width), Length::Fixed(self.height))
-    }
-
-    fn children(&self) -> Vec<Tree> {
-        vec![Tree::new(self.buy_element.as_widget())]
-    }
-
-    fn diff(&self, tree: &mut Tree) {
-        tree.diff_children(std::slice::from_ref(&self.buy_element));
     }
 
     fn layout(&self, tree: &mut Tree, renderer: &Renderer, limits: &Limits) -> Node {
@@ -157,6 +148,14 @@ where
             cursor,
             viewport,
         );
+    }
+
+    fn children(&self) -> Vec<Tree> {
+        vec![Tree::new(self.buy_element.as_widget())]
+    }
+
+    fn diff(&self, tree: &mut Tree) {
+        tree.diff_children(std::slice::from_ref(&self.buy_element));
     }
 
 
