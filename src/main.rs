@@ -1,22 +1,19 @@
 use crate::client::app::App;
 use crate::client::bb_tab::tab::Tab;
-use crate::client::bb_theme::{color};
-use crate::client::bb_theme::custom_button::{create_element_button, create_text_button, ButtonStyle};
+use crate::client::bb_theme::custom_button::{create_text_button, ButtonStyle};
+use crate::client::bb_theme::color;
+use crate::client::bb_widget::workout_preset::WorkoutPresetWidget;
 use crate::client::size;
-use iced::widget::{button, container, image, row, text, Column, Space};
-use iced::{Element, Renderer, Task};
+use iced::widget::column;
+use iced::widget::{container, row, Column};
+use iced::{Element, Task};
 use iced_core::border::Radius;
+use iced_core::image::{Handle, Image};
 use iced_core::window::{Position, Settings};
 use iced_core::Length::Fill;
 use iced_core::{Border, Size, Theme};
 use strum::IntoEnumIterator;
-use crate::client::bb_widget::workout_preset::WorkoutPresetWidget;
-use crate::client::bb_widget::shop::ShopWidget;
-use iced_core::image::{Image,Handle};
-use iced::widget::column;
-
-use iced_core::alignment::Vertical;
-use crate::client::bb_theme::text_format::format_button_text;
+use crate::client::bb_widget::shop;
 
 mod client;
 
@@ -49,7 +46,7 @@ impl UserInterface {
         let mut tab_bar: Column<Message> = Column::new();
         for tab in Tab::iter() {
             tab_bar = tab_bar.push(
-                create_text_button(&self.app,
+                create_text_button(self.app.active_mascot.clone(),
                                    tab.to_string(),
                                    if self.app.screen == tab
                                    { ButtonStyle::ActiveTab }
@@ -74,32 +71,14 @@ impl UserInterface {
 
         let workout_preset: Element<Message> = WorkoutPresetWidget::default().into();
 
-        let rare_buy_button: iced::widget::Button<'_, Message, Theme, Renderer> =
-            create_element_button(&self.app,
-                               row![format_button_text(text("Buy")),
-                                   Space::with_width(Fill),
-                                   row![format_button_text(text("50")),
-                                       image(Handle::from_path("assets/images/coin.png")).width(25).height(25)]
-                                   .align_y(Vertical::Center)
-                                   .spacing(5)
-                               ].align_y(Vertical::Center)
-                                   .into(), ButtonStyle::Active)
-                .width(182).height(35);
+        let mut shop_widgets = row![
+            shop::ShopWidget::new("Random rare mascot-egg".to_string(), 50, self.app.active_mascot.clone(), Message::BuyMascot()),
+            shop::ShopWidget::new("Random epic mascot-egg".to_string(), 100, self.app.active_mascot.clone(), Message::BuyMascot())
+            .set_image(Image::new(Handle::from_path("assets/images/epic_gacha.png")))
+        ];
 
-        let shop_widget_rare: Element<Message> = ShopWidget::new("Random rare pet-egg".to_string(),self.app.active_mascot.clone(),rare_buy_button,Message::BuyMascot())
-            .set_image(Image::new(Handle::from_path("assets/images/rare_gacha.png")))
-            .set_font(client::bb_theme::text_format::FIRA_SANS_EXTRABOLD)
-            .into();
+        shop_widgets = shop_widgets.spacing(30).padding(20);
 
-        let epic_buy_button = button("Buy 100 coins").into();
-
-        let shop_widget_epic: Element<Message> = ShopWidget::new("Random epic pet-egg".to_string(),self.app.active_mascot.clone(),epic_buy_button,Message::BuyMascot())
-            .set_image(
-            Image::new(Handle::from_path("assets/images/epic_gacha.png")))
-            .set_font(client::bb_theme::text_format::FIRA_SANS_EXTRABOLD)
-            .into();
-
-        let shop_widgets:Element<Message> = row![shop_widget_rare,shop_widget_epic].spacing(30).into();
         let contents: Element<Message> = column![workout_preset, shop_widgets].padding(30).into();
 
         let frame_container = container(row![tab_container, contents])

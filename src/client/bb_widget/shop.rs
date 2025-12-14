@@ -9,13 +9,19 @@ use iced::advanced::{
 use iced::{mouse, Element};
 use iced::{Event, Renderer};
 use iced::{Length, Rectangle, Size};
+use iced::widget::{row, Space};
 use iced_core::event::Status;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::Quad;
 use iced_core::widget::Tree;
-use iced_core::{alignment, Point, Theme};
+use iced_core::{alignment, Image, Point, Theme};
 use iced_core::{image, Border, Shadow};
+use iced_core::alignment::Vertical;
+use iced_core::image::Handle;
+use crate::client::bb_theme::custom_button::{create_element_button, ButtonStyle};
+use crate::client::bb_theme::text_format;
+use crate::client::bb_theme::text_format::format_button_text;
 
 const INDENT: f32 = DEFAULT_PRESET_HEIGHT/13.0 * SCALE;
 const TITLE_FONT_SIZE: f32 = 27.5 * SCALE;
@@ -28,7 +34,7 @@ const SCALE: f32 = 0.9;
 pub struct ShopWidget <'a,Message, Renderer>
 where Renderer: iced_core::image::Renderer + iced_core::text::Renderer
 {
-    image: Option<image::Image<<Renderer as iced_core::image::Renderer>::Handle>>,
+    image: image::Image<<Renderer as iced_core::image::Renderer>::Handle>,
     title: String,
     width: f32,
     height: f32,
@@ -46,22 +52,40 @@ where Renderer: iced_core::image::Renderer + iced_core::text::Renderer + 'a, Mes
         self
     }
 
-    pub fn set_image(mut self, img: image::Image<<Renderer as iced_core::image::Renderer>::Handle>) -> Self {
-        self.image = Some(img);
+    pub fn set_image(mut self, image: image::Image<<Renderer as iced_core::image::Renderer>::Handle>) -> Self {
+        self.image = image;
         self
     }
     pub fn set_font(mut self, font: <Renderer as iced_core::text::Renderer>::Font) -> Self{
         self.font = Some(font);
         self
     }
-    pub(crate) fn new(name: String, mascot: Mascot, buy_button:iced::widget::Button<'a, Message>, message: crate::Message) -> Self {
+    pub(crate) fn new(name: String, price:usize, mascot: Mascot, message: crate::Message) -> Self {
+
+        let buy_button: iced::widget::Button<'_, crate::Message, Theme, iced::Renderer> =
+            create_element_button(mascot.clone(),
+                               row![format_button_text(iced::widget::text("Buy")),
+                                        Space::with_width(Length::Fill),
+                                        row![format_button_text(iced::widget::text(price.to_string())),
+                                            iced::widget::image(Handle::from_path("assets/images/coin.png"))
+                                            .width(25)
+                                            .height(25)]
+                                        .align_y(Vertical::Center)
+                                        .spacing(5)]
+                                   .align_y(Vertical::Center)
+                                   .into(),
+                               ButtonStyle::Active)
+                .width(182)
+                .height(35);
+
+
         ShopWidget {
-            image: None,
+            image: Image::new(Handle::from_path("assets/images/rare_gacha.png")),
             title: name,
             width: DEFAULT_PRESET_WIDTH,
             height: DEFAULT_PRESET_HEIGHT,
             buy_element: buy_button.on_press(message).into(),
-            font: None,
+            font: text_format::FIRA_SANS_EXTRABOLD.into(),
             active_mascot: mascot
         }
     }
@@ -115,14 +139,12 @@ where
             },
             bb_theme::color::CONTAINER_COLOR,
         );
-        if let Some(img) = &self.image {
-            renderer.draw_image(img.clone(), Rectangle{
+            renderer.draw_image(self.image.clone(), Rectangle{
                 x: layout.bounds().x + DEFAULT_PRESET_WIDTH/2.0 - IMAGE_WIDTH/2.0,
                 y: layout.bounds().y + INDENT,
                 width: IMAGE_WIDTH,
                 height: IMAGE_HEIGHT,
             });
-        }
 
         renderer.fill_text(iced_core::text::Text {
             content: self.title.to_string(),
@@ -136,7 +158,7 @@ where
             wrapping: Default::default(),
         }, Point {
             x: layout.bounds().x + DEFAULT_PRESET_WIDTH / 2.0,
-            y: layout.bounds().y + 3.0 * INDENT + IMAGE_HEIGHT,
+            y: layout.bounds().y + 2.0 * INDENT + IMAGE_HEIGHT,
         }, bb_theme::color::TEXT_COLOR, *viewport);
 
         self.buy_element.as_widget().draw(
@@ -181,6 +203,29 @@ where
             self.buy_element
                 .as_widget_mut()
                 .on_event(child_tree,event,child_layout,cursor,renderer,clipboard,shell,viewport)
+    }
+
+    fn mouse_interaction(
+        &self,
+        _tree: &Tree,
+        layout: Layout<'_>,
+        cursor: mouse::Cursor,
+        _viewport: &Rectangle,
+        _renderer: &Renderer,
+    ) -> mouse::Interaction {
+
+        let child_layout = match layout.children().next() {
+            None => return mouse::Interaction::None,
+            Some(layout ) => layout
+        };
+
+        let is_mouse_over = cursor.is_over(child_layout.bounds());
+
+        if is_mouse_over  {
+            mouse::Interaction::Pointer
+        } else {
+            mouse::Interaction::default()
+        }
     }
 }
 
