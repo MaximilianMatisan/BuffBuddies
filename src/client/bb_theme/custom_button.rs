@@ -1,12 +1,12 @@
-use crate::client::app::App;
+use crate::client::bb_theme;
 use crate::client::bb_theme::color;
-use crate::{Message};
+use crate::client::mascots::Mascot;
+use crate::Message;
 use iced::gradient::{ColorStop, Linear};
 use iced::widget::{button, Button};
 use iced::{border, Background, Color, Element, Gradient, Renderer};
-use iced_core::Theme;
 use iced_core::widget::text;
-use crate::client::bb_theme;
+use iced_core::Theme;
 
 const TAB_BUTTON_WIDTH: f32 = 225.0;
 const TAB_BUTTON_HEIGHT: f32 = 45.0;
@@ -60,17 +60,17 @@ fn create_preset_button(element: Element<'_, Message,Theme,Renderer>,
             }
         })
 }
-pub fn create_text_button(app: &App, text: String, button_style: ButtonStyle)
-                          -> Button<Message, Theme, Renderer> {
+pub fn create_text_button<'a>(mascot: Mascot, text: String, button_style: ButtonStyle)
+                          -> Button<'a,Message, Theme, Renderer> {
 
     let text_elem: Element<Message> =
         <Element<Message>>::from(bb_theme::text_format::format_button_text(text::Text::new(text)));
 
-    create_element_button(app, text_elem, button_style)
+    create_element_button(mascot, text_elem, button_style)
 }
 
-pub fn create_element_button<'a>(app: &'a App, element: Element<'a,Message, Theme, Renderer>, button_style: ButtonStyle)
-                                 -> Button<'a, Message, Theme, Renderer> {
+pub fn create_element_button(mascot: Mascot, element: Element<Message, Theme, Renderer>, button_style: ButtonStyle)
+                             -> Button<Message, Theme, Renderer> {
     match button_style {
         ButtonStyle::InactiveTab => create_preset_button(element,
                                                          color::DARKER_CONTAINER_COLOR,
@@ -86,15 +86,15 @@ pub fn create_element_button<'a>(app: &'a App, element: Element<'a,Message, Them
             .height(TAB_BUTTON_HEIGHT),
         ButtonStyle::InactiveTransparent => create_preset_button(element,
                                                                  Color::TRANSPARENT,
-                                                                 app.active_mascot.get_disabled_color(),
-                                                                 app.active_mascot.get_primary_color()),
+                                                                 mascot.get_disabled_color(),
+                                                                 mascot.get_primary_color()),
         ButtonStyle::InactiveSolid => create_preset_button(element,
-                                                           app.active_mascot.get_disabled_color(),
-                                                           app.active_mascot.get_disabled_color(),
-                                                           app.active_mascot.get_primary_color()),
+                                                           mascot.get_disabled_color(),
+                                                           mascot.get_disabled_color(),
+                                                           mascot.get_primary_color()),
         ButtonStyle::Active => create_preset_button(element,
-                                                    app.active_mascot.get_primary_color(),
-                                                    app.active_mascot.get_disabled_color(),
-                                                    app.active_mascot.get_secondary_color())
+                                                    mascot.get_primary_color(),
+                                                    mascot.get_disabled_color(),
+                                                    mascot.get_secondary_color())
     }
 }
