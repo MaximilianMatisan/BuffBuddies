@@ -10,8 +10,9 @@ use iced::{Length, Rectangle, Size};
 use iced_core::layout::{Limits, Node};
 use iced_core::renderer::Quad;
 use iced_core::widget::Tree;
-use iced_core::{alignment, Point};
+use iced_core::{alignment, layout, Alignment, Point, Theme, Vector};
 use iced_core::{image, Border, Shadow};
+use crate::client::mascots::Mascot;
 
 const INDENT: f32 = DEFAULT_PRESET_HEIGHT/13.0 * SCALE;
 const TITLE_FONT_SIZE: f32 = 27.5 * SCALE;
@@ -21,23 +22,24 @@ const IMAGE_WIDTH: f32 = 184.0 * SCALE;
 const IMAGE_HEIGHT: f32 = 256.0 * SCALE;
 const SCALE: f32 = 1.0;
 
-pub struct ShopWidget <Message, Renderer>
+pub struct ShopWidget <'a,Message, Renderer>
 where Renderer: iced_core::image::Renderer + iced_core::text::Renderer
 {
     image: Option<image::Image<<Renderer as iced_core::image::Renderer>::Handle>>,
     title: String,
     width: f32,
     height: f32,
-    on_pressed: Option<Message>,
-    font: Option<<Renderer as iced_core::text::Renderer>::Font>
+    buy_element: Element<'a,Message,Theme,Renderer>,
+    font: Option<<Renderer as iced_core::text::Renderer>::Font>,
+    active_mascot: Mascot
 }
 
-impl<Message, Renderer> ShopWidget< Message, Renderer>
+impl<'a,Message, Renderer> ShopWidget<'a,  Message, Renderer>
 where Renderer: iced_core::image::Renderer + iced_core::text::Renderer
 {
 
-    pub fn on_press(mut self, message: Message) -> Self{
-        self.on_pressed = Some(message);
+    pub fn update_active_mascot (mut self, mascot: Mascot) -> Self{
+        self.active_mascot = mascot;
         self
     }
 
@@ -49,29 +51,20 @@ where Renderer: iced_core::image::Renderer + iced_core::text::Renderer
         self.font = Some(font);
         self
     }
-
-    pub fn set_title(mut self, title: String) -> Self{
-        self.title = title;
-        self
-    }
-}
-
-impl<Message, Renderer> Default for ShopWidget <Message, Renderer>
-where Renderer: iced_core::image::Renderer + iced_core::text::Renderer
-{
-    fn default() -> Self {
+    pub(crate) fn new(name: String, mascot: Mascot, buy_element: iced_core::Element<'a, Message, Theme, Renderer>) -> Self {
         ShopWidget {
             image: None,
-            title: "Random epic pet-egg".to_string(),
+            title: name,
             width: DEFAULT_PRESET_WIDTH,
             height: DEFAULT_PRESET_HEIGHT,
-            on_pressed: None,
-            font: None
+            buy_element: buy_element,
+            font: None,
+            active_mascot: mascot
         }
     }
 }
 
-impl< Message, Theme, Renderer> Widget<Message, Theme, Renderer> for ShopWidget<Message, Renderer>
+impl<'a,Message, Theme, Renderer> Widget<Message, Theme, Renderer> for ShopWidget<'a, Message, Renderer>
 where
     Renderer: renderer::Renderer + iced_core::text::Renderer + iced_core::image::Renderer,
     Message: Clone,
@@ -80,16 +73,39 @@ where
         Size::new(Length::Fixed(self.width), Length::Fixed(self.height))
     }
 
-    fn layout(&self, _tree: &mut Tree, _renderer: &Renderer, _limits: &Limits) -> Node {
-        Node::new(Size { width: self.width, height: self.height})
+    fn children(&self) -> Vec<Tree> {
+        vec![Tree::new(self.buy_element.as_widget())]
     }
 
-    fn draw(&self, _tree: &Tree,
+    fn diff(&self, tree: &mut Tree) {
+        tree.diff_children(std::slice::from_ref(&self.buy_element));
+    }
+
+    fn layout(&self, tree: &mut Tree, renderer: &Renderer, limits: &Limits) -> Node {
+
+        let mut child_node =
+            self.buy_element
+                .as_widget()
+                .layout(&mut tree.children[0], renderer, limits);
+
+        let widget_size = Size {width: self.width, height: self.height};
+        let child_size = child_node.size();
+
+        let child_x = (widget_size.width - child_size.width) / 2.0;
+        let child_y = widget_size.height - child_size.height - 10.0;
+
+        child_node = child_node.translate(Vector::new(child_x, child_y));
+
+        Node::with_children(widget_size, vec![child_node])
+
+    }
+
+    fn draw(&self, tree: &Tree,
             renderer: &mut Renderer,
             _theme: &Theme,
-            _style: &renderer::Style,
+            style: &renderer::Style,
             layout: Layout<'_>,
-            _cursor: mouse::Cursor,
+            cursor: mouse::Cursor,
             viewport: &Rectangle,
     ) {
         renderer.fill_quad(
@@ -127,35 +143,16 @@ where
             x: layout.bounds().x + DEFAULT_PRESET_WIDTH / 2.0,
             y: layout.bounds().y + 3.0 * INDENT + IMAGE_HEIGHT,
         }, bb_theme::color::TEXT_COLOR, *viewport);
-    }
 
-    fn on_event(
-        &mut self,
-        _state: &mut Tree,
-        event: Event,
-        layout: Layout<'_>,
-        cursor: mouse::Cursor,
-        _renderer: &Renderer,
-        _clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<'_, Message>,
-        _viewport: &Rectangle,
-    ) -> event::Status {
-        if cursor.is_over(layout.bounds()) {
-            match event {
-                Event::Mouse(mouse::Event::ButtonPressed(_)) => {
-                    match &self.on_pressed {
-                        Some(msg) => {
-                            shell.publish(msg.clone());
-                            event::Status::Captured
-                        },
-                        None => event::Status::Ignored,
-                    }
-                }
-                _ => event::Status::Ignored,
-            }
-        } else {
-            event::Status::Ignored
-        }
+        self.buy_element.as_widget().draw(
+            &tree.children[0],
+            renderer,
+            &iced::Theme::CatppuccinFrappe,
+            style,
+            layout.children().next().unwrap(),
+            cursor,
+            viewport,
+        );
     }
 
     fn mouse_interaction(
@@ -176,13 +173,13 @@ where
     }
 }
 
-impl<'a, Message: 'a, Theme, Renderer> From<ShopWidget<Message, Renderer>> for Element<'a, Message, Theme, Renderer>
+impl<'a, Message: 'a, Theme, Renderer> From<ShopWidget<'a, Message, Renderer>> for Element<'a, Message, Theme, Renderer>
 where Message: Clone,
       Renderer: 'a +
       iced_core::image::Renderer
       + iced_core::text::Renderer,
 {
-    fn from(gacha: ShopWidget<Message, Renderer>) -> Self {
+    fn from(gacha: ShopWidget<'a,Message, Renderer>) -> Self {
         Self::new(gacha)
     }
 }
