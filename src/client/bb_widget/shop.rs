@@ -56,10 +56,6 @@ where Renderer: iced_core::image::Renderer + iced_core::text::Renderer + 'a, Mes
         self.image = image;
         self
     }
-    pub fn set_font(mut self, font: <Renderer as iced_core::text::Renderer>::Font) -> Self{
-        self.font = Some(font);
-        self
-    }
     pub(crate) fn new(name: String, price:usize, mascot: Mascot, message: crate::Message) -> Self {
 
         let buy_button: iced::widget::Button<'_, crate::Message, Theme, iced::Renderer> =
