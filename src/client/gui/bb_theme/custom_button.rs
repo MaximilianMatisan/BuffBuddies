@@ -1,6 +1,6 @@
-use crate::client::bb_theme;
-use crate::client::bb_theme::color;
-use crate::client::mascots::Mascot;
+use crate::client::gui::bb_theme;
+use crate::client::gui::bb_theme::color;
+use crate::client::gui::mascots::Mascot;
 use crate::Message;
 use iced::gradient::{ColorStop, Linear};
 use iced::widget::{button, Button};

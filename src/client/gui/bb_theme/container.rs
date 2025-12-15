@@ -1,6 +1,6 @@
 use iced_core::{Border, Theme};
 use iced::widget::container::Style;
-use crate::client::bb_theme;
+use crate::client::gui::bb_theme;
 
 pub enum ContainerStyle {
     Highlighted,

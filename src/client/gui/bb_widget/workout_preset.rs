@@ -5,8 +5,8 @@ use iced_core::mouse::Cursor;
 use iced_core::renderer::{Quad, Style};
 use iced_core::widget::Tree;
 use iced_core::{alignment, image, text, Border, Image, Layout, Length, Point, Rectangle, Size, Theme, Widget};
-use crate::client::bb_theme;
-use crate::client::bb_widget::widget_utils::INDENT;
+use crate::client::gui::bb_theme;
+use crate::client::gui::bb_widget::widget_utils::INDENT;
 
 const DEFAULT_PRESET_WIDTH: f32 = 208.0;
 const DEFAULT_PRESET_HEIGHT: f32 = 252.0;

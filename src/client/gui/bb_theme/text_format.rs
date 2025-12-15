@@ -1,4 +1,4 @@
-use crate::client::bb_theme::color;
+use crate::client::gui::bb_theme::color;
 use iced::Renderer;
 use iced_core::widget::Text;
 use iced_core::{Font, Theme};

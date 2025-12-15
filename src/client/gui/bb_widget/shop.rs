@@ -1,5 +1,5 @@
-use crate::client::bb_theme;
-use crate::client::mascots::Mascot;
+use crate::client::gui::bb_theme;
+use crate::client::gui::mascots::Mascot;
 use crate::Message;
 use iced::advanced::{
     layout::Layout,
@@ -19,9 +19,9 @@ use iced_core::{alignment, Image, Point, Theme};
 use iced_core::{image, Border, Shadow};
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
-use crate::client::bb_theme::custom_button::{create_element_button, ButtonStyle};
-use crate::client::bb_theme::text_format;
-use crate::client::bb_theme::text_format::format_button_text;
+use crate::client::gui::bb_theme::custom_button::{create_element_button, ButtonStyle};
+use crate::client::gui::bb_theme::text_format;
+use crate::client::gui::bb_theme::text_format::format_button_text;
 
 const INDENT: f32 = DEFAULT_PRESET_HEIGHT/13.0 * SCALE;
 const TITLE_FONT_SIZE: f32 = 27.5 * SCALE;
