@@ -1,7 +1,7 @@
-use std::collections::BTreeMap;
-use chrono::NaiveDate;
 use crate::client::backend::exercise::set::StrengthSet;
-use crate::client::backend::exercise::weight::{ExerciseWeight, Kg};
+use crate::client::backend::exercise::weight::Kg;
+use chrono::NaiveDate;
+use std::collections::BTreeMap;
 
 pub struct Exercise {
     name: String,
@@ -44,8 +44,8 @@ impl Exercise {
         let mut pr = 0.0;
         for (_day, sets_per_day) in &self.sets {
             for set in sets_per_day {
-                if set.weight.to_kg() > pr {
-                    pr = set.weight.to_kg();
+                if set.weight > pr {
+                    pr = set.weight;
                 }
             }
         }
@@ -55,7 +55,7 @@ impl Exercise {
         let mut heaviest_set: (Option<NaiveDate>, &StrengthSet) =
             (None,
              &StrengthSet {
-                 weight: ExerciseWeight::Kg(0.0),
+                 weight: 0.0,
                  reps: 0,
              });
         for (day, sets_per_day) in &self.sets {
