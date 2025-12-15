@@ -1,6 +1,6 @@
 use chrono::{Datelike, Days, Duration, Months, NaiveDate, Weekday};
 use strum_macros::{Display, EnumIter};
-use crate::client::bb_widget::activity::activity::SquareDimensions;
+use crate::client::gui::bb_widget::activity::activity::SquareDimensions;
 
 pub const DAYS_PER_WEEK: u32 = 7;
 pub const YEAR_SQUARE_DIMENSION: SquareDimensions = SquareDimensions {

@@ -1,6 +1,6 @@
-use crate::client::bb_tab::tab::Tab;
-use crate::client::bb_widget::activity::activity::ActivityWidget;
-use crate::client::mascots::Mascot;
+use crate::client::gui::bb_tab::tab::Tab;
+use crate::client::gui::bb_widget::activity::activity::ActivityWidget;
+use crate::client::gui::mascots::Mascot;
 
 pub struct App {
     pub screen: Tab,
