@@ -4,8 +4,8 @@ use chrono::NaiveDate;
 use std::collections::BTreeMap;
 
 pub struct Exercise {
-    name: String,
-    sets: BTreeMap<NaiveDate, Vec<StrengthSet>>
+    pub name: String,
+    pub sets: BTreeMap<NaiveDate, Vec<StrengthSet>>
 }
 impl Exercise {
     pub fn new(name: String) -> Self {
