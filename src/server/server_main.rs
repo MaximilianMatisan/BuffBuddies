@@ -3,6 +3,7 @@ use axum::response::IntoResponse;
 use axum::{Json, Router};
 use axum::routing::get;
 use serde_json::json;
+use crate::server::login::check_login;
 
 #[derive(Debug)]
 pub enum ApiError {
@@ -42,6 +43,7 @@ pub async fn server_main() {
 fn create_app() -> Router {
     Router::new()
         .route("/server", get(health_check))
+        .route("/user/login", get(check_login))
 
 }
 
