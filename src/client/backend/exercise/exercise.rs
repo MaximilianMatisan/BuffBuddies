@@ -14,6 +14,19 @@ impl Exercise {
             sets: Default::default()
         }
     }
+    pub fn calculate_max_weight_per_day(&self) -> Vec<(NaiveDate, Kg)> {
+        let mut results: Vec<(NaiveDate, Kg)> = vec![];
+        for (date, sets) in &self.sets {
+            let mut current_best_weight = 0.0;
+            for set in sets {
+                if set.weight > current_best_weight {
+                   current_best_weight = set.weight;
+                }
+           }
+            results.push((*date, current_best_weight))
+        }
+        results
+    }
 
     fn all_time_lifted_weight(&self) -> Kg {
         let mut total_lifted_weight = 0.0;
