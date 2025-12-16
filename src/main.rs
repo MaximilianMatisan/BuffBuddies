@@ -5,11 +5,11 @@ use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyl
 use crate::client::gui::bb_widget::workout_preset::WorkoutPresetWidget;
 use iced::widget::{container, row, Column};
 use iced::{Element, Task};
-use iced_core::image::{Handle, Image};
 use crate::client::gui::{bb_theme, size};
 use iced_core::window::{Position, Settings};
 use iced_core::Length::Fill;
-use iced_core::{Size};
+use iced_core::{Image, Size};
+use iced_core::image::Handle;
 use strum::IntoEnumIterator;
 use crate::client::backend::login_state::LoginStateError;
 use crate::client::gui::bb_tab::login::view_login;

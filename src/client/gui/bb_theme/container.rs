@@ -2,6 +2,7 @@ use iced_core::{Border, Theme};
 use iced::widget::container::Style;
 use crate::client::gui::bb_theme;
 
+pub const DEFAULT_CONTAINER_RADIUS: f32 = 15.0;
 pub enum ContainerStyle {
     Highlighted,
     Default,
@@ -26,7 +27,7 @@ pub fn create_style_container(style: ContainerStyle) -> impl Fn(&Theme) -> Style
         border: Border {
             color: style.get_color(),
             width: 1.0,
-            radius: 15.0.into()
+            radius: DEFAULT_CONTAINER_RADIUS.into()
         },
         shadow: Default::default(),
     }
