@@ -1,3 +1,3 @@
 pub mod gui;
-mod backend;
-mod server_communicator;
+pub mod backend;
+pub mod server_communicator;
