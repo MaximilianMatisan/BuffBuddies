@@ -29,8 +29,8 @@ impl Default for App {
         let variation: f32 = 1.0;
         let mut rand = rand::rng();
 
-        for _ in 0..10000{
-            let random_number = rand.random_range(-1..=1);
+        for _ in 0..11{
+            let random_number = rand.random_range(-1..=2);
             base_weight += variation * random_number as f32;
             preacher_curl.sets.insert(cur_day,
                                       vec![
