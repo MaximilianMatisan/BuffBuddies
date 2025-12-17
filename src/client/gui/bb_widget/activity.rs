@@ -1,2 +1,2 @@
 pub mod activity;
-mod date_utils;
+pub mod date_utils;

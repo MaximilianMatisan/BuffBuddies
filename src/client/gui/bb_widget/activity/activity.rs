@@ -22,7 +22,7 @@ use crate::Message;
 
 const DEFAULT_NAVIGATION_BUTTON_WIDTH: f32 = 130.0;
 const DEFAULT_NAVIGATION_BUTTON_HEIGHT: f32 = 40.0;
-const ACTIVITY_SQUARE_BORDER_RADIUS: f32 = 3.0;
+pub const ACTIVITY_SQUARE_BORDER_RADIUS: f32 = 3.0;
 
 #[derive(Debug, Clone)]
 pub struct SquareDimensions {

@@ -1,5 +1,6 @@
 use crate::client::backend::login_state::LoginState;
-use chrono::NaiveDate;
+use chrono::{Duration, NaiveDate};
+use rand::Rng;
 use crate::client::backend::exercise::exercise::Exercise;
 use crate::client::backend::exercise::set::StrengthSet;
 use crate::client::backend::exercise::weight::ExerciseWeight;
@@ -22,11 +23,24 @@ impl Default for App {
     fn default() -> Self {
         let default_mascot = Mascot::default();
         let mut preacher_curl = Exercise::new("Preacher curl".to_string()); //TODO EXAMPLE
-        preacher_curl.sets.insert(NaiveDate::from_ymd_opt(2025, 12, 2).unwrap(),
-                                  vec![
-                                       StrengthSet::new(ExerciseWeight::Kg(45.0), 6),
-                                       StrengthSet::new(ExerciseWeight::Kg(40.0), 10)
-                                  ]);
+
+        let mut cur_day = NaiveDate::from_ymd_opt(2025,12,1).unwrap();
+        let mut base_weight = 35.0;
+        let variation: f32 = 1.0;
+        let mut rand = rand::rng();
+
+        for _ in 0..30 {
+            let random_number = rand.random_range(-1..=2);
+            base_weight += variation * random_number as f32;
+            preacher_curl.sets.insert(cur_day,
+                                      vec![
+                                          StrengthSet::new(ExerciseWeight::Kg(base_weight), 6),
+                                          StrengthSet::new(ExerciseWeight::Kg(base_weight-5.0), 10)
+                                      ]);
+            cur_day += Duration::days(1)
+        }
+
+
         App {
             loading: false,
             screen: Tab::Home,
