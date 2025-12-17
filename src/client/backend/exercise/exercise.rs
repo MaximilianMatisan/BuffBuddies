@@ -1,7 +1,8 @@
 use crate::client::backend::exercise::set::StrengthSet;
-use crate::client::backend::exercise::weight::Kg;
-use chrono::NaiveDate;
+use crate::client::backend::exercise::weight::{ExerciseWeight, Kg};
+use chrono::{Duration, NaiveDate};
 use std::collections::BTreeMap;
+use rand::Rng;
 
 pub struct Exercise {
     pub name: String,
@@ -46,7 +47,7 @@ impl Exercise {
         }
         total_reps
     }
-    fn all_time_sets(&self) -> u64 {
+    pub fn all_time_sets(&self) -> u64 {
         let mut all_time_sets: u64 = 0;
         for (_day, sets_per_day) in &self.sets {
             all_time_sets += sets_per_day.len() as u64
@@ -81,4 +82,27 @@ impl Exercise {
         }
         heaviest_set
     }
+}
+
+pub fn generate_example_exercise(name: String, sets_on_different_days: usize, base_weight: Kg) -> Exercise {
+
+    let mut exercise = Exercise::new(name);
+
+    let mut cur_day = NaiveDate::from_ymd_opt(2025,1,1).unwrap();
+    let mut weight = base_weight;
+    let variation: f32 = 1.0;
+    let mut rand = rand::rng();
+
+    for _ in 0..sets_on_different_days{
+        let random_number = rand.random_range(-1..=2);
+         weight += variation * random_number as f32;
+        exercise.sets.insert(cur_day,
+                                  vec![
+                                      StrengthSet::new(ExerciseWeight::Kg(weight), 6),
+                                      StrengthSet::new(ExerciseWeight::Kg(weight-5.0), 10)
+                                  ]);
+        cur_day += Duration::days(1)
+    };
+
+    exercise
 }

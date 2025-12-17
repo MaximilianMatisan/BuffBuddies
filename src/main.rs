@@ -18,7 +18,7 @@ use crate::client::backend::exercise::exercise::Exercise;
 use crate::client::gui::bb_widget::shop;
 use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_widget::activity::activity::{ActivityMessage};
-use crate::client::gui::bb_widget::progress::ProgressWidget;
+use crate::client::gui::bb_widget::progress::{progress_environment_widget};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::server::server_main::server_main;
 use crate::client::server_communicator::server_communicator::{valid_login, RequestValidUserError};
@@ -41,7 +41,7 @@ pub enum Message {
     RequestValidUser(Result<(), RequestValidUserError>),
     UsernameEntered(String),
     PasswordEntered(String),
-    SelectExerciseID(usize),
+    SelectExercise(String),
 }
 
 impl UserInterface {
@@ -118,8 +118,8 @@ impl UserInterface {
                 *password = new_password;
                 Task::none()
             }
-            Message::SelectExerciseID(id) => {
-                self.app.selected_exercise_id = id;
+            Message::SelectExercise(exercise_name) => {
+                self.app.selected_exercise_name = exercise_name;
                 Task::none()
             }
         }
@@ -159,7 +159,8 @@ impl UserInterface {
 
             let contents = Column::new()
                 .push(activity_widget)
-                .push(shop_widgets)
+                .push(progress_environment_widget(&self.app))
+                //.push(shop_widgets)
                 .push(workout_preset)
                 .spacing(INDENT).padding(INDENT);
 
