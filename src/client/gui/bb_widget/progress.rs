@@ -12,12 +12,16 @@ use iced_core::border::Radius;
 use crate::client::backend::exercise::weight::Kg;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
+use crate::client::gui::bb_widget::widget_utils::INDENT;
 
-const PROGRESS_WIDGET_WIDTH: f32 = 500.0;
-const PROGRESS_WIDGET_HEIGHT: f32 = 500.0;
-const LINE_WIDTH: f32 = 2.0;
+const PROGRESS_WIDGET_WIDTH: f32 = 800.0;
+const PROGRESS_WIDGET_HEIGHT: f32 = 600.0;
+const LINE_WIDTH: f32 = 3.0;
+const AXIS_FONT_SIZE: f32 = 12.0;
 const PERCENTAGE_PLACEHOLDER: f32 = 0.05;
+const PERCENTAGE_SPACING_WIDGET_AXIS: f32 = 0.1;
 const BASE_SPACING_BETWEEN_COLUMNS: f32 = 150.0;
+const FREQUENCY_OF_AXIS_LABELS: usize = 6;
 
 pub struct ProgressWidget<Renderer>
     where Renderer: text::Renderer
@@ -83,13 +87,23 @@ where
            },
            shadow: Default::default(),
        }, color::CONTAINER_COLOR);
+
+        let widget_x_axis_padding = self.height * PERCENTAGE_SPACING_WIDGET_AXIS;
+        let widget_y_axis_padding = self.width * PERCENTAGE_SPACING_WIDGET_AXIS;
+        let x_axis_length = self.width - 2.0 * (widget_y_axis_padding);
+        let y_axis_length = self.height -2.0 * (widget_x_axis_padding);
+
+        let left_x_coordinate = layout.bounds().x + widget_y_axis_padding;
+        let top_y_coordinate = layout.bounds().y + widget_x_axis_padding;
+        let bottom_y_coordinate = layout.bounds().y + widget_x_axis_padding + y_axis_length;
+
         //Y_AXIS
         renderer.fill_quad(Quad {
             bounds: Rectangle {
-                x: layout.bounds().x,
-                y: layout.bounds().y,
+                x: left_x_coordinate,
+                y: top_y_coordinate,
                 width: LINE_WIDTH,
-                height: self.height
+                height: y_axis_length
             },
             border: Default::default(),
             shadow: Default::default(),
@@ -97,16 +111,15 @@ where
         //X-AXIS
         renderer.fill_quad(Quad {
             bounds: Rectangle {
-                x: layout.bounds().x,
-                y: layout.bounds().y + self.height,
-                width: self.width,
+                x: left_x_coordinate,
+                y: bottom_y_coordinate,
+                width: x_axis_length,
                 height: LINE_WIDTH,
             },
             border: Default::default(),
             shadow: Default::default(),
         }, self.active_mascot.get_secondary_color());
 
-        println!("{:?}", self.data_points); //TODO DELETE IN THE END
         match &self.data_points.len() {
             0  => {
                 renderer.fill_text(Text{
@@ -125,33 +138,40 @@ where
                 }, color::DESCRIPTION_TEXT_COLOR, *viewport)
             },
             amount_of_data_points => {
-
                 let kg_iterator = self.data_points.iter().map(|(_,kg)| *kg as u32);
                 let heaviest_weight = kg_iterator.clone().max().unwrap(); //100%
-                let lightest_weight = kg_iterator.clone().min().unwrap(); // 0%
+                let lightest_weight = kg_iterator.min().unwrap();         // 0%
                 let range = heaviest_weight - lightest_weight;
 
                 let column_spacing = BASE_SPACING_BETWEEN_COLUMNS / *amount_of_data_points as f32 ;
-                let width_of_graph_canvas: f32 = self.width - 2.0 * column_spacing;
-                let height_of_graph_canvas: f32 = self.height - 2.0 * PERCENTAGE_PLACEHOLDER * self.height;
+                let width_of_graph_canvas: f32 = x_axis_length - 2.0 * column_spacing;
+                let height_of_graph_canvas: f32 = y_axis_length - 2.0 * PERCENTAGE_PLACEHOLDER * y_axis_length;
 
-                let padding_x: f32 = (self.width - width_of_graph_canvas) / 2.0;
-                let padding_y: f32 = (self.height - height_of_graph_canvas) / 2.0;
+                let graph_axis_padding_x: f32 = (x_axis_length - width_of_graph_canvas) / 2.0;
+                let graph_axis_padding_y: f32 = (y_axis_length - height_of_graph_canvas) / 2.0;
 
-                let width_of_columns: f32 = 
-                    (width_of_graph_canvas - (amount_of_data_points - 1) as f32 * column_spacing) 
+                let width_of_columns: f32 =
+                    (width_of_graph_canvas - (amount_of_data_points - 1) as f32 * column_spacing)
                     / *amount_of_data_points as f32;
-                
+
+                let modulo_number = *amount_of_data_points / FREQUENCY_OF_AXIS_LABELS;
+
                 for (i, (date, kg)) in self.data_points.iter().enumerate() {
-                    let share = if range == 0 {0.0} 
-                        else {(*kg as u32 - lightest_weight) as f32 / range as f32};
+                    let integer_kg = *kg as u32;
+                    let share = if range == 0 {0.0}
+                        else {(integer_kg - lightest_weight) as f32 / range as f32};
+
+                    let x_of_column =
+                        left_x_coordinate + graph_axis_padding_x + i as f32 * (width_of_columns + column_spacing);
+                    let y_of_column =
+                        bottom_y_coordinate - graph_axis_padding_y - share * height_of_graph_canvas;
 
                     renderer.fill_quad(Quad{
                         bounds: Rectangle {
-                            x: layout.bounds().x + padding_x + i as f32 * (width_of_columns + column_spacing),
-                            y: layout.bounds().y + padding_y + (1.0-share)* height_of_graph_canvas,
+                            x: x_of_column,
+                            y: y_of_column,
                             width: width_of_columns,
-                            height: self.height - (1.0-share) * height_of_graph_canvas - padding_y 
+                            height: graph_axis_padding_y + share * height_of_graph_canvas
                         },
                         border: Border {
                             color: Default::default(),
@@ -164,7 +184,44 @@ where
                             }
                         },
                         shadow: Default::default()
-                    }, self.active_mascot.get_primary_color())
+                    }, self.active_mascot.get_primary_color());
+
+                    if i % modulo_number == 0 {
+                        let date_string = date.format("%d.%m.%y").to_string();
+                        //DATUM
+                        renderer.fill_text(Text{
+                            content: date_string,
+                            bounds: layout.bounds().size(),
+                            size: AXIS_FONT_SIZE.into(),
+                            line_height: Default::default(),
+                            font: self.font,
+                            horizontal_alignment: Horizontal::Left,
+                            vertical_alignment: Vertical::Top,
+                            shaping: Default::default(),
+                            wrapping: Default::default(),
+                        }, Point {
+                            x: x_of_column,
+                            y: bottom_y_coordinate + INDENT
+                        }, color::DESCRIPTION_TEXT_COLOR, *viewport);
+
+                        println!("{:?}",self.data_points[i]);
+                        let weight_string = format!("{} kg", integer_kg);
+                        let weight_bounds = Size::new(widget_y_axis_padding-INDENT, AXIS_FONT_SIZE);
+                        renderer.fill_text( Text {
+                            content: weight_string.clone(),
+                            bounds: weight_bounds,
+                            size: AXIS_FONT_SIZE.into(),
+                            line_height: Default::default(),
+                            font: self.font,
+                            horizontal_alignment: Horizontal::Right,
+                            vertical_alignment: Vertical::Top,
+                            shaping: Default::default(),
+                            wrapping: Default::default(),
+                        }, Point {
+                            x: layout.bounds().x + widget_y_axis_padding - INDENT,
+                            y: y_of_column,
+                        }, color::DESCRIPTION_TEXT_COLOR, *viewport);
+                    }
                 }
             }
         }
