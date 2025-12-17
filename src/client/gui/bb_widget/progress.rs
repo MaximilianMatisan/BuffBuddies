@@ -16,7 +16,8 @@ use crate::client::gui::bb_widget::widget_utils::INDENT;
 
 const PROGRESS_WIDGET_WIDTH: f32 = 800.0;
 const PROGRESS_WIDGET_HEIGHT: f32 = 600.0;
-const LINE_WIDTH: f32 = 3.0;
+const LINE_THICKNESS: f32 = 3.0;
+const MOUSE_HIGHLIGHT_LINE_THICKNESS: f32 = 3.0;
 const AXIS_FONT_SIZE: f32 = 12.0;
 const PERCENTAGE_PLACEHOLDER: f32 = 0.05;
 const PERCENTAGE_SPACING_WIDGET_AXIS: f32 = 0.1;
@@ -75,7 +76,7 @@ where
             _theme: &Theme,
             _style: &Style,
             layout: Layout<'_>,
-            _cursor: Cursor,
+            cursor: Cursor,
             viewport: &Rectangle)
     {
        renderer.fill_quad(Quad { //TODO TEMP
@@ -97,28 +98,12 @@ where
         let top_y_coordinate = layout.bounds().y + widget_x_axis_padding;
         let bottom_y_coordinate = layout.bounds().y + widget_x_axis_padding + y_axis_length;
 
-        //Y_AXIS
-        renderer.fill_quad(Quad {
-            bounds: Rectangle {
-                x: left_x_coordinate,
-                y: top_y_coordinate,
-                width: LINE_WIDTH,
-                height: y_axis_length
-            },
-            border: Default::default(),
-            shadow: Default::default(),
-        }, self.active_mascot.get_secondary_color());
-        //X-AXIS
-        renderer.fill_quad(Quad {
-            bounds: Rectangle {
-                x: left_x_coordinate,
-                y: bottom_y_coordinate,
-                width: x_axis_length,
-                height: LINE_WIDTH,
-            },
-            border: Default::default(),
-            shadow: Default::default(),
-        }, self.active_mascot.get_secondary_color());
+        let coordinate_bounds = Rectangle {
+            x: left_x_coordinate,
+            y: top_y_coordinate,
+            width: x_axis_length,
+            height: y_axis_length,
+        };
 
         match &self.data_points.len() {
             0  => {
@@ -204,7 +189,8 @@ where
                             y: bottom_y_coordinate + INDENT
                         }, color::DESCRIPTION_TEXT_COLOR, *viewport);
 
-                        println!("{:?}",self.data_points[i]);
+                        //TODO Zukünftig anders lösen, bei vielen und stark unterscheidenden
+                        // Datenpunkten, können sich kg-Angaben überlappen
                         let weight_string = format!("{} kg", integer_kg);
                         let weight_bounds = Size::new(widget_y_axis_padding-INDENT, AXIS_FONT_SIZE);
                         renderer.fill_text( Text {
@@ -223,6 +209,74 @@ where
                         }, color::DESCRIPTION_TEXT_COLOR, *viewport);
                     }
                 }
+                //Y_AXIS
+                renderer.fill_quad(Quad {
+                    bounds: Rectangle {
+                        x: left_x_coordinate,
+                        y: top_y_coordinate,
+                        width: LINE_THICKNESS,
+                        height: y_axis_length
+                    },
+                    border: Default::default(),
+                    shadow: Default::default(),
+                }, self.active_mascot.get_secondary_color());
+                //X-AXIS
+                renderer.fill_quad(Quad {
+                    bounds: Rectangle {
+                        x: left_x_coordinate,
+                        y: bottom_y_coordinate,
+                        width: x_axis_length,
+                        height: LINE_THICKNESS,
+                    },
+                    border: Default::default(),
+                    shadow: Default::default(),
+                }, self.active_mascot.get_secondary_color());
+
+                //MOUSE_INTERACTION
+                let cursor_position;
+                match cursor.position() {
+                    None => return,
+                    Some(pos) => cursor_position = pos
+                }
+                if !coordinate_bounds.contains(cursor_position) {
+                    return;
+                }
+                let see_through_mouse_follower_color = {
+                    let mut base = self.active_mascot.get_secondary_color();
+                    base.a = 0.5;
+                    base
+                };
+                //HORIZONTAL_LINE
+                renderer.fill_quad(Quad {
+                    bounds: Rectangle {
+                        x: left_x_coordinate,
+                        y: cursor_position.y,
+                        width: cursor_position.x - left_x_coordinate,
+                        height: MOUSE_HIGHLIGHT_LINE_THICKNESS,
+                    },
+                    border: Default::default(),
+                    shadow: Default::default(),
+                }, see_through_mouse_follower_color);
+                //VERTICAL_LINE
+                renderer.fill_quad(Quad {
+                    bounds: Rectangle {
+                        x: cursor_position.x,
+                        y: cursor_position.y,
+                        width: MOUSE_HIGHLIGHT_LINE_THICKNESS,
+                        height: bottom_y_coordinate - cursor_position.y,
+                    },
+                    border: Border {
+                        color: Default::default(),
+                        width: 0.0,
+                        radius: Radius {
+                            top_left: 0.0,
+                            top_right: 15.0,
+                            bottom_right: 0.0,
+                            bottom_left: 0.0,
+                        },
+                    },
+                    shadow: Default::default(),
+                },see_through_mouse_follower_color);
             }
         }
     }
