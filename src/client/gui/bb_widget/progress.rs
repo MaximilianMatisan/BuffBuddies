@@ -1,21 +1,27 @@
 use chrono::NaiveDate;
-use crate::client::gui::bb_theme::color;
+use crate::client::gui::bb_theme::{color, text_format};
 use crate::client::gui::mascots::Mascot;
 use iced::{Element};
+use iced::widget::{container, text_input, Column, Row, Space};
+use iced::widget::text_input::Status;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::{Quad, Style};
 use iced_core::widget::Tree;
-use iced_core::{renderer, text, Border, Layout, Length, Point, Rectangle, Size, Text, Theme, Widget};
+use iced_core::{renderer, text, Background, Border, Layout, Length, Padding, Point, Rectangle, Size, Text, Theme, Widget};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::border::Radius;
 use crate::client::backend::exercise::weight::Kg;
+use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
-use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
+use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
+use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
+use crate::client::gui::bb_theme::text_format::{format_button_text, format_description_text};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
+use crate::Message;
 
-const PROGRESS_WIDGET_WIDTH: f32 = 800.0;
-const PROGRESS_WIDGET_HEIGHT: f32 = 600.0;
+const PROGRESS_WIDGET_WIDTH: f32 = 700.0;
+const PROGRESS_WIDGET_HEIGHT: f32 = 500.0;
 const LINE_THICKNESS: f32 = 3.0;
 const MOUSE_HIGHLIGHT_LINE_THICKNESS: f32 = 3.0;
 const AXIS_FONT_SIZE: f32 = 12.0;
@@ -36,23 +42,80 @@ pub struct ProgressWidget<Renderer>
 impl<Renderer> ProgressWidget<Renderer>
     where Renderer: text::Renderer<Font = iced::Font>
 {
-    pub fn new(active_mascot: Mascot, data_points: Vec<(NaiveDate, Kg)>) -> Self {
+    fn new(active_mascot: Mascot, data_points: Vec<(NaiveDate, Kg)>) -> Self {
         ProgressWidget {
             width: PROGRESS_WIDGET_WIDTH,
             height: PROGRESS_WIDGET_HEIGHT,
             active_mascot,
             data_points,
-            font: bb_theme::text_format::FIRA_SANS_EXTRABOLD,
+            font: text_format::FIRA_SANS_EXTRABOLD,
         }
-    }
-    pub fn update_data_points(&mut self, data_points: Vec<(NaiveDate, Kg)>) {
-        self.data_points = data_points;
     }
     pub fn update_active_mascot(&mut self, mascot: Mascot) {
         self.active_mascot = mascot;
     }
+    pub fn get_width(&self) -> f32 {
+        self.width
+    }
 }
 
+pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
+    let selected_exercise = app.get_selected_exercise();
+    let data_points = match selected_exercise {
+        None => vec![],
+        Some(exercise) =>  exercise.calculate_max_weight_per_day()
+    };
+    let all_time_sets_message: String = match selected_exercise {
+        None => "".to_string(),
+        Some(ex) => format!("{} - sets done", ex.all_time_sets())
+    };
+    let title: Element<'a, Message> = format_button_text(iced::widget::text("Progress").size(40)).into();
+    let description: Element<Message> = format_description_text(iced::widget::text(all_time_sets_message)).into();
+    let search_bar: Element<Message> = text_input("Search Exercise...", &app.selected_exercise_name)
+        .style(|_theme: &Theme, _status: Status| text_input::Style {
+            background: Background::Color(color::BACKGROUND_COLOR),
+            border: Border{
+                color: Default::default(),
+                width: 0.0,
+                radius: DEFAULT_BUTTON_RADIUS.into(),
+            },
+            icon: Default::default(),
+            placeholder: color::DESCRIPTION_TEXT_COLOR,
+            value: color::TEXT_COLOR,
+            selection: app.active_mascot.get_secondary_color(),
+        })
+        .font(text_format::FIRA_SANS_EXTRABOLD)
+        .on_input(Message::SelectExercise)
+        .width(Length::Fixed(250.0))
+        .padding([8,16])
+        .into();
+
+    let progress_widget = ProgressWidget::new(app.active_mascot.clone(), data_points);
+
+    let header_row = Row::new()
+        .width(Length::Fixed(progress_widget.get_width()))
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(title)
+        .push(Space::with_width(Length::FillPortion(3)))
+        .push(description)
+        .push(search_bar)
+        .push(Space::with_width(Length::FillPortion(1)))
+        .spacing(5)
+        .align_y(Vertical::Center);
+
+    let contents = Column::new()
+        .width(Length::Shrink)
+        .push(header_row)
+        .push(progress_widget)
+        .padding(Padding{ top: 15.0, right: 0.0, bottom: 0.0, left: 0.0 })
+        .spacing(15)
+        .align_x(Horizontal::Center);
+
+    container(contents)
+        .width(Length::Shrink)
+        .style(bb_theme::container::create_style_container(ContainerStyle::Default))
+        .into()
+}
 impl<Message, Renderer> Widget<Message, Theme, Renderer> for ProgressWidget<Renderer>
 where
     Renderer: renderer::Renderer + text::Renderer,
@@ -79,24 +142,14 @@ where
             cursor: Cursor,
             viewport: &Rectangle)
     {
-       renderer.fill_quad(Quad { //TODO TEMP
-           bounds: layout.bounds(),
-           border: Border {
-               color: Default::default(),
-               width: 0.0,
-               radius: DEFAULT_CONTAINER_RADIUS.into()
-           },
-           shadow: Default::default(),
-       }, color::CONTAINER_COLOR);
-
         let widget_x_axis_padding = self.height * PERCENTAGE_SPACING_WIDGET_AXIS;
         let widget_y_axis_padding = self.width * PERCENTAGE_SPACING_WIDGET_AXIS;
         let x_axis_length = self.width - 2.0 * (widget_y_axis_padding);
-        let y_axis_length = self.height -2.0 * (widget_x_axis_padding);
+        let y_axis_length = self.height - widget_x_axis_padding;
 
         let left_x_coordinate = layout.bounds().x + widget_y_axis_padding;
-        let top_y_coordinate = layout.bounds().y + widget_x_axis_padding;
-        let bottom_y_coordinate = layout.bounds().y + widget_x_axis_padding + y_axis_length;
+        let top_y_coordinate = layout.bounds().y;
+        let bottom_y_coordinate = layout.bounds().y + y_axis_length;
 
         let coordinate_bounds = Rectangle {
             x: left_x_coordinate,
@@ -123,6 +176,21 @@ where
                 }, color::DESCRIPTION_TEXT_COLOR, *viewport)
             },
             amount_of_data_points => {
+                renderer.fill_quad(Quad {
+                    bounds: coordinate_bounds,
+                    border: Border {
+                        color: Default::default(),
+                        width: 0.0,
+                        radius: Radius {
+                            top_left: 0.0,
+                            top_right: DEFAULT_CONTAINER_RADIUS,
+                            bottom_right: 0.0,
+                            bottom_left: 0.0,
+                        }
+                    },
+                    shadow: Default::default(),
+                }, color::BACKGROUND_COLOR);
+
                 let kg_iterator = self.data_points.iter().map(|(_,kg)| *kg as u32);
                 let heaviest_weight = kg_iterator.clone().max().unwrap(); //100%
                 let lightest_weight = kg_iterator.min().unwrap();         // 0%
@@ -139,7 +207,7 @@ where
                     (width_of_graph_canvas - (amount_of_data_points - 1) as f32 * column_spacing)
                     / *amount_of_data_points as f32;
 
-                let modulo_number = *amount_of_data_points / FREQUENCY_OF_AXIS_LABELS;
+                let modulo_number = (*amount_of_data_points / FREQUENCY_OF_AXIS_LABELS).max(1);
 
                 for (i, (date, kg)) in self.data_points.iter().enumerate() {
                     let integer_kg = *kg as u32;
@@ -173,7 +241,7 @@ where
 
                     if i % modulo_number == 0 {
                         let date_string = date.format("%d.%m.%y").to_string();
-                        //DATUM
+                        //DATE
                         renderer.fill_text(Text{
                             content: date_string,
                             bounds: layout.bounds().size(),
@@ -189,8 +257,9 @@ where
                             y: bottom_y_coordinate + INDENT
                         }, color::DESCRIPTION_TEXT_COLOR, *viewport);
 
-                        //TODO Zukünftig anders lösen, bei vielen und stark unterscheidenden
+                        //TODO Zukünftig anders lösen, bei vielen und sich stark unterscheidenden
                         // Datenpunkten, können sich kg-Angaben überlappen
+                        //WEIGHT
                         let weight_string = format!("{} kg", integer_kg);
                         let weight_bounds = Size::new(widget_y_axis_padding-INDENT, AXIS_FONT_SIZE);
                         renderer.fill_text( Text {
@@ -242,7 +311,7 @@ where
                     return;
                 }
                 let see_through_mouse_follower_color = {
-                    let mut base = self.active_mascot.get_secondary_color();
+                    let mut base = color::DESCRIPTION_TEXT_COLOR;
                     base.a = 0.5;
                     base
                 };
