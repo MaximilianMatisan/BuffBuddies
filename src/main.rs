@@ -119,7 +119,7 @@ impl UserInterface {
                 Task::none()
             }
             Message::SelectExercise(exercise_name) => {
-                self.app.selected_exercise_name = exercise_name;
+                self.app.exercise_manager.selected_exercise_name = exercise_name;
                 Task::none()
             }
         }
