@@ -62,7 +62,7 @@ impl<Renderer> ProgressWidget<Renderer>
 }
 
 pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
-    let selected_exercise = app.get_selected_exercise();
+    let selected_exercise = app.exercise_manager.get_selected_exercise();
     let data_points = match selected_exercise {
         None => vec![],
         Some(exercise) =>  exercise.calculate_max_weight_per_day()
@@ -73,10 +73,10 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
     };
     let title: Element<'a, Message> = format_button_text(iced::widget::text("Progress").size(40)).into();
     let description: Element<Message> = format_description_text(iced::widget::text(all_time_sets_message)).into();
-    let search_bar: Element<Message> = text_input("Search Exercise...", &app.selected_exercise_name)
+    let search_bar: Element<Message> = text_input("Search Exercise...", &app.exercise_manager.selected_exercise_name)
         .style(|_theme: &Theme, _status: Status| text_input::Style {
             background: Background::Color(color::BACKGROUND_COLOR),
-            border: Border{
+            border: Border {
                 color: Default::default(),
                 width: 0.0,
                 radius: DEFAULT_BUTTON_RADIUS.into(),
