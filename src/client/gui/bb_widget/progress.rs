@@ -11,6 +11,7 @@ use iced_core::widget::Tree;
 use iced_core::{renderer, text, Background, Border, Layout, Length, Padding, Point, Rectangle, Size, Text, Theme, Widget};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::border::Radius;
+use crate::client::backend::exercise::exercise;
 use crate::client::backend::exercise::weight::Kg;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
@@ -28,7 +29,8 @@ const AXIS_FONT_SIZE: f32 = 12.0;
 const PERCENTAGE_PLACEHOLDER: f32 = 0.05;
 const PERCENTAGE_SPACING_WIDGET_AXIS: f32 = 0.1;
 const BASE_SPACING_BETWEEN_COLUMNS: f32 = 150.0;
-const FREQUENCY_OF_AXIS_LABELS: usize = 6;
+const FREQUENCY_OF_X_AXIS_LABELS: usize = 6;
+const FREQUENCY_OF_Y_AXIS_LABELS: u32 = 10;
 
 pub struct ProgressWidget<Renderer>
     where Renderer: text::Renderer
@@ -207,7 +209,7 @@ where
                     (width_of_graph_canvas - (amount_of_data_points - 1) as f32 * column_spacing)
                     / *amount_of_data_points as f32;
 
-                let modulo_number = (*amount_of_data_points / FREQUENCY_OF_AXIS_LABELS).max(1);
+                let modulo_number = (*amount_of_data_points / FREQUENCY_OF_X_AXIS_LABELS).max(1);
 
                 for (i, (date, kg)) in self.data_points.iter().enumerate() {
                     let integer_kg = *kg as u32;
@@ -256,28 +258,33 @@ where
                             x: x_of_column,
                             y: bottom_y_coordinate + INDENT
                         }, color::DESCRIPTION_TEXT_COLOR, *viewport);
-
-                        //TODO Zukünftig anders lösen, bei vielen und sich stark unterscheidenden
-                        // Datenpunkten, können sich kg-Angaben überlappen
-                        //WEIGHT
-                        let weight_string = format!("{} kg", integer_kg);
-                        let weight_bounds = Size::new(widget_y_axis_padding-INDENT, AXIS_FONT_SIZE);
-                        renderer.fill_text( Text {
-                            content: weight_string.clone(),
-                            bounds: weight_bounds,
-                            size: AXIS_FONT_SIZE.into(),
-                            line_height: Default::default(),
-                            font: self.font,
-                            horizontal_alignment: Horizontal::Right,
-                            vertical_alignment: Vertical::Top,
-                            shaping: Default::default(),
-                            wrapping: Default::default(),
-                        }, Point {
-                            x: layout.bounds().x + widget_y_axis_padding - INDENT,
-                            y: y_of_column,
-                        }, color::DESCRIPTION_TEXT_COLOR, *viewport);
                     }
                 }
+                let milestones =
+                    exercise::get_weight_milestones(lightest_weight, heaviest_weight, FREQUENCY_OF_Y_AXIS_LABELS);
+                for val in milestones {
+                    //WEIGHT
+                    let share = if range == 0 {0.0}
+                    else {(val - lightest_weight) as f32 / range as f32};
+
+                    let weight_string = format!("{} kg",val);
+                    let weight_bounds = Size::new(widget_y_axis_padding-INDENT, AXIS_FONT_SIZE);
+                    renderer.fill_text( Text {
+                        content: weight_string,
+                        bounds: weight_bounds,
+                        size: AXIS_FONT_SIZE.into(),
+                        line_height: Default::default(),
+                        font: self.font,
+                        horizontal_alignment: Horizontal::Right,
+                        vertical_alignment: Vertical::Center,
+                        shaping: Default::default(),
+                        wrapping: Default::default(),
+                    }, Point {
+                        x: layout.bounds().x + widget_y_axis_padding - INDENT,
+                        y: bottom_y_coordinate - graph_axis_padding_y - (share) * height_of_graph_canvas,
+                    }, color::DESCRIPTION_TEXT_COLOR, *viewport);
+                }
+
                 //Y_AXIS
                 renderer.fill_quad(Quad {
                     bounds: Rectangle {
