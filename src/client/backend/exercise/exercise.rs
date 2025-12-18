@@ -83,6 +83,27 @@ impl Exercise {
         heaviest_set
     }
 }
+//TODO testable
+pub fn get_weight_milestones(start_number: u32, end_number: u32, steps: u32) -> Vec<u32> {
+    let mut milestones = vec![];
+
+    if steps == 0 || end_number < start_number{
+        return milestones;
+    }
+    if steps >= end_number - start_number {
+        for i in start_number..=end_number {
+            milestones.push(i);
+        }
+        return milestones
+    }
+
+    let range = end_number - start_number;
+
+    for step in 0..steps {
+        milestones.push(start_number + (range * step) / (steps - 1));
+    }
+    milestones
+}
 
 pub fn generate_example_exercise(name: String, sets_on_different_days: usize, base_weight: Kg) -> Exercise {
 
