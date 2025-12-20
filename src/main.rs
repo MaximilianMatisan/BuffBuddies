@@ -112,8 +112,8 @@ impl UserInterface {
                 *password = new_password;
                 Task::none()
             }
-            Message::SelectExercise(exercise_name) => {
-                self.app.exercise_manager.selected_exercise_name = exercise_name;
+            Message::SelectExercise(exercise) => {
+                self.app.exercise_manager.selected_exercise_name = exercise;
                 Task::none()
             }
         }

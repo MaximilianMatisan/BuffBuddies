@@ -2,11 +2,19 @@ use crate::client::backend::exercise::set::StrengthSet;
 use crate::client::backend::exercise::weight::{ExerciseWeight, Kg};
 use chrono::{Duration, NaiveDate};
 use std::collections::BTreeMap;
+use std::fmt::{Display, Formatter};
 use rand::Rng;
 
+#[derive(Debug,Clone)]
 pub struct Exercise {
     pub name: String,
     pub sets: BTreeMap<NaiveDate, Vec<StrengthSet>>
+}
+
+impl Display for Exercise {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 impl Exercise {
     pub fn new(name: String) -> Self {
