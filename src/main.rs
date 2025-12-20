@@ -2,27 +2,19 @@ use std::io;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle};
-use crate::client::gui::bb_widget::workout_preset::WorkoutPresetWidget;
 use iced::widget::{container, row, Column};
 use iced::{Element, Task, Theme};
 use crate::client::gui::{bb_theme, size};
 use iced_core::window::{Position, Settings};
 use iced_core::Length::Fill;
-use iced_core::{Image, Size};
-use iced_core::image::Handle;
+use iced_core::{Size};
 use strum::IntoEnumIterator;
 use crate::client::backend::login_state::LoginStateError;
 use crate::client::gui::bb_tab::login::view_login;
-use crate::client::backend::exercise;
-use crate::client::backend::exercise::exercise::Exercise;
-use crate::client::gui::bb_widget::shop;
 use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_widget::activity::activity::{ActivityMessage};
-use crate::client::gui::bb_widget::progress::{progress_environment_widget};
-use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::server::server_main::server_main;
 use crate::client::server_communicator::server_communicator::{valid_login, RequestValidUserError};
-use iced::widget::{column, Row};
 use crate::client::gui::bb_theme::color;
 
 mod client;
@@ -149,9 +141,9 @@ impl UserInterface {
             let tab_window: Option<Element<Message>> =
                 match self.app.screen {
                     Tab::Home => Some(self.homescreen()),
-                    Tab::Workouts => Some(self.workout_screen()),
-                    Tab::Friends => Some(self.friends_screen()),
-                    Tab::Mascots => Some(self.mascots_screen()),
+                    Tab::Workout => Some(self.workout_screen()),
+                    Tab::Social => Some(self.social_screen()),
+                    Tab::Mascot => Some(self.mascot_screen()),
                     Tab::Settings => Some(self.settings_screen()),
                     Tab::Exit => None
                 };
@@ -180,53 +172,6 @@ impl UserInterface {
                     .into()
             }
         }
-    }
-
-    pub fn homescreen(&self) -> Element<Message>{
-
-
-            let workout_preset: Element<Message> = WorkoutPresetWidget::default().into();
-
-            let activity_widget: Element<Message> = self.app.activity_widget.view(&self.app);
-
-            let mut shop_widgets = row![
-                shop::ShopWidget::new("Random rare mascot-egg".to_string(), 50, self.app.active_mascot.clone(), Message::BuyMascot()),
-                shop::ShopWidget::new("Random epic mascot-egg".to_string(), 100, self.app.active_mascot.clone(), Message::BuyMascot())
-                .set_image(Image::new(Handle::from_path("assets/images/epic_gacha.png")))
-            ];
-
-            shop_widgets = shop_widgets.spacing(30);
-
-            let contents = Column::new()
-                .push(activity_widget)
-                .push(progress_environment_widget(&self.app))
-                //.push(shop_widgets)
-                .push(workout_preset)
-                .spacing(INDENT).padding(INDENT);
-
-            let frame_container = container( contents)
-                .width(size::FRAME_WIDTH)
-                .height(size::FRAME_HEIGHT)
-                .style(bb_theme::container::create_style_container(ContainerStyle::Background)).padding(20)
-                .into();
-
-            frame_container
-        }
-
-    pub fn workout_screen(&self) -> Element<Message> {
-        Row::new().into()
-    }
-
-    pub fn friends_screen(&self) -> Element<Message> {
-        Row::new().into()
-    }
-
-    pub fn mascots_screen(&self) -> Element<Message> {
-        Row::new().into()
-    }
-
-    pub fn settings_screen(&self) -> Element<Message> {
-        Row::new().into()
     }
 }
 
