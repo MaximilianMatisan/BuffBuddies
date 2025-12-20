@@ -4,7 +4,7 @@ use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle};
 use crate::client::gui::bb_widget::workout_preset::WorkoutPresetWidget;
 use iced::widget::{container, row, Column};
-use iced::{Element, Task};
+use iced::{Element, Task, Theme};
 use crate::client::gui::{bb_theme, size};
 use iced_core::window::{Position, Settings};
 use iced_core::Length::Fill;
@@ -22,6 +22,8 @@ use crate::client::gui::bb_widget::progress::{progress_environment_widget};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::server::server_main::server_main;
 use crate::client::server_communicator::server_communicator::{valid_login, RequestValidUserError};
+use iced::widget::{column, Row};
+use crate::client::gui::bb_theme::color;
 
 mod client;
 mod server;
@@ -124,7 +126,7 @@ impl UserInterface {
             }
         }
     }
-    fn view(&self) -> Element<'_, Message>{
+    fn view(&self) -> Element<'_, Message> {
         if !self.app.login_state.logged_in {
             view_login(&self.app)
         } else {
@@ -143,6 +145,44 @@ impl UserInterface {
                 .padding(10)
                 .style(bb_theme::container::create_style_container(ContainerStyle::Default))
                 .height(Fill);
+
+            let tab_window: Option<Element<Message>> =
+                match self.app.screen {
+                    Tab::Home => Some(self.homescreen()),
+                    Tab::Workouts => Some(self.workout_screen()),
+                    Tab::Friends => Some(self.friends_screen()),
+                    Tab::Mascots => Some(self.mascots_screen()),
+                    Tab::Settings => Some(self.settings_screen()),
+                    Tab::Exit => None
+                };
+
+            if let Some(tab_window_real) = tab_window {
+                container(row![tab_container, tab_window_real])
+                    .width(size::FRAME_WIDTH)
+                    .height(size::FRAME_HEIGHT)
+                    .style(|_theme: &Theme| container::Style {
+                        text_color: None,
+                        background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
+                        border: Default::default(),
+                        shadow: Default::default(),
+                    }).padding(20)
+                    .into()
+            } else {
+                container(row![tab_container])
+                    .width(size::FRAME_WIDTH)
+                    .height(size::FRAME_HEIGHT)
+                    .style(|_theme: &Theme| container::Style {
+                        text_color: None,
+                        background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
+                        border: Default::default(),
+                        shadow: Default::default(),
+                    }).padding(20)
+                    .into()
+            }
+        }
+    }
+
+    pub fn homescreen(&self) -> Element<Message>{
 
 
             let workout_preset: Element<Message> = WorkoutPresetWidget::default().into();
@@ -164,7 +204,7 @@ impl UserInterface {
                 .push(workout_preset)
                 .spacing(INDENT).padding(INDENT);
 
-            let frame_container = container(row![tab_container, contents].spacing(INDENT))
+            let frame_container = container( contents)
                 .width(size::FRAME_WIDTH)
                 .height(size::FRAME_HEIGHT)
                 .style(bb_theme::container::create_style_container(ContainerStyle::Background)).padding(20)
@@ -172,6 +212,21 @@ impl UserInterface {
 
             frame_container
         }
+
+    pub fn workout_screen(&self) -> Element<Message> {
+        Row::new().into()
+    }
+
+    pub fn friends_screen(&self) -> Element<Message> {
+        Row::new().into()
+    }
+
+    pub fn mascots_screen(&self) -> Element<Message> {
+        Row::new().into()
+    }
+
+    pub fn settings_screen(&self) -> Element<Message> {
+        Row::new().into()
     }
 }
 
