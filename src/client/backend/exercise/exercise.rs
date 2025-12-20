@@ -1,6 +1,6 @@
 use crate::client::backend::exercise::set::StrengthSet;
 use crate::client::backend::exercise::weight::{ExerciseWeight, Kg};
-use chrono::{Duration, NaiveDate};
+use chrono::{Duration, Local, NaiveDate};
 use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
 use rand::Rng;
@@ -29,15 +29,14 @@ impl Exercise {
             let mut current_best_weight = 0.0;
             for set in sets {
                 if set.weight > current_best_weight {
-                   current_best_weight = set.weight;
+                    current_best_weight = set.weight;
                 }
-           }
+            }
             results.push((*date, current_best_weight))
         }
         results
     }
-
-    fn all_time_lifted_weight(&self) -> Kg {
+    pub fn all_time_lifted_weight(&self) -> Kg {
         let mut total_lifted_weight = 0.0;
         for (_day, sets_per_day) in &self.sets {
             for set in sets_per_day {
@@ -46,7 +45,7 @@ impl Exercise {
         }
         total_lifted_weight
     }
-    fn all_time_reps(&self) -> u64 {
+    pub fn all_time_reps(&self) -> u64 {
         let mut total_reps: u64 = 0;
         for (_day, sets_per_day) in &self.sets {
             for set in sets_per_day {
@@ -62,7 +61,7 @@ impl Exercise {
         }
         all_time_sets
     }
-    fn weight_personal_record(&self) -> Kg {
+    pub fn weight_personal_record(&self) -> Kg {
         let mut pr = 0.0;
         for (_day, sets_per_day) in &self.sets {
             for set in sets_per_day {
@@ -73,18 +72,14 @@ impl Exercise {
         }
         pr
     }
-    fn set_with_most_total_lifted_weight(&self) -> (Option<NaiveDate>, &StrengthSet) {
-        let mut heaviest_set: (Option<NaiveDate>, &StrengthSet) =
-            (None,
-             &StrengthSet {
-                 weight: 0.0,
-                 reps: 0,
-             });
+    pub fn set_with_most_total_lifted_weight(&self) -> (NaiveDate, Kg) {
+        let mut heaviest_set: (NaiveDate, Kg) = (Local::now().date_naive(),0.0);
         for (day, sets_per_day) in &self.sets {
             for set in sets_per_day {
-                if set.total_lifted_weight() > heaviest_set.1.total_lifted_weight() {
-                    heaviest_set.0 = Some(*day);
-                    heaviest_set.1 = set;
+                let cur_total_lifted_weight = set.total_lifted_weight();
+                if cur_total_lifted_weight > heaviest_set.1 {
+                    heaviest_set.0 = *day;
+                    heaviest_set.1 = cur_total_lifted_weight;
                 }
             }
         }

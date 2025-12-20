@@ -26,7 +26,6 @@ impl UserInterface {
 
         let contents = Column::new()
             .push(activity_widget)
-            .push(progress_environment_widget(&self.app))
             //.push(shop_widgets)
             .push(workout_preset)
             .spacing(INDENT).padding(INDENT);

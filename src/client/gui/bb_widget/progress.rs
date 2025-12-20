@@ -1,9 +1,8 @@
-use chrono::NaiveDate;
 use crate::client::gui::bb_theme::{color, text_format};
 use crate::client::gui::mascots::Mascot;
 use iced::{Element};
 use iced::overlay::menu;
-use iced::widget::{container, text_input, vertical_space, Column, ComboBox, Row, Space};
+use iced::widget::{container, text_input, Column, Row, Space};
 use iced::widget::text_input::Status;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
@@ -12,8 +11,7 @@ use iced_core::widget::Tree;
 use iced_core::{renderer, text, Background, Border, Layout, Length, Padding, Point, Rectangle, Size, Text, Theme, Widget};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::border::Radius;
-use crate::client::backend::exercise::exercise;
-use crate::client::backend::exercise::weight::Kg;
+use crate::client::backend::exercise::{exercise, ExerciseManager};
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
@@ -21,9 +19,7 @@ use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
 use crate::client::gui::bb_theme::text_format::{format_button_text, format_description_text};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::Message;
-use iced::widget::{center, column, combo_box, scrollable};
-use crate::client::backend::exercise::exercise::{generate_example_exercise, Exercise};
-use crate::client::gui::bb_theme::color::{DARKER_CONTAINER_COLOR, TEXT_COLOR};
+use iced::widget::{combo_box};
 
 const PROGRESS_WIDGET_WIDTH: f32 = 700.0;
 const PROGRESS_WIDGET_HEIGHT: f32 = 500.0;
@@ -36,24 +32,24 @@ const BASE_SPACING_BETWEEN_COLUMNS: f32 = 150.0;
 const FREQUENCY_OF_X_AXIS_LABELS: usize = 6;
 const FREQUENCY_OF_Y_AXIS_LABELS: u32 = 10;
 
-pub struct ProgressWidget<Renderer>
+pub struct ProgressWidget<'a,Renderer>
     where Renderer: text::Renderer
 {
     width: f32,
     height: f32,
     active_mascot: Mascot,
-    data_points: Vec<(NaiveDate, Kg)>,
+    exercise_manager: &'a ExerciseManager,
     font: <Renderer>::Font
 }
-impl<Renderer> ProgressWidget<Renderer>
+impl<'a,Renderer> ProgressWidget<'a,Renderer>
     where Renderer: text::Renderer<Font = iced::Font>
 {
-    fn new(active_mascot: Mascot, data_points: Vec<(NaiveDate, Kg)>) -> Self {
+    fn new(active_mascot: Mascot, exercise_manager: &'a ExerciseManager) -> Self {
         ProgressWidget {
             width: PROGRESS_WIDGET_WIDTH,
             height: PROGRESS_WIDGET_HEIGHT,
             active_mascot,
-            data_points,
+            exercise_manager,
             font: text_format::FIRA_SANS_EXTRABOLD,
         }
     }
@@ -66,15 +62,9 @@ impl<Renderer> ProgressWidget<Renderer>
 }
 
 pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
-    let selected_exercise = app.exercise_manager.get_selected_exercise();
-    let data_points = match selected_exercise {
-        None => vec![],
-        Some(exercise) =>  exercise.calculate_max_weight_per_day()
-    };
-    let all_time_sets_message: String = match selected_exercise {
-        None => "".to_string(),
-        Some(ex) => format!("{} - sets done", ex.all_time_sets())
-    };
+
+    let all_time_sets_message: String = format!("{} - total sets",app.exercise_manager.all_time_sets);
+
     let title: Element<'a, Message> = format_button_text(iced::widget::text("Progress").size(40)).into();
     let description: Element<Message> = format_description_text(iced::widget::text(all_time_sets_message)).into();
     let search_bar: Element<Message> = combo_box(
@@ -83,15 +73,15 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
                                                                 Some(&app.exercise_manager.selected_exercise_name),
                                                     Message::SelectExercise)
         .menu_style(|_theme: &Theme| menu::Style {
-            background: iced::Background::Color(bb_theme::color::CONTAINER_COLOR),
+            background: Background::Color(color::CONTAINER_COLOR),
             border: Border {
-                color: DARKER_CONTAINER_COLOR,
+                color: color::DARKER_CONTAINER_COLOR,
                 width: 0.0,
                 radius: 15.into()
             },
-            text_color: TEXT_COLOR,
-            selected_text_color: TEXT_COLOR,
-            selected_background: iced::Background::Color(app.active_mascot.get_primary_color())
+            text_color: color::TEXT_COLOR,
+            selected_text_color: color::TEXT_COLOR,
+            selected_background: Background::Color(app.active_mascot.get_primary_color())
         })
         .input_style(|_theme: &Theme, _status: Status| text_input::Style {
             background: Background::Color(color::BACKGROUND_COLOR),
@@ -109,7 +99,8 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
         .width(Length::Fixed(250.0))
         .padding([8,16]).into();
 
-    let progress_widget = ProgressWidget::new(app.active_mascot.clone(), data_points);
+    let progress_widget =
+        ProgressWidget::new(app.active_mascot.clone(), &app.exercise_manager);
 
     let header_row = Row::new()
         .width(Length::Fixed(progress_widget.get_width()))
@@ -135,7 +126,7 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
         .style(bb_theme::container::create_style_container(ContainerStyle::Default))
         .into()
 }
-impl<Message, Renderer> Widget<Message, Theme, Renderer> for ProgressWidget<Renderer>
+impl<'a, Message, Renderer> Widget<Message, Theme, Renderer> for ProgressWidget<'a,Renderer>
 where
     Renderer: renderer::Renderer + text::Renderer,
     Message: Clone
@@ -177,7 +168,7 @@ where
             height: y_axis_length,
         };
 
-        match &self.data_points.len() {
+        match &self.exercise_manager.data_points.len() {
             0  => {
                 renderer.fill_text(Text{
                     content: "NO DATA".to_string(),
@@ -210,7 +201,7 @@ where
                     shadow: Default::default(),
                 }, color::BACKGROUND_COLOR);
 
-                let kg_iterator = self.data_points.iter().map(|(_,kg)| *kg as u32);
+                let kg_iterator = self.exercise_manager.data_points.iter().map(|(_,kg)| *kg as u32);
                 let heaviest_weight = kg_iterator.clone().max().unwrap(); //100%
                 let lightest_weight = kg_iterator.min().unwrap();         // 0%
                 let range = heaviest_weight - lightest_weight;
@@ -228,7 +219,7 @@ where
 
                 let modulo_number = (*amount_of_data_points / FREQUENCY_OF_X_AXIS_LABELS).max(1);
 
-                for (i, (date, kg)) in self.data_points.iter().enumerate() {
+                for (i, (date, kg)) in self.exercise_manager.data_points.iter().enumerate() {
                     let integer_kg = *kg as u32;
                     let share = if range == 0 {0.0}
                         else {(integer_kg - lightest_weight) as f32 / range as f32};
@@ -374,11 +365,11 @@ where
         }
     }
 }
-impl<'a, Message: 'a, Renderer> From<ProgressWidget<Renderer>> for Element<'a, Message, Theme, Renderer>
+impl<'a, Message: 'a, Renderer> From<ProgressWidget<'a, Renderer>> for Element<'a, Message, Theme, Renderer>
 where Message: Clone,
       Renderer: 'a + renderer::Renderer + text::Renderer
 {
-    fn from(value: ProgressWidget<Renderer>) -> Self {
+    fn from(value: ProgressWidget<'a,Renderer>) -> Self {
         Self::new(value)
     }
 }
