@@ -1,5 +1,6 @@
 use crate::client::backend::exercise::weight::{ExerciseWeight, Kg};
 
+#[derive(Debug,Clone)]
 pub struct StrengthSet {
     pub(crate) weight: Kg,
     pub(crate) reps: u64

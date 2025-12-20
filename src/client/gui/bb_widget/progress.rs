@@ -2,7 +2,8 @@ use chrono::NaiveDate;
 use crate::client::gui::bb_theme::{color, text_format};
 use crate::client::gui::mascots::Mascot;
 use iced::{Element};
-use iced::widget::{container, text_input, Column, Row, Space};
+use iced::overlay::menu;
+use iced::widget::{container, text_input, vertical_space, Column, ComboBox, Row, Space};
 use iced::widget::text_input::Status;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
@@ -20,6 +21,9 @@ use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
 use crate::client::gui::bb_theme::text_format::{format_button_text, format_description_text};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::Message;
+use iced::widget::{center, column, combo_box, scrollable};
+use crate::client::backend::exercise::exercise::{generate_example_exercise, Exercise};
+use crate::client::gui::bb_theme::color::{DARKER_CONTAINER_COLOR, TEXT_COLOR};
 
 const PROGRESS_WIDGET_WIDTH: f32 = 700.0;
 const PROGRESS_WIDGET_HEIGHT: f32 = 500.0;
@@ -73,8 +77,23 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
     };
     let title: Element<'a, Message> = format_button_text(iced::widget::text("Progress").size(40)).into();
     let description: Element<Message> = format_description_text(iced::widget::text(all_time_sets_message)).into();
-    let search_bar: Element<Message> = text_input("Search Exercise...", &app.exercise_manager.selected_exercise_name)
-        .style(|_theme: &Theme, _status: Status| text_input::Style {
+    let search_bar: Element<Message> = combo_box(
+                                                    &app.exercise_manager.owned_exercise_state,
+                                                    "Search Exercise...",
+                                                                Some(&app.exercise_manager.selected_exercise_name),
+                                                    Message::SelectExercise)
+        .menu_style(|_theme: &Theme| menu::Style {
+            background: iced::Background::Color(bb_theme::color::CONTAINER_COLOR),
+            border: Border {
+                color: DARKER_CONTAINER_COLOR,
+                width: 0.0,
+                radius: 15.into()
+            },
+            text_color: TEXT_COLOR,
+            selected_text_color: TEXT_COLOR,
+            selected_background: iced::Background::Color(app.active_mascot.get_primary_color())
+        })
+        .input_style(|_theme: &Theme, _status: Status| text_input::Style {
             background: Background::Color(color::BACKGROUND_COLOR),
             border: Border {
                 color: Default::default(),
@@ -87,10 +106,8 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
             selection: app.active_mascot.get_secondary_color(),
         })
         .font(text_format::FIRA_SANS_EXTRABOLD)
-        .on_input(Message::SelectExercise)
         .width(Length::Fixed(250.0))
-        .padding([8,16])
-        .into();
+        .padding([8,16]).into();
 
     let progress_widget = ProgressWidget::new(app.active_mascot.clone(), data_points);
 
