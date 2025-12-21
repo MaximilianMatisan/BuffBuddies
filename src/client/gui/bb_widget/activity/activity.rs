@@ -187,7 +187,7 @@ impl ActivityWidget {
                 time_offset_buttons
             ].spacing(10)
                 .align_y(Vertical::Center))
-            .style(bb_theme::container::create_style_container(ContainerStyle::Default))
+            .style(bb_theme::container::create_style_container(ContainerStyle::Default, None))
             .padding(INDENT);
 
         row![widget_offset_container, time_scope_buttons.spacing(10)]

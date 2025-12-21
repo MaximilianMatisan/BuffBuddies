@@ -20,6 +20,7 @@ use crate::client::gui::bb_theme::text_format::{format_button_text, format_descr
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::Message;
 use iced::widget::{combo_box};
+use crate::client::gui::bb_widget::exercise_stats::{exercise_stat_column};
 
 const PROGRESS_WIDGET_WIDTH: f32 = 700.0;
 const PROGRESS_WIDGET_HEIGHT: f32 = 500.0;
@@ -63,12 +64,8 @@ impl<'a,Renderer> ProgressWidget<'a,Renderer>
 
 pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
 
-    let all_time_sets_message: String = format!("{} - total sets",app.exercise_manager.all_time_sets);
-
     let title: Element<'a, Message> = format_button_text(iced::widget::text("Progress").size(40)).into();
-    let description: Element<Message> = format_description_text(iced::widget::text(all_time_sets_message)).into();
-    let search_bar: Element<Message> = combo_box(
-                                                    &app.exercise_manager.owned_exercise_state,
+    let search_bar: Element<Message> = combo_box(&app.exercise_manager.owned_exercise_state,
                                                     "Search Exercise...",
                                                                 Some(&app.exercise_manager.selected_exercise_name),
                                                     Message::SelectExercise)
@@ -102,12 +99,15 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
     let progress_widget =
         ProgressWidget::new(app.active_mascot.clone(), &app.exercise_manager);
 
+    let exercise_stats = exercise_stat_column(&app)
+        .width(Length::Fixed(progress_widget.get_width()))
+        .padding(Padding{top: 0.0, right: 30.0, bottom: 30.0, left: 30.0});
+
     let header_row = Row::new()
         .width(Length::Fixed(progress_widget.get_width()))
         .push(Space::with_width(Length::FillPortion(1)))
         .push(title)
         .push(Space::with_width(Length::FillPortion(3)))
-        .push(description)
         .push(search_bar)
         .push(Space::with_width(Length::FillPortion(1)))
         .spacing(5)
@@ -116,14 +116,15 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
     let contents = Column::new()
         .width(Length::Shrink)
         .push(header_row)
+        .push(Space::with_height(Length::Fixed(15.0)))
         .push(progress_widget)
+        .push(exercise_stats)
         .padding(Padding{ top: 15.0, right: 0.0, bottom: 0.0, left: 0.0 })
-        .spacing(15)
         .align_x(Horizontal::Center);
 
     container(contents)
         .width(Length::Shrink)
-        .style(bb_theme::container::create_style_container(ContainerStyle::Default))
+        .style(bb_theme::container::create_style_container(ContainerStyle::Default, None))
         .into()
 }
 impl<'a, Message, Renderer> Widget<Message, Theme, Renderer> for ProgressWidget<'a,Renderer>

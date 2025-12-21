@@ -6,7 +6,7 @@ use crate::client::gui::bb_widget::progress::progress_environment_widget;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::bb_widget::workout_preset::WorkoutPresetWidget;
 use crate::client::gui::{bb_theme, size};
-use crate::client::gui::bb_theme::container::ContainerStyle;
+use crate::client::gui::bb_theme::container::{create_style_container, ContainerStyle};
 use crate::{Message, UserInterface};
 use crate::client::gui::bb_widget::shop;
 
@@ -33,7 +33,8 @@ impl UserInterface {
         let frame_container = container(contents)
             .width(size::FRAME_WIDTH)
             .height(size::FRAME_HEIGHT)
-            .style(bb_theme::container::create_style_container(ContainerStyle::Background)).padding(20)
+            .style(create_style_container(ContainerStyle::Background, Some(0.0.into())))
+            .padding(20)
             .into();
 
         frame_container

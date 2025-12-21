@@ -68,7 +68,7 @@ pub fn view_login(app: &App) -> Element<'_,Message> {
         .padding(20)
         .max_width(400)
         .max_height(420)
-        .style(crate::bb_theme::container::create_style_container(ContainerStyle::Dark))
+        .style(crate::bb_theme::container::create_style_container(ContainerStyle::Dark, None))
         .width(Fill)
         .height(Fill);
 
