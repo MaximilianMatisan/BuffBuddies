@@ -135,7 +135,7 @@ impl UserInterface {
             }
             let tab_container = container(tab_bar.spacing(10).padding(30))
                 .padding(10)
-                .style(bb_theme::container::create_style_container(ContainerStyle::Default))
+                .style(bb_theme::container::create_style_container(ContainerStyle::Default, None))
                 .height(Fill);
 
             let tab_window: Option<Element<Message>> =

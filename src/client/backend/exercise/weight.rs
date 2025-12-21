@@ -1,7 +1,9 @@
 use std::cmp::Ordering;
 
 pub type Kg = f32;
-
+pub fn kg_to_string(kg: Kg) -> String {
+    format!("{kg} kg")
+}
 pub enum ExerciseWeight {
     Bodyweight,
     BodyweightPlusKg(Kg),
