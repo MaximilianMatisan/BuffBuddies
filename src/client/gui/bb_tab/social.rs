@@ -2,7 +2,7 @@ use iced::Element;
 use iced::widget::{Row, Scrollable, Space};
 use iced::widget::scrollable::{Direction, Scrollbar};
 use iced_core::Length;
-use crate::{Message, UserInterface};
+use crate::client::gui::user_interface::{Message, UserInterface};
 use crate::client::gui::bb_widget::progress::progress_environment_widget;
 
 impl UserInterface {

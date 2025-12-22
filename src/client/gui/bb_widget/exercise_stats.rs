@@ -6,7 +6,7 @@ use crate::client::gui::bb_theme::container::{create_style_container, ContainerS
 use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
 use crate::client::gui::bb_theme::text_format::{format_button_text, kg_to_string};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::Message;
+use crate::client::gui::user_interface::Message;
 
 const DISPLAYED_EXERCISE_STATS: usize = 5;
 const DISPLAYED_EXERCISE_STAT_LAST_INDEX: usize = DISPLAYED_EXERCISE_STATS - 1;

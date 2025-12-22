@@ -1,6 +1,6 @@
 use crate::client::gui::bb_theme;
 use crate::client::gui::mascots::Mascot;
-use crate::Message;
+use crate::client::gui::user_interface::Message;
 use iced::advanced::{
     layout::Layout,
     widget::Widget,
@@ -56,9 +56,9 @@ where Renderer: iced_core::image::Renderer + iced_core::text::Renderer + 'a, Mes
         self.image = image;
         self
     }
-    pub(crate) fn new(name: String, price:usize, mascot: Mascot, message: crate::Message) -> Self {
+    pub(crate) fn new(name: String, price:usize, mascot: Mascot, message: Message) -> Self {
 
-        let buy_button: iced::widget::Button<'_, crate::Message, Theme, iced::Renderer> =
+        let buy_button: iced::widget::Button<'_, Message, Theme, iced::Renderer> =
             create_element_button(mascot.clone(),
                                row![format_button_text(iced::widget::text("Buy")),
                                         Space::with_width(Length::Fill),

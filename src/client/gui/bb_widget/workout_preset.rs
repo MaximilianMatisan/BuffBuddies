@@ -1,4 +1,4 @@
-use crate::Message;
+use crate::client::gui::user_interface::Message;
 use iced::Element;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;

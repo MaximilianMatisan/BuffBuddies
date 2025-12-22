@@ -1,6 +1,6 @@
 use iced::Element;
 use iced::widget::Row;
-use crate::{Message, UserInterface};
+use crate::client::gui::user_interface::{Message, UserInterface};
 
 impl UserInterface {
 

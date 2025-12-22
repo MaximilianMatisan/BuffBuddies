@@ -2,12 +2,11 @@ use iced::Element;
 use iced::widget::{container, row, Column};
 use iced_core::Image;
 use iced_core::image::Handle;
-use crate::client::gui::bb_widget::progress::progress_environment_widget;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::bb_widget::workout_preset::WorkoutPresetWidget;
-use crate::client::gui::{bb_theme, size};
+use crate::client::gui::{size};
 use crate::client::gui::bb_theme::container::{create_style_container, ContainerStyle};
-use crate::{Message, UserInterface};
+use crate::client::gui::user_interface::{Message, UserInterface};
 use crate::client::gui::bb_widget::shop;
 
 impl UserInterface {
