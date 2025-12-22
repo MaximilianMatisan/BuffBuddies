@@ -103,12 +103,12 @@ impl UserInterface {
                 Task::none()
             }
             Message::UsernameEntered(new_username) => {
-                let mut username = &mut self.app.login_state.username;
+                let username = &mut self.app.login_state.username;
                 *username = new_username;
                 Task::none()
             }
             Message::PasswordEntered(new_password) => {
-                let mut password = &mut self.app.login_state.password;
+                let password = &mut self.app.login_state.password;
                 *password = new_password;
                 Task::none()
             }
@@ -150,8 +150,8 @@ impl UserInterface {
 
             if let Some(tab_window_real) = tab_window {
                 container(row![tab_container, tab_window_real])
-                    .width(size::FRAME_WIDTH)
-                    .height(size::FRAME_HEIGHT)
+                    .width(Fill)
+                    .height(Fill)
                     .style(|_theme: &Theme| container::Style {
                         text_color: None,
                         background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
@@ -161,8 +161,8 @@ impl UserInterface {
                     .into()
             } else {
                 container(row![tab_container])
-                    .width(size::FRAME_WIDTH)
-                    .height(size::FRAME_HEIGHT)
+                    .width(Fill)
+                    .height(Fill)
                     .style(|_theme: &Theme| container::Style {
                         text_color: None,
                         background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
@@ -209,18 +209,17 @@ pub async fn main() -> iced::Result {
             Ok(())
         },
     }
-
-    
 }
 
 fn client_main() -> iced::Result {
+    let default_size = Size::new(size::FRAME_WIDTH,size::FRAME_HEIGHT);
     let settings: Settings = Settings {
-        size: Size::new(size::FRAME_WIDTH, size::FRAME_HEIGHT),
+        size: default_size,
         position: Position::Default,
-        min_size: None,
+        min_size: Some(default_size),
         max_size: None,
         visible: true,
-        resizable: false,
+        resizable: true,
 
         decorations: true,
         transparent: true,

@@ -6,6 +6,7 @@ use iced_core::font::Family::Name;
 use iced_core::font::Stretch::Normal;
 use iced_core::font::Style;
 use iced_core::font::Weight::ExtraBold;
+use crate::client::backend::exercise::weight::Kg;
 
 pub const FIRA_SANS_EXTRABOLD: Font = Font{
     family:Name("Fira Sans"),
@@ -21,4 +22,7 @@ pub fn format_button_text(msg: Text<Theme, Renderer>) -> Text<Theme, Renderer>{
 }
 pub fn format_description_text(msg: Text<Theme, Renderer>) -> Text<'_, Theme, Renderer> {
     msg.font(FIRA_SANS_EXTRABOLD).color(color::DESCRIPTION_TEXT_COLOR).size(15)
+}
+pub fn kg_to_string(kg: Kg) -> String {
+    format!("{} kg", kg)
 }

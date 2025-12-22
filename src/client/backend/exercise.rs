@@ -1,6 +1,7 @@
 use chrono::NaiveDate;
 use iced::widget::combo_box;
 use crate::client::backend::exercise::exercise::{generate_example_exercise, Exercise};
+use crate::client::backend::exercise::set::Reps;
 use crate::client::backend::exercise::weight::Kg;
 
 pub mod weight;
@@ -17,7 +18,7 @@ pub struct ExerciseManager {
     pub data_points: Vec<(NaiveDate, Kg)>,
     //STATS
     pub all_time_lifted_weight: Kg,
-    pub all_time_reps: u64,
+    pub all_time_reps: Reps,
     pub all_time_sets: u64,
     pub weight_personal_record: Kg,
     pub set_with_most_total_lifted_weight: (NaiveDate, Kg)

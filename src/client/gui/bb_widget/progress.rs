@@ -16,7 +16,7 @@ use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
 use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
-use crate::client::gui::bb_theme::text_format::{format_button_text, format_description_text};
+use crate::client::gui::bb_theme::text_format::{format_button_text};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::Message;
 use iced::widget::{combo_box};
@@ -61,9 +61,8 @@ impl<'a,Renderer> ProgressWidget<'a,Renderer>
         self.width
     }
 }
-
 pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
-
+    let default_padding = 30.0;
     let title: Element<'a, Message> = format_button_text(iced::widget::text("Progress").size(40)).into();
     let search_bar: Element<Message> = combo_box(&app.exercise_manager.owned_exercise_state,
                                                     "Search Exercise...",
@@ -74,7 +73,7 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
             border: Border {
                 color: color::DARKER_CONTAINER_COLOR,
                 width: 0.0,
-                radius: 15.into()
+                radius: DEFAULT_CONTAINER_RADIUS.into()
             },
             text_color: color::TEXT_COLOR,
             selected_text_color: color::TEXT_COLOR,
@@ -101,7 +100,7 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
 
     let exercise_stats = exercise_stat_column(&app)
         .width(Length::Fixed(progress_widget.get_width()))
-        .padding(Padding{top: 0.0, right: 30.0, bottom: 30.0, left: 30.0});
+        .padding(Padding{top: 0.0, right: default_padding, bottom: default_padding, left: default_padding});
 
     let header_row = Row::new()
         .width(Length::Fixed(progress_widget.get_width()))
@@ -110,7 +109,6 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
         .push(Space::with_width(Length::FillPortion(3)))
         .push(search_bar)
         .push(Space::with_width(Length::FillPortion(1)))
-        .spacing(5)
         .align_y(Vertical::Center);
 
     let contents = Column::new()
@@ -119,7 +117,7 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
         .push(Space::with_height(Length::Fixed(15.0)))
         .push(progress_widget)
         .push(exercise_stats)
-        .padding(Padding{ top: 15.0, right: 0.0, bottom: 0.0, left: 0.0 })
+        .padding(Padding{ top: default_padding/2.0, ..Default::default()})
         .align_x(Horizontal::Center);
 
     container(contents)
@@ -351,14 +349,11 @@ where
                         height: bottom_y_coordinate - cursor_position.y,
                     },
                     border: Border {
-                        color: Default::default(),
-                        width: 0.0,
                         radius: Radius {
-                            top_left: 0.0,
                             top_right: 15.0,
-                            bottom_right: 0.0,
-                            bottom_left: 0.0,
+                            ..Default::default()
                         },
+                        ..Default::default()
                     },
                     shadow: Default::default(),
                 },see_through_mouse_follower_color);
