@@ -1,7 +1,7 @@
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::mascots::Mascot;
-use crate::Message;
+use crate::client::gui::user_interface::{Message};
 use iced::gradient::{ColorStop, Linear};
 use iced::widget::{button, Button};
 use iced::{Background, Color, Element, Gradient, Renderer};

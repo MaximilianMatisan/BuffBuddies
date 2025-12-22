@@ -4,3 +4,4 @@ pub mod bb_widget;
 pub mod app;
 pub mod mascots;
 pub mod size;
+pub mod user_interface;
