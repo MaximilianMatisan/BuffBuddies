@@ -1,11 +1,10 @@
 use iced::widget::{container, text, Column, Row, Space};
 use iced::{Length};
 use iced_core::border::Radius;
-use crate::client::backend::exercise::weight::kg_to_string;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::container::{create_style_container, ContainerStyle, DEFAULT_CONTAINER_RADIUS};
 use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
-use crate::client::gui::bb_theme::text_format::format_button_text;
+use crate::client::gui::bb_theme::text_format::{format_button_text, kg_to_string};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::Message;
 
@@ -18,7 +17,9 @@ pub fn exercise_stat_column(app: &App) -> Column<Message> {
         ("Total sets done: ".to_string(), app.exercise_manager.all_time_sets.to_string()),
         ("Total reps done: ".to_string(), app.exercise_manager.all_time_reps.to_string()),
         ("Weight record: ".to_string(), kg_to_string(app.exercise_manager.weight_personal_record)),
-        ("Set with most total lifted weight: ".to_string(), app.exercise_manager.set_with_most_total_lifted_weight.1.to_string())
+        ("Set with most total lifted weight: ".to_string(), format!("{} - {}",
+            app.exercise_manager.set_with_most_total_lifted_weight.0.format("%d.%m.%y"),
+            kg_to_string(app.exercise_manager.set_with_most_total_lifted_weight.1)))
     ];
     for (i, (title, data)) in stats.iter().enumerate() {
         let line = Row::new()

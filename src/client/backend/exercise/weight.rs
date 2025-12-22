@@ -1,9 +1,6 @@
 use std::cmp::Ordering;
 
-pub type Kg = f32;
-pub fn kg_to_string(kg: Kg) -> String {
-    format!("{kg} kg")
-}
+pub type Kg = f64;
 pub enum ExerciseWeight {
     Bodyweight,
     BodyweightPlusKg(Kg),
@@ -23,9 +20,12 @@ impl ExerciseWeight {
     pub fn to_kg(&self) -> Kg {
         let user_weight = 0.0; //TODO get user weight
         match self {
-            ExerciseWeight::Bodyweight => user_weight,
-            ExerciseWeight::BodyweightPlusKg(kg) => user_weight + kg,
-            ExerciseWeight::Kg(kg) => *kg
+            ExerciseWeight::Bodyweight => round_to_two_decimals(user_weight),
+            ExerciseWeight::BodyweightPlusKg(kg) =>round_to_two_decimals(user_weight + kg),
+            ExerciseWeight::Kg(kg) => round_to_two_decimals(*kg)
         }
     }
+}
+pub fn round_to_two_decimals(weight: Kg) -> Kg{
+    (weight * 100.0).round() / 100.0
 }

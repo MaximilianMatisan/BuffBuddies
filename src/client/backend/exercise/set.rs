@@ -1,12 +1,13 @@
 use crate::client::backend::exercise::weight::{ExerciseWeight, Kg};
 
+pub type Reps = u32;
 #[derive(Debug,Clone)]
 pub struct StrengthSet {
     pub(crate) weight: Kg,
-    pub(crate) reps: u64
+    pub(crate) reps: Reps 
 }
 impl StrengthSet {
-    pub fn new(weight: ExerciseWeight, reps: u64) -> Self {
+    pub fn new(weight: ExerciseWeight, reps: Reps) -> Self {
         let kg = weight.to_kg();
         StrengthSet {
             weight: kg,
