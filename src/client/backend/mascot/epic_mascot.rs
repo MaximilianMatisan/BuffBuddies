@@ -11,6 +11,7 @@ pub enum EpicMascot {
     #[default]
     Capybara,
     Shark,
+    Reindeer,
 }
 
 impl MascotTrait for EpicMascot {
@@ -18,6 +19,7 @@ impl MascotTrait for EpicMascot {
         match self {
             EpicMascot::Capybara => "Capybara",
             EpicMascot::Shark => "Shark",
+            EpicMascot::Reindeer => "Reindeer",
         }
     }
 
@@ -25,6 +27,7 @@ impl MascotTrait for EpicMascot {
         match self {
             EpicMascot::Capybara => "assets/images/mascots/capybara.png",
             EpicMascot::Shark => "assets/images/mascots/shark.png",
+            EpicMascot::Reindeer => "assets/images/mascots/reindeer.png"
         }
     }
 
@@ -32,18 +35,21 @@ impl MascotTrait for EpicMascot {
         match self {
             EpicMascot::Capybara => color!(174, 87, 171),
             EpicMascot::Shark => color!(145,140,134),
+            EpicMascot::Reindeer => color!(234, 35, 0),
         }
     }
     fn get_secondary_color(&self) -> Color {
         match self {
             EpicMascot::Capybara => color!(212,156,210),
             EpicMascot::Shark => color!(200,196,185),
+            EpicMascot::Reindeer => color!(244, 99, 86),
         }
     }
     fn get_dark_color(&self) -> Color {
         match self {
             EpicMascot::Capybara => color!(102,52,91),
-            EpicMascot::Shark => color!(113,103,93)
+            EpicMascot::Shark => color!(113,103,93),
+            EpicMascot::Reindeer => color!(134, 34, 16),
         }
     }
 }
