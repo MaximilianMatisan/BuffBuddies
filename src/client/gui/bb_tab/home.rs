@@ -16,8 +16,8 @@ impl UserInterface {
         let activity_widget: Element<Message> = self.app.activity_widget.view(&self.app);
 
         let mut shop_widgets = row![
-                shop::ShopWidget::new("Random rare mascot-egg".to_string(), 50, self.app.active_mascot.clone(), Message::BuyMascot()),
-                shop::ShopWidget::new("Random epic mascot-egg".to_string(), 100, self.app.active_mascot.clone(), Message::BuyMascot())
+                shop::ShopWidget::new("Random rare mascot-egg".to_string(), 50, self.app.mascot_manager.selected_mascot.clone(), Message::BuyMascot()),
+                shop::ShopWidget::new("Random epic mascot-egg".to_string(), 100, self.app.mascot_manager.selected_mascot.clone(), Message::BuyMascot())
                 .set_image(Image::new(Handle::from_path("assets/images/epic_gacha.png")))
             ];
 

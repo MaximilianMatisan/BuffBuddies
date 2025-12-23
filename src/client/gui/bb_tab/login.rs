@@ -39,14 +39,14 @@ pub fn view_login(app: &App) -> Element<'_,Message> {
 
     let login_button_text: Element<Message> = format_button_text(text("Login")).width(Fill).into();
     let login_button =
-        create_element_button(app.active_mascot.clone(), login_button_text, ButtonStyle::Active, None)
+        create_element_button(app.mascot_manager.selected_mascot.clone(), login_button_text, ButtonStyle::Active, None)
             .on_press(Message::TryLogin)
             .width(Fill)
             .height(40);
 
     let register_button_text: Element<Message> = format_button_text(text("Register")).width(Fill).into();
     let register_button =
-        create_element_button(app.active_mascot.clone(), register_button_text, ButtonStyle::Active, None)
+        create_element_button(app.mascot_manager.selected_mascot.clone(), register_button_text, ButtonStyle::Active, None)
             .on_press(Message::TryRegister)
             .width(Fill)
             .height(40);

@@ -120,7 +120,7 @@ impl UserInterface {
             let mut tab_bar: Column<Message> = Column::new();
             for tab in Tab::iter() {
                 tab_bar = tab_bar.push(
-                    create_text_button(self.app.active_mascot.clone(),
+                    create_text_button(self.app.mascot_manager.selected_mascot.clone(),
                                        tab.to_string(),
                                        if self.app.screen == tab
                                        { ButtonStyle::ActiveTab } else { ButtonStyle::InactiveTab },

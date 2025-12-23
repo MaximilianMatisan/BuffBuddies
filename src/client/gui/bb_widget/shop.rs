@@ -1,5 +1,5 @@
 use crate::client::gui::bb_theme;
-use crate::client::gui::mascots::Mascot;
+use crate::client::backend::mascot::mascot::Mascot;
 use crate::client::gui::user_interface::Message;
 use iced::advanced::{
     layout::Layout,
