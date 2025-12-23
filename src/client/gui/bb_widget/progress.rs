@@ -1,5 +1,5 @@
 use crate::client::gui::bb_theme::{color, text_format};
-use crate::client::gui::mascots::Mascot;
+use crate::client::backend::mascot::mascot::Mascot;
 use iced::{Element};
 use iced::overlay::menu;
 use iced::widget::{container, text_input, Column, Row, Space};
@@ -20,6 +20,7 @@ use crate::client::gui::bb_theme::text_format::{format_button_text};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use iced::widget::{combo_box};
+use crate::client::backend::mascot::mascot_trait::MascotTrait;
 use crate::client::gui::bb_widget::exercise_stats::{exercise_stat_column};
 
 const PROGRESS_WIDGET_WIDTH: f32 = 700.0;
@@ -77,7 +78,7 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
             },
             text_color: color::TEXT_COLOR,
             selected_text_color: color::TEXT_COLOR,
-            selected_background: Background::Color(app.active_mascot.get_primary_color())
+            selected_background: Background::Color(app.mascot_manager.selected_mascot.get_primary_color())
         })
         .input_style(|_theme: &Theme, _status: Status| text_input::Style {
             background: Background::Color(color::BACKGROUND_COLOR),
@@ -89,14 +90,14 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a,Message> {
             icon: Default::default(),
             placeholder: color::DESCRIPTION_TEXT_COLOR,
             value: color::TEXT_COLOR,
-            selection: app.active_mascot.get_secondary_color(),
+            selection: app.mascot_manager.selected_mascot.get_secondary_color(),
         })
         .font(text_format::FIRA_SANS_EXTRABOLD)
         .width(Length::Fixed(250.0))
         .padding([8,16]).into();
 
     let progress_widget =
-        ProgressWidget::new(app.active_mascot.clone(), &app.exercise_manager);
+        ProgressWidget::new(app.mascot_manager.selected_mascot.clone(), &app.exercise_manager);
 
     let exercise_stats = exercise_stat_column(&app)
         .width(Length::Fixed(progress_widget.get_width()))

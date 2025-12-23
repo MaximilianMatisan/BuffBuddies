@@ -17,7 +17,8 @@ use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, DEFAULT_BUTTON_RADIUS};
 use crate::client::gui::bb_widget::activity::date_utils::{get_date_by_offset, get_end_dates_of_offsets, get_start_dates_of_offsets, started_weeks_in_period, DateScope, Offset, DAYS_PER_WEEK};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::client::gui::mascots::Mascot;
+use crate::client::backend::mascot::mascot::Mascot;
+use crate::client::backend::mascot::mascot_trait::MascotTrait;
 use crate::client::gui::user_interface::Message;
 
 const DEFAULT_NAVIGATION_BUTTON_WIDTH: f32 = 130.0;
