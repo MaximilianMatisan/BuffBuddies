@@ -6,9 +6,10 @@ use iced::gradient::{ColorStop, Linear};
 use iced::widget::{button, Button};
 use iced::{Background, Color, Element, Gradient, Renderer};
 use iced_core::border::Radius;
-use iced_core::Theme;
 use iced_core::widget::text;
 use crate::client::backend::mascot::mascot_trait::MascotTrait;
+use iced::widget::button::{Status, Style};
+use iced_core::{color, Border, Theme};
 
 const TAB_BUTTON_WIDTH: f32 = 225.0;
 const TAB_BUTTON_HEIGHT: f32 = 45.0;
@@ -23,7 +24,7 @@ pub enum ButtonStyle {
     InactiveTransparent,
     InactiveSolid
 }
-fn create_preset_button(element: Element<Message,Theme,Renderer>,
+pub fn create_preset_button(element: Element<Message,Theme,Renderer>,
                         active_color: Color,
                         disabled_color: Color,
                         hovered_color: Color,
@@ -37,37 +38,50 @@ fn create_preset_button(element: Element<Message,Theme,Renderer>,
     };
     button(element)
         .style(move |_, status: button::Status| {
+            let border =  Border {
+                color: iced::color!(0,0,0),
+                width: 0.0,
+                radius: 193.0.into()
+            };
+            create_button_style(status, border, active_color, disabled_color, hovered_color)
+        }
+        )
+}
 
-            let mut style = button::Style::default();
+pub fn create_button_style(status: Status,
+                           border: Border,
+                           active_color: Color,
+                           disabled_color: Color,
+                           hovered_color: Color) -> Style {
 
-            style.border.radius = radius;
+    let mut style = button::Style::default();
+    style.border = border;
+    match status {
+        button::Status::Active => {
+            style.background = Some(Background::Color(active_color));
+            style
+        }
+        button::Status::Disabled =>  {
+            style.background = Some(Background::Color(disabled_color));
+            style
+        }
+        button::Status::Hovered => {
+            style.background = Some(Background::Color(hovered_color));
+            style
+        }
+        button::Status::Pressed => {
+            let mut linear = Linear::new(0);
+            linear.stops = [
+                Some(ColorStop { offset: 0.0, color: hovered_color}),
+                Some(ColorStop { offset: 1.0, color: disabled_color}),
+                None, None, None, None, None, None
+            ];
 
-            match status {
-                button::Status::Active => {
-                    style.background = Some(Background::Color(active_color));
-                    style
-                }
-                button::Status::Disabled =>  {
-                    style.background = Some(Background::Color(disabled_color));
-                    style
-                }
-                button::Status::Hovered => {
-                    style.background = Some(Background::Color(hovered_color));
-                    style
-                }
-                button::Status::Pressed => {
-                    let mut linear = Linear::new(0);
-                    linear.stops = [
-                        Some(ColorStop { offset: 0.0, color: hovered_color}),
-                        Some(ColorStop { offset: 1.0, color: disabled_color}),
-                        None, None, None, None, None, None
-                    ];
+            style.background = Some(Background::Gradient(Gradient::Linear(linear)));
+            style
+        }
+    }
 
-                    style.background = Some(Background::Gradient(Gradient::Linear(linear)));
-                    style
-                }
-            }
-        })
 }
 pub fn create_text_button<'a>(mascot: Mascot,
                               text: String,
