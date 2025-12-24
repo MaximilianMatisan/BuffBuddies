@@ -1,7 +1,7 @@
 use crate::client::backend::login_state::LoginState;
 use crate::client::backend::exercise::ExerciseManager;
 use crate::client::backend::mascot::mascot_manager::MascotManager;
-use crate::client::gui::bb_tab::tab::Tab;
+pub(crate) use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_widget::activity::activity::ActivityWidget;
 use crate::client::backend::mascot::mascot::Mascot;
 
