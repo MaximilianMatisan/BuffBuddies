@@ -1,4 +1,4 @@
-pub mod workout_preset;
+pub mod workout;
 pub mod widget_utils;
 pub mod shop;
 pub mod activity;

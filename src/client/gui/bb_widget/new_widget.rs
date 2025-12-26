@@ -12,11 +12,12 @@ use iced_core::alignment::Horizontal;
 use iced_core::alignment::Vertical;
 use iced_core::{Border, Length, Theme};
 use iced_core::border::Radius;
+use crate::client::gui::bb_widget::workout::{DEFAULT_RECENT_WORKOUT_WIDGET_HEIGHT, DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT, DEFAULT_WORKOUT_WIDGET_WIDTH};
 
 const SCALE: f32 = 0.9;
-const BUTTONS_WIDTH: f32 = 218.0 * SCALE;
-const NEW_WORKOUT_BUTTON_HEIGHT: f32 = 176.0 * SCALE;
-const NEW_PRESET_BUTTON_HEIGHT: f32 = 274.0 * SCALE;
+const BUTTONS_WIDTH: f32 = DEFAULT_WORKOUT_WIDGET_WIDTH;
+const NEW_WORKOUT_BUTTON_HEIGHT: f32 = DEFAULT_RECENT_WORKOUT_WIDGET_HEIGHT;
+const NEW_PRESET_BUTTON_HEIGHT: f32 = DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT;
 const DEFAULT_TITLE_FONT_SIZE: f32 = 24.0 * SCALE;
 const BUTTON_BORDER_SIZE: f32 = 1.2;
 const ADD_SYMBOL_SIZE: f32 = 72.0 * SCALE;
