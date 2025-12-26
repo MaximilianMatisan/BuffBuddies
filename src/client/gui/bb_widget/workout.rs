@@ -1,10 +1,10 @@
 use crate::client::gui::user_interface::Message;
-use iced::Element;
+use iced::{event, Element};
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::{Style};
 use iced_core::widget::Tree;
-use iced_core::{alignment, image, text, Image, Layout, Length, Point, Rectangle, Size, Theme, Widget};
+use iced_core::{alignment, image, mouse, text, Clipboard, Event, Image, Layout, Length, Point, Rectangle, Shell, Size, Theme, Widget};
 use crate::client::gui::{bb_theme, bb_widget};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 
@@ -18,21 +18,22 @@ const DEFAULT_TITLE_FONT_SIZE: f32 = 17.0 * SCALE;
 const DEFAULT_DESCRIPTION_FONT_SIZE: f32 = 15.0 * SCALE;
 
 pub struct WorkoutWidget<Renderer>
-    where Renderer: image::Renderer + iced_core::text::Renderer
+    where Renderer: image::Renderer + text::Renderer
 {
-    image: Option<image::Image<<Renderer as image::Renderer>::Handle>>,
+    image: Option<Image<<Renderer as image::Renderer>::Handle>>,
     title: String,
     title_font_size: f32,
     exercises: Vec<String>,
     description_font_size: f32,
     width: f32,
     height: f32,
-    font: <Renderer as iced_core::text::Renderer>::Font
+    font: <Renderer as iced_core::text::Renderer>::Font,
+    on_press: Option<Message>
 }
 impl<Renderer> WorkoutWidget<Renderer>
     where Renderer:
         image::Renderer<Handle = iced_core::image::Handle>
-        + iced_core::text::Renderer<Font = iced::Font>
+        + text::Renderer<Font = iced::Font>
 {
     pub fn default_workout_preset_widget() -> Self {
         WorkoutWidget {
@@ -49,7 +50,8 @@ impl<Renderer> WorkoutWidget<Renderer>
                             "Triceps Extension".to_string()
             ],
             description_font_size: DEFAULT_DESCRIPTION_FONT_SIZE,
-            font: bb_theme::text_format::FIRA_SANS_EXTRABOLD
+            font: bb_theme::text_format::FIRA_SANS_EXTRABOLD,
+            on_press: None
         }
     }
     pub fn default_recent_workout_widget() -> Self {
@@ -71,11 +73,12 @@ impl<Renderer> WorkoutWidget<Renderer>
                            // "Hamstring Curls".to_string(),
             ],
             description_font_size: DEFAULT_DESCRIPTION_FONT_SIZE,
-            font: bb_theme::text_format::FIRA_SANS_EXTRABOLD
+            font: bb_theme::text_format::FIRA_SANS_EXTRABOLD,
+            on_press: None
         }
     }
     pub fn set_image(mut self,
-                     img: Option<image::Image<<Renderer as iced_core::image::Renderer>::Handle>>
+                     img: Option<Image<<Renderer as iced_core::image::Renderer>::Handle>>
         ) -> Self
     {
         self.image = img;
@@ -130,7 +133,7 @@ impl<Renderer> Widget<Message, Theme, Renderer> for WorkoutWidget<Renderer>
                 + 1.5 * self.title_font_size
         };
 
-        renderer.fill_text(iced_core::text::Text {
+        renderer.fill_text(text::Text {
             content: self.title.to_string(),
             bounds: layout.bounds().size(),
             size: iced_core::Pixels(self.title_font_size),
@@ -163,7 +166,7 @@ impl<Renderer> Widget<Message, Theme, Renderer> for WorkoutWidget<Renderer>
 
         let mut description_lines = 0;
         for description_exercise in printable_exercises {
-            renderer.fill_text(iced_core::text::Text {
+            renderer.fill_text(text::Text {
                 content: description_exercise,
                 bounds: layout.bounds().size(),
                 size: iced_core::Pixels(self.description_font_size),
@@ -181,6 +184,51 @@ impl<Renderer> Widget<Message, Theme, Renderer> for WorkoutWidget<Renderer>
             description_lines += 1;
         }
 
+    }
+    fn on_event(
+        &mut self,
+        _state: &mut Tree,
+        event: Event,
+        layout: Layout<'_>,
+        cursor: Cursor,
+        _renderer: &Renderer,
+        _clipboard: &mut dyn Clipboard,
+        shell: &mut Shell<'_, Message>,
+        _viewport: &Rectangle,
+    ) -> event::Status {
+        if cursor.is_over(layout.bounds()) {
+            match event {
+                Event::Mouse(mouse::Event::ButtonPressed(_)) => {
+                    match &self.on_press {
+                        Some(msg) => {
+                            shell.publish(msg.clone());
+                            event::Status::Captured
+                        },
+                        None => event::Status::Ignored,
+                    }
+                }
+                _ => event::Status::Ignored,
+            }
+        } else {
+            event::Status::Ignored
+        }
+    }
+
+    fn mouse_interaction(
+        &self,
+        _tree: &Tree,
+        layout: Layout<'_>,
+        cursor: Cursor,
+        _viewport: &Rectangle,
+        _renderer: &Renderer,
+    ) -> mouse::Interaction {
+
+        let is_mouse_over = cursor.is_over(layout.bounds());
+        if is_mouse_over  {
+            mouse::Interaction::Pointer
+        } else {
+            mouse::Interaction::default()
+        }
     }
 }
 impl<'a, Renderer> From<WorkoutWidget<Renderer>> for Element<'a, Message, Theme, Renderer>
