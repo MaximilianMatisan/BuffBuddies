@@ -9,7 +9,7 @@ use iced_core::border::Radius;
 use iced_core::widget::text;
 use crate::client::backend::mascot::mascot_trait::MascotTrait;
 use iced::widget::button::{Status, Style};
-use iced_core::{color, Border, Theme};
+use iced_core::{Border, Theme};
 
 const TAB_BUTTON_WIDTH: f32 = 225.0;
 const TAB_BUTTON_HEIGHT: f32 = 45.0;
@@ -41,7 +41,7 @@ pub fn create_preset_button(element: Element<Message,Theme,Renderer>,
             let border =  Border {
                 color: iced::color!(0,0,0),
                 width: 0.0,
-                radius: 193.0.into()
+                radius
             };
             create_button_style(status, border, active_color, disabled_color, hovered_color)
         }

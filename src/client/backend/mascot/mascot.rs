@@ -60,7 +60,7 @@ impl MascotTrait for Mascot {
 #[derive(Debug, Clone)]
 pub enum MascotRarity {
     Rare,
-    Epic,
+    Epic
 }
 
 impl From<RareMascot> for Mascot {
