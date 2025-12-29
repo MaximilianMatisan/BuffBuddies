@@ -1,6 +1,6 @@
-use iced_core::{Border, Layout, Shadow};
-use iced_core::renderer::Quad;
 use crate::client::gui::bb_theme::color;
+use iced_core::renderer::Quad;
+use iced_core::{Border, Layout, Shadow};
 
 pub const INDENT: f32 = 10.0;
 

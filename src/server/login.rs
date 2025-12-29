@@ -1,6 +1,6 @@
+use crate::server::server_main::ApiError;
 use axum::Json;
 use serde::{Deserialize, Serialize};
-use crate::server::server_main::ApiError;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LoginRequest {
@@ -16,7 +16,9 @@ pub enum RequestValidUserAnswer {
     Valid,
 }
 
-pub async fn check_login(Json(login_request): Json<LoginRequest>) -> Result<Json<RequestValidUserAnswer>, ApiError> {
+pub async fn check_login(
+    Json(login_request): Json<LoginRequest>,
+) -> Result<Json<RequestValidUserAnswer>, ApiError> {
     if login_request.username == "Felix" {
         if login_request.password == "password" {
             Ok(Json(RequestValidUserAnswer::Valid))

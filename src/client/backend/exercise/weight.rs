@@ -4,7 +4,7 @@ pub type Kg = f64;
 pub enum ExerciseWeight {
     Bodyweight,
     BodyweightPlusKg(Kg),
-    Kg(Kg)
+    Kg(Kg),
 }
 impl PartialEq for ExerciseWeight {
     fn eq(&self, other: &Self) -> bool {
@@ -21,11 +21,11 @@ impl ExerciseWeight {
         let user_weight = 0.0; //TODO get user weight
         match self {
             ExerciseWeight::Bodyweight => round_to_two_decimals(user_weight),
-            ExerciseWeight::BodyweightPlusKg(kg) =>round_to_two_decimals(user_weight + kg),
-            ExerciseWeight::Kg(kg) => round_to_two_decimals(*kg)
+            ExerciseWeight::BodyweightPlusKg(kg) => round_to_two_decimals(user_weight + kg),
+            ExerciseWeight::Kg(kg) => round_to_two_decimals(*kg),
         }
     }
 }
-pub fn round_to_two_decimals(weight: Kg) -> Kg{
+pub fn round_to_two_decimals(weight: Kg) -> Kg {
     (weight * 100.0).round() / 100.0
 }

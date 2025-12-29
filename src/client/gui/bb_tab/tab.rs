@@ -7,5 +7,5 @@ pub enum Tab {
     Social,
     Mascot,
     Settings,
-    Exit
+    Exit,
 }

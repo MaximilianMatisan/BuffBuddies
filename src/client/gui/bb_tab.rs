@@ -1,7 +1,7 @@
-pub mod tab;
+mod home;
 pub mod login;
-mod workout;
-mod social;
 mod mascot;
 mod settings;
-mod home;
+mod social;
+pub mod tab;
+mod workout;

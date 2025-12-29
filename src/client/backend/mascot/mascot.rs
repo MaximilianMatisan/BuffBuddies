@@ -1,15 +1,15 @@
-use std::fmt::{Display, Formatter};
-use iced_core::Color;
 use crate::client::backend::mascot::epic_mascot::EpicMascot;
-use crate::client::backend::mascot::rare_mascot::RareMascot;
 use crate::client::backend::mascot::mascot_trait::MascotTrait;
+use crate::client::backend::mascot::rare_mascot::RareMascot;
+use iced_core::Color;
+use std::fmt::{Display, Formatter};
 
 pub enum MascotError {
     AllBought,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Mascot{
+pub enum Mascot {
     Rare(RareMascot),
     Epic(EpicMascot),
 }
@@ -60,7 +60,7 @@ impl MascotTrait for Mascot {
 #[derive(Debug, Clone)]
 pub enum MascotRarity {
     Rare,
-    Epic
+    Epic,
 }
 
 impl From<RareMascot> for Mascot {

@@ -16,10 +16,10 @@ pub struct LoginState {
 impl LoginState {
     pub fn try_login(&self) -> Result<LoginRequest, LoginStateError> {
         if self.username == "" {
-            return Err(LoginStateError::UsernameEmpty)
+            return Err(LoginStateError::UsernameEmpty);
         }
         if self.password == "" {
-            return Err(LoginStateError::PasswordEmpty)
+            return Err(LoginStateError::PasswordEmpty);
         }
         Ok((self.username.clone(), self.password.clone()).into())
     }

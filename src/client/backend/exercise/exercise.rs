@@ -1,14 +1,14 @@
 use crate::client::backend::exercise::set::{Reps, StrengthSet};
 use crate::client::backend::exercise::weight::{ExerciseWeight, Kg};
 use chrono::{Duration, Local, NaiveDate};
+use rand::Rng;
 use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
-use rand::Rng;
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Exercise {
     pub name: String,
-    pub sets: BTreeMap<NaiveDate, Vec<StrengthSet>>
+    pub sets: BTreeMap<NaiveDate, Vec<StrengthSet>>,
 }
 
 impl Display for Exercise {
@@ -20,7 +20,7 @@ impl Exercise {
     pub fn new(name: String) -> Self {
         Self {
             name,
-            sets: Default::default()
+            sets: Default::default(),
         }
     }
     pub fn calculate_max_weight_per_day(&self) -> Vec<(NaiveDate, Kg)> {
@@ -73,7 +73,7 @@ impl Exercise {
         pr
     }
     pub fn set_with_most_total_lifted_weight(&self) -> (NaiveDate, Kg) {
-        let mut heaviest_set: (NaiveDate, Kg) = (Local::now().date_naive(),0.0);
+        let mut heaviest_set: (NaiveDate, Kg) = (Local::now().date_naive(), 0.0);
         for (day, sets_per_day) in &self.sets {
             for set in sets_per_day {
                 let cur_total_lifted_weight = set.total_lifted_weight();
@@ -90,7 +90,7 @@ impl Exercise {
 pub fn get_weight_milestones(start_number: u32, end_number: u32, steps: u32) -> Vec<u32> {
     let mut milestones = vec![];
 
-    if steps == 0 || end_number < start_number{
+    if steps == 0 || end_number < start_number {
         return milestones;
     }
     if steps == 1 {
@@ -100,7 +100,7 @@ pub fn get_weight_milestones(start_number: u32, end_number: u32, steps: u32) -> 
         for i in start_number..=end_number {
             milestones.push(i);
         }
-        return milestones
+        return milestones;
     }
 
     let range = end_number - start_number;
@@ -111,31 +111,36 @@ pub fn get_weight_milestones(start_number: u32, end_number: u32, steps: u32) -> 
     milestones
 }
 
-pub fn generate_example_exercise(name: String, sets_on_different_days: usize, base_weight: Kg) -> Exercise {
-
+pub fn generate_example_exercise(
+    name: String,
+    sets_on_different_days: usize,
+    base_weight: Kg,
+) -> Exercise {
     let mut exercise = Exercise::new(name);
 
-    let mut cur_day = NaiveDate::from_ymd_opt(2025,1,1).unwrap();
+    let mut cur_day = NaiveDate::from_ymd_opt(2025, 1, 1).unwrap();
     let mut weight = base_weight;
     let variation: Kg = 1.1;
     let mut rand = rand::rng();
 
-    for _ in 0..sets_on_different_days{
+    for _ in 0..sets_on_different_days {
         let random_number = rand.random_range(-1..=2);
-         weight += variation * random_number as Kg;
-        exercise.sets.insert(cur_day,
-                                  vec![
-                                      StrengthSet::new(ExerciseWeight::Kg(weight), 10),
-                                      StrengthSet::new(ExerciseWeight::Kg(weight), 10),
-                                  ]);
+        weight += variation * random_number as Kg;
+        exercise.sets.insert(
+            cur_day,
+            vec![
+                StrengthSet::new(ExerciseWeight::Kg(weight), 10),
+                StrengthSet::new(ExerciseWeight::Kg(weight), 10),
+            ],
+        );
         cur_day += Duration::days(1)
-    };
+    }
     exercise
 }
 #[cfg(test)]
 mod tests {
-    use crate::client::backend::exercise::set::Reps;
     use super::*;
+    use crate::client::backend::exercise::set::Reps;
 
     const CUSTOM_TRACKED_DAYS: u32 = 45;
     const CUSTOM_SETS_PER_DAY: u32 = 10;
@@ -146,17 +151,20 @@ mod tests {
         tracked_days: u32,
         sets_per_day: u32,
         weight_per_set: Kg,
-        reps_per_set: Reps
-    ) -> Exercise
-    {
+        reps_per_set: Reps,
+    ) -> Exercise {
         let mut exercise = Exercise::new("Custom Exercise".to_string());
         let mut date = first_tracked_day;
         for _ in 0..tracked_days {
             for _ in 0..sets_per_day {
-                exercise.sets
+                exercise
+                    .sets
                     .entry(date)
                     .or_insert_with(Vec::new)
-                    .push(StrengthSet::new(ExerciseWeight::Kg(weight_per_set), reps_per_set))
+                    .push(StrengthSet::new(
+                        ExerciseWeight::Kg(weight_per_set),
+                        reps_per_set,
+                    ))
             }
             date += Duration::days(1);
         }
@@ -168,32 +176,36 @@ mod tests {
             CUSTOM_TRACKED_DAYS,
             CUSTOM_SETS_PER_DAY,
             CUSTOM_WEIGHT_PER_SET,
-            CUSTOM_REPS_PER_SET
+            CUSTOM_REPS_PER_SET,
         )
     }
 
     const MOCK_DATES: [NaiveDate; 2] = [
         NaiveDate::from_ymd_opt(2025, 1, 1).unwrap(),
-        NaiveDate::from_ymd_opt(2025,1,2).unwrap()
+        NaiveDate::from_ymd_opt(2025, 1, 2).unwrap(),
     ];
     const MOCK_DAYS: usize = 2;
     const MOCK_SETS_PER_DAY: usize = 3;
     const MOCK_BEST_WEIGHT_DAY_ONE: Kg = 67.5;
     const MOCK_BEST_WEIGHT_DAY_TWO: Kg = 60.0;
-    const MOCK_WEIGHT: [[Kg; MOCK_SETS_PER_DAY];MOCK_DAYS] = [
+    const MOCK_WEIGHT: [[Kg; MOCK_SETS_PER_DAY]; MOCK_DAYS] = [
         [50.0, 57.5, MOCK_BEST_WEIGHT_DAY_ONE],
-        [55.0, MOCK_BEST_WEIGHT_DAY_TWO, 57.5]
+        [55.0, MOCK_BEST_WEIGHT_DAY_TWO, 57.5],
     ];
-    const MOCK_REPS: [[Reps; MOCK_SETS_PER_DAY];MOCK_DAYS] = [[13, 12, 10], [15, 15, 11]];
+    const MOCK_REPS: [[Reps; MOCK_SETS_PER_DAY]; MOCK_DAYS] = [[13, 12, 10], [15, 15, 11]];
     fn mock_exercise() -> Exercise {
         let mut exercise = Exercise::new("Custom Exercise".to_string());
 
         for day in 0..MOCK_DAYS {
             for set in 0..MOCK_SETS_PER_DAY {
-                exercise.sets
+                exercise
+                    .sets
                     .entry(MOCK_DATES[day])
                     .or_insert_with(Vec::new)
-                    .push(StrengthSet::new(ExerciseWeight::Kg(MOCK_WEIGHT[day][set]), MOCK_REPS[day][set]));
+                    .push(StrengthSet::new(
+                        ExerciseWeight::Kg(MOCK_WEIGHT[day][set]),
+                        MOCK_REPS[day][set],
+                    ));
             }
         }
         exercise
@@ -217,17 +229,21 @@ mod tests {
 
         let custom_exercise = custom_exercise_preset();
         let custom_exercise_data_points = custom_exercise.calculate_max_weight_per_day();
-        assert_eq!(custom_exercise_data_points.len() as u32, CUSTOM_TRACKED_DAYS);
+        assert_eq!(
+            custom_exercise_data_points.len() as u32,
+            CUSTOM_TRACKED_DAYS
+        );
         for (_, kg) in custom_exercise_data_points {
             assert_eq!(kg, CUSTOM_WEIGHT_PER_SET);
         }
         let mock_exercise_data_points = mock_exercise().calculate_max_weight_per_day();
 
-        assert_eq!(mock_exercise_data_points,
-                   vec![
-                       (MOCK_DATES[0], MOCK_BEST_WEIGHT_DAY_ONE),
-                       (MOCK_DATES[1] , MOCK_BEST_WEIGHT_DAY_TWO)
-                   ]
+        assert_eq!(
+            mock_exercise_data_points,
+            vec![
+                (MOCK_DATES[0], MOCK_BEST_WEIGHT_DAY_ONE),
+                (MOCK_DATES[1], MOCK_BEST_WEIGHT_DAY_TWO)
+            ]
         );
     }
     #[test]
@@ -236,21 +252,27 @@ mod tests {
         assert_eq!(empty_exercise.all_time_lifted_weight(), 0.0);
 
         let custom_exercise = custom_exercise_preset();
-        let real_custom_all_time_lifted_weight =
-            CUSTOM_TRACKED_DAYS as Kg
+        let real_custom_all_time_lifted_weight = CUSTOM_TRACKED_DAYS as Kg
             * CUSTOM_SETS_PER_DAY as Kg
             * CUSTOM_WEIGHT_PER_SET
             * CUSTOM_REPS_PER_SET as Kg;
-        assert_eq!(custom_exercise.all_time_lifted_weight(), real_custom_all_time_lifted_weight);
+        assert_eq!(
+            custom_exercise.all_time_lifted_weight(),
+            real_custom_all_time_lifted_weight
+        );
 
         let mock_exercise = mock_exercise();
         let mut real_mock_all_time_lifted_weight: Kg = 0.0;
         for day in 0..MOCK_DAYS {
             for set in 0..MOCK_SETS_PER_DAY {
-                real_mock_all_time_lifted_weight += MOCK_REPS[day][set] as Kg * MOCK_WEIGHT[day][set]
+                real_mock_all_time_lifted_weight +=
+                    MOCK_REPS[day][set] as Kg * MOCK_WEIGHT[day][set]
             }
         }
-        assert_eq!(mock_exercise.all_time_lifted_weight(), real_mock_all_time_lifted_weight);
+        assert_eq!(
+            mock_exercise.all_time_lifted_weight(),
+            real_mock_all_time_lifted_weight
+        );
     }
     #[test]
     fn test_all_time_reps() {
@@ -258,12 +280,14 @@ mod tests {
         assert_eq!(empty_exercise.all_time_reps(), 0);
 
         let custom_exercise = custom_exercise_preset();
-        let real_custom_all_time_reps = CUSTOM_TRACKED_DAYS * CUSTOM_SETS_PER_DAY *CUSTOM_REPS_PER_SET;
+        let real_custom_all_time_reps =
+            CUSTOM_TRACKED_DAYS * CUSTOM_SETS_PER_DAY * CUSTOM_REPS_PER_SET;
         assert_eq!(custom_exercise.all_time_reps(), real_custom_all_time_reps);
 
         let mock_exercise = mock_exercise();
-        let real_mock_all_time_reps = MOCK_REPS.iter()
-            .fold(0, |acc,x| acc + (x.iter().sum::<Reps>()));
+        let real_mock_all_time_reps = MOCK_REPS
+            .iter()
+            .fold(0, |acc, x| acc + (x.iter().sum::<Reps>()));
 
         assert_eq!(mock_exercise.all_time_reps(), real_mock_all_time_reps)
     }
@@ -278,7 +302,10 @@ mod tests {
 
         let mock_exercise = mock_exercise();
         let real_mock_exercise_all_time_sets = (MOCK_DAYS * MOCK_SETS_PER_DAY) as u64;
-        assert_eq!(mock_exercise.all_time_sets(), real_mock_exercise_all_time_sets);
+        assert_eq!(
+            mock_exercise.all_time_sets(),
+            real_mock_exercise_all_time_sets
+        );
     }
     #[test]
     fn test_weight_personal_record() {
@@ -286,22 +313,36 @@ mod tests {
         assert_eq!(empty_exercise.weight_personal_record(), 0.0);
 
         let custom_exercise = custom_exercise_preset();
-        assert_eq!(custom_exercise.weight_personal_record(), CUSTOM_WEIGHT_PER_SET);
+        assert_eq!(
+            custom_exercise.weight_personal_record(),
+            CUSTOM_WEIGHT_PER_SET
+        );
 
         let mock_exercise = mock_exercise();
-        let real_mock_weight_personal_record = MOCK_BEST_WEIGHT_DAY_ONE.max(MOCK_BEST_WEIGHT_DAY_TWO);
-        assert_eq!(mock_exercise.weight_personal_record(), real_mock_weight_personal_record);
+        let real_mock_weight_personal_record =
+            MOCK_BEST_WEIGHT_DAY_ONE.max(MOCK_BEST_WEIGHT_DAY_TWO);
+        assert_eq!(
+            mock_exercise.weight_personal_record(),
+            real_mock_weight_personal_record
+        );
     }
     #[test]
     fn test_set_with_most_total_lifted_weight() {
         let empty_exercise = Exercise::new("Empty Exercise".to_string());
-        assert_eq!(empty_exercise.set_with_most_total_lifted_weight(), (Local::now().date_naive(), 0.0));
+        assert_eq!(
+            empty_exercise.set_with_most_total_lifted_weight(),
+            (Local::now().date_naive(), 0.0)
+        );
 
         let custom_exercise = custom_exercise_preset();
-        let real_custom_most_total_lifted_weight_in_set = CUSTOM_WEIGHT_PER_SET * CUSTOM_REPS_PER_SET as Kg;
+        let real_custom_most_total_lifted_weight_in_set =
+            CUSTOM_WEIGHT_PER_SET * CUSTOM_REPS_PER_SET as Kg;
         assert_eq!(
             custom_exercise.set_with_most_total_lifted_weight(),
-           (Local::now().date_naive(), real_custom_most_total_lifted_weight_in_set)
+            (
+                Local::now().date_naive(),
+                real_custom_most_total_lifted_weight_in_set
+            )
         );
 
         let mock_exercise = mock_exercise();
@@ -310,7 +351,10 @@ mod tests {
         //DAY 2:
         // set1: 825 / set2: 900 / set3: 632.5
         let real_mock: Kg = 900.0;
-        assert_eq!(mock_exercise.set_with_most_total_lifted_weight(), (MOCK_DATES[1], real_mock));
+        assert_eq!(
+            mock_exercise.set_with_most_total_lifted_weight(),
+            (MOCK_DATES[1], real_mock)
+        );
     }
     #[test]
     fn test_get_weight_milestones() {
@@ -332,7 +376,7 @@ mod tests {
         let simple_three_step = get_weight_milestones(0, 100, 3);
         assert_eq!(simple_three_step, vec![0, 50, 100]);
 
-        let simple_ten_step = get_weight_milestones(0,12393,85);
+        let simple_ten_step = get_weight_milestones(0, 12393, 85);
         assert_eq!(simple_ten_step.len(), 85);
         assert_eq!(*simple_ten_step.first().unwrap(), 0);
         assert_eq!(*simple_ten_step.last().unwrap(), 12393);
