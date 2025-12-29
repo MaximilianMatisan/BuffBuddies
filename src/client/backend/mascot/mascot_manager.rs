@@ -3,7 +3,6 @@ use crate::client::backend::mascot::mascot::Mascot::Rare;
 use crate::client::backend::mascot::rare_mascot::RareMascot;
 use iced::widget::combo_box::State;
 
-
 pub struct MascotManager {
     pub selected_mascot: Mascot,
     pub owned_mascots: Vec<Mascot>,
@@ -22,7 +21,7 @@ impl MascotManager {
             selected_mascot: Mascot::default(),
             //TODO get from server i guess
             owned_mascots: vec![Rare(RareMascot::Duck)],
-            owned_mascots_state: State::with_selection(vec![Rare(RareMascot::Duck)], None)
+            owned_mascots_state: State::with_selection(vec![Rare(RareMascot::Duck)], None),
         }
     }
 

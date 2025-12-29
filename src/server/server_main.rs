@@ -1,9 +1,9 @@
+use crate::server::login::check_login;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::{Json, Router};
 use axum::routing::get;
+use axum::{Json, Router};
 use serde_json::json;
-use crate::server::login::check_login;
 
 #[derive(Debug)]
 pub enum ApiError {
@@ -16,7 +16,10 @@ impl IntoResponse for ApiError {
         let (status, error_message) = match self {
             ApiError::NotFound => (StatusCode::NOT_FOUND, "Data not found".to_string()),
             ApiError::InvalidInput(msg) => (StatusCode::BAD_REQUEST, msg),
-            ApiError::InternalError => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string()),
+            ApiError::InternalError => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Internal server error".to_string(),
+            ),
         };
 
         let body = Json(json!({
@@ -44,7 +47,6 @@ fn create_app() -> Router {
     Router::new()
         .route("/server", get(health_check))
         .route("/user/login", get(check_login))
-
 }
 
 async fn health_check() -> impl IntoResponse {

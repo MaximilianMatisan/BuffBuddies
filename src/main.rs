@@ -1,7 +1,7 @@
-use std::io;
-use crate::client::gui::{bb_theme};
+use crate::client::gui::bb_theme;
 use crate::client::gui::user_interface::client_main;
 use crate::server::server_main::server_main;
+use std::io;
 
 mod client;
 mod server;
@@ -29,15 +29,12 @@ fn input_launch_type() -> LaunchType {
 
 #[tokio::main]
 pub async fn main() -> iced::Result {
-
     match input_launch_type() {
-        LaunchType::Client => {
-            client_main()
-        },
+        LaunchType::Client => client_main(),
         LaunchType::Server => {
             let server = server_main();
             server.await;
             Ok(())
-        },
+        }
     }
 }

@@ -1,7 +1,7 @@
-pub mod workout;
-pub mod widget_utils;
-pub mod shop;
 pub mod activity;
-pub mod progress;
-pub mod new_widget;
 mod exercise_stats;
+pub mod new_widget;
+pub mod progress;
+pub mod shop;
+pub mod widget_utils;
+pub mod workout;

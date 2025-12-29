@@ -1,7 +1,6 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LoginRequest {
     username: String,
@@ -10,13 +9,9 @@ pub struct LoginRequest {
 
 impl From<(String, String)> for LoginRequest {
     fn from((username, password): (String, String)) -> Self {
-        LoginRequest {
-            username,
-            password,
-        }
+        LoginRequest { username, password }
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub enum RequestValidUserError {
@@ -36,7 +31,8 @@ pub fn valid_login(login_request: LoginRequest) -> Result<(), RequestValidUserEr
     let res = reqwest::blocking::Client::new()
         .get("http://127.0.0.1:3000/user/login")
         .json(&login_request)
-        .send().expect("checking user login went wrong");
+        .send()
+        .expect("checking user login went wrong");
 
     match res.json() {
         Ok(answer) => {
@@ -44,8 +40,8 @@ pub fn valid_login(login_request: LoginRequest) -> Result<(), RequestValidUserEr
                 RequestValidUserAnswer::UserNotFound => Err(RequestValidUserError::UserNotFound),
                 RequestValidUserAnswer::WrongPassword => Err(RequestValidUserError::WrongPassword),
                 RequestValidUserAnswer::Valid => Ok(()),
-            }
-        },
+            };
+        }
         Err(e) => Err(RequestValidUserError::ServerError),
     }
 }

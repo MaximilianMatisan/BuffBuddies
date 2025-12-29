@@ -1,19 +1,19 @@
-use iced::{Element, Task};
-use iced::widget::{container, row, Column};
-use iced_core::Length::Fill;
-use iced_core::{Size, Theme};
-use iced_core::window::{Position, Settings};
-use strum::IntoEnumIterator;
 use crate::client::backend::login_state::LoginStateError;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
 use crate::client::gui::bb_tab::tab::Tab;
-use crate::client::gui::{bb_theme, size};
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::container::ContainerStyle;
-use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle};
+use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button};
 use crate::client::gui::bb_widget::activity::activity::ActivityMessage;
-use crate::client::server_communicator::server_communicator::{valid_login, RequestValidUserError};
+use crate::client::gui::{bb_theme, size};
+use crate::client::server_communicator::server_communicator::{RequestValidUserError, valid_login};
+use iced::widget::{Column, container, row};
+use iced::{Element, Task};
+use iced_core::Length::Fill;
+use iced_core::window::{Position, Settings};
+use iced_core::{Size, Theme};
+use strum::IntoEnumIterator;
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -34,13 +34,13 @@ pub enum Message {
 }
 
 impl UserInterface {
-    fn update(&mut self, message: Message) -> Task<Message>{
+    fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::Select(Tab::Exit) => iced::exit(),
             Message::Select(tab) => {
                 self.app.screen = tab;
                 Task::none()
-            },
+            }
             Message::BuyMascot() => {
                 self.app.screen = Tab::Settings;
                 Task::none()
@@ -57,21 +57,23 @@ impl UserInterface {
                     Err(err) => {
                         let error_text = &mut self.app.login_state.error_text;
                         match err {
-                            LoginStateError::PasswordEmpty => *error_text = "Password can't be empty!".to_string(),
-                            LoginStateError::UsernameEmpty => *error_text = "Username can't be empty!".to_string(),
+                            LoginStateError::PasswordEmpty => {
+                                *error_text = "Password can't be empty!".to_string()
+                            }
+                            LoginStateError::UsernameEmpty => {
+                                *error_text = "Username can't be empty!".to_string()
+                            }
                         }
                         Task::none()
-                    },
+                    }
                     //TODO check with server database
                     Ok(login_request) => {
                         self.app.loading = true;
                         Task::perform(
-                            async {
-                                valid_login(login_request)
-                            },
+                            async { valid_login(login_request) },
                             Message::RequestValidUser,
                         )
-                    },
+                    }
                 };
             }
             Message::RequestValidUser(Ok(_)) => {
@@ -120,28 +122,35 @@ impl UserInterface {
             let mut tab_bar: Column<Message> = Column::new();
             for tab in Tab::iter() {
                 tab_bar = tab_bar.push(
-                    create_text_button(self.app.mascot_manager.selected_mascot.clone(),
-                                       tab.to_string(),
-                                       if self.app.screen == tab
-                                       { ButtonStyle::ActiveTab } else { ButtonStyle::InactiveTab },
-                                       None)
-                        .on_press(Message::Select(tab))
+                    create_text_button(
+                        self.app.mascot_manager.selected_mascot.clone(),
+                        tab.to_string(),
+                        if self.app.screen == tab {
+                            ButtonStyle::ActiveTab
+                        } else {
+                            ButtonStyle::InactiveTab
+                        },
+                        None,
+                    )
+                    .on_press(Message::Select(tab)),
                 );
             }
             let tab_container = container(tab_bar.spacing(10).padding(30))
                 .padding(10)
-                .style(bb_theme::container::create_style_container(ContainerStyle::Default, None))
+                .style(bb_theme::container::create_style_container(
+                    ContainerStyle::Default,
+                    None,
+                ))
                 .height(Fill);
 
-            let tab_window: Option<Element<Message>> =
-                match self.app.screen {
-                    Tab::Home => Some(self.homescreen()),
-                    Tab::Workout => Some(self.workout_screen()),
-                    Tab::Social => Some(self.social_screen()),
-                    Tab::Mascot => Some(self.mascot_screen()),
-                    Tab::Settings => Some(self.settings_screen()),
-                    Tab::Exit => None
-                };
+            let tab_window: Option<Element<Message>> = match self.app.screen {
+                Tab::Home => Some(self.homescreen()),
+                Tab::Workout => Some(self.workout_screen()),
+                Tab::Social => Some(self.social_screen()),
+                Tab::Mascot => Some(self.mascot_screen()),
+                Tab::Settings => Some(self.settings_screen()),
+                Tab::Exit => None,
+            };
 
             if let Some(tab_window_real) = tab_window {
                 container(row![tab_container, tab_window_real])
@@ -152,7 +161,8 @@ impl UserInterface {
                         background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
                         border: Default::default(),
                         shadow: Default::default(),
-                    }).padding(20)
+                    })
+                    .padding(20)
                     .into()
             } else {
                 container(row![tab_container])
@@ -163,7 +173,8 @@ impl UserInterface {
                         background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
                         border: Default::default(),
                         shadow: Default::default(),
-                    }).padding(20)
+                    })
+                    .padding(20)
                     .into()
             }
         }
@@ -171,7 +182,7 @@ impl UserInterface {
 }
 
 pub fn client_main() -> iced::Result {
-    let default_size = Size::new(size::FRAME_WIDTH,size::FRAME_HEIGHT);
+    let default_size = Size::new(size::FRAME_WIDTH, size::FRAME_HEIGHT);
     let settings: Settings = Settings {
         size: default_size,
         position: Position::Default,

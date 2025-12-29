@@ -1,12 +1,12 @@
-use chrono::NaiveDate;
-use iced::widget::combo_box;
-use crate::client::backend::exercise::exercise::{generate_example_exercise, Exercise};
+use crate::client::backend::exercise::exercise::{Exercise, generate_example_exercise};
 use crate::client::backend::exercise::set::Reps;
 use crate::client::backend::exercise::weight::Kg;
+use chrono::NaiveDate;
+use iced::widget::combo_box;
 
-pub mod weight;
-pub mod set;
 pub mod exercise;
+pub mod set;
+pub mod weight;
 
 pub struct ExerciseManager {
     pub exercises: Vec<Exercise>,
@@ -21,37 +21,34 @@ pub struct ExerciseManager {
     pub all_time_reps: Reps,
     pub all_time_sets: u64,
     pub weight_personal_record: Kg,
-    pub set_with_most_total_lifted_weight: (NaiveDate, Kg)
+    pub set_with_most_total_lifted_weight: (NaiveDate, Kg),
 }
 impl Default for ExerciseManager {
     fn default() -> Self {
+        let preacher_curl = generate_example_exercise("Preacher curl".to_string(), 50, 40.0);
+        let bench_press = generate_example_exercise("Benchpress".to_string(), 200, 60.0);
+        let barbell_row = generate_example_exercise("Barbell row".to_string(), 1, 80.0);
 
-        let preacher_curl =
-            generate_example_exercise("Preacher curl".to_string(), 50, 40.0);
-        let bench_press =
-            generate_example_exercise("Benchpress".to_string(), 200, 60.0);
-        let barbell_row =
-            generate_example_exercise("Barbell row".to_string(), 1, 80.0);
-        
         let selected_exercise_name = "Benchpress".to_string();
         let mut exercise_manager = ExerciseManager {
-           exercises: vec![
-                preacher_curl,
-                bench_press,
-                barbell_row
-           ],
-           selected_exercise_name: selected_exercise_name.clone(),
-           owned_exercise_state: combo_box::State::new(vec![]),
-           data_points: vec![],
-           all_time_lifted_weight: 0.0,
-           all_time_reps: 0,
-           all_time_sets: 0,
-           weight_personal_record: 0.0,
-           set_with_most_total_lifted_weight: (Default::default(), 0.0),
+            exercises: vec![preacher_curl, bench_press, barbell_row],
+            selected_exercise_name: selected_exercise_name.clone(),
+            owned_exercise_state: combo_box::State::new(vec![]),
+            data_points: vec![],
+            all_time_lifted_weight: 0.0,
+            all_time_reps: 0,
+            all_time_sets: 0,
+            weight_personal_record: 0.0,
+            set_with_most_total_lifted_weight: (Default::default(), 0.0),
         };
 
         exercise_manager.owned_exercise_state = combo_box::State::new(
-            exercise_manager.exercises.iter().map(|ex| ex.name.clone()).collect());
+            exercise_manager
+                .exercises
+                .iter()
+                .map(|ex| ex.name.clone())
+                .collect(),
+        );
         exercise_manager.update_selected_exercise(selected_exercise_name);
 
         exercise_manager
@@ -59,7 +56,8 @@ impl Default for ExerciseManager {
 }
 impl ExerciseManager {
     pub fn get_selected_exercise(&self) -> Option<&Exercise> {
-        self.exercises.iter()
+        self.exercises
+            .iter()
             .find(|ex| ex.name.eq_ignore_ascii_case(&self.selected_exercise_name))
     }
     pub fn update_selected_exercise(&mut self, new_exercise_name: String) {
@@ -72,7 +70,7 @@ impl ExerciseManager {
             let all_time_sets = exercise.all_time_sets();
             let weight_personal_record = exercise.weight_personal_record();
             let set_with_most_total_lifted_weight = exercise.set_with_most_total_lifted_weight();
-            
+
             self.data_points = exercise.calculate_max_weight_per_day();
             self.all_time_lifted_weight = all_time_lifted_weight;
             self.all_time_reps = all_time_reps;
