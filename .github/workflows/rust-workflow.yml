@@ -16,9 +16,12 @@ jobs:
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.85.0
           components: rustfmt, clippy
           override: true
+          
+      - name: Check Rust version
+        run: rustc --version && cargo --version && cargo clippy --version
 
       - name: Check formatting
         run: cargo fmt -- --check
