@@ -1,4 +1,4 @@
-use crate::client::gui::bb_widget::activity::activity::SquareDimensions;
+use crate::client::gui::bb_widget::activity_widget::activity::SquareDimensions;
 use chrono::{Datelike, Days, Duration, Months, NaiveDate, Weekday};
 use strum_macros::{Display, EnumIter};
 

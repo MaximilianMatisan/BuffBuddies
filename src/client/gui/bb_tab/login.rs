@@ -4,7 +4,7 @@ use crate::client::gui::bb_theme::color::{ERROR_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_button_text};
-use crate::client::gui::user_interface::{Message, UserInterface};
+use crate::client::gui::user_interface::Message;
 use iced::Element;
 use iced::widget::{Column, Space, container, text, text_input};
 use iced_core::Length::Fill;
@@ -40,7 +40,7 @@ pub fn view_login(app: &App) -> Element<'_, Message> {
 
     let login_button_text: Element<Message> = format_button_text(text("Login")).width(Fill).into();
     let login_button = create_element_button(
-        app.mascot_manager.selected_mascot.clone(),
+        app.mascot_manager.selected_mascot,
         login_button_text,
         ButtonStyle::Active,
         None,
@@ -52,7 +52,7 @@ pub fn view_login(app: &App) -> Element<'_, Message> {
     let register_button_text: Element<Message> =
         format_button_text(text("Register")).width(Fill).into();
     let register_button = create_element_button(
-        app.mascot_manager.selected_mascot.clone(),
+        app.mascot_manager.selected_mascot,
         register_button_text,
         ButtonStyle::Active,
         None,

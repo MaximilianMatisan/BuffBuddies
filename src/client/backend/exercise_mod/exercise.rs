@@ -1,5 +1,5 @@
-use crate::client::backend::exercise::set::{Reps, StrengthSet};
-use crate::client::backend::exercise::weight::{ExerciseWeight, Kg};
+use crate::client::backend::exercise_mod::set::{Reps, StrengthSet};
+use crate::client::backend::exercise_mod::weight::{ExerciseWeight, Kg};
 use chrono::{Duration, Local, NaiveDate};
 use rand::Rng;
 use std::collections::BTreeMap;
@@ -38,7 +38,7 @@ impl Exercise {
     }
     pub fn all_time_lifted_weight(&self) -> Kg {
         let mut total_lifted_weight = 0.0;
-        for (_day, sets_per_day) in &self.sets {
+        for sets_per_day in self.sets.values() {
             for set in sets_per_day {
                 total_lifted_weight += set.total_lifted_weight();
             }
@@ -47,7 +47,7 @@ impl Exercise {
     }
     pub fn all_time_reps(&self) -> Reps {
         let mut total_reps: Reps = 0;
-        for (_day, sets_per_day) in &self.sets {
+        for sets_per_day in self.sets.values() {
             for set in sets_per_day {
                 total_reps += set.reps;
             }
@@ -56,14 +56,14 @@ impl Exercise {
     }
     pub fn all_time_sets(&self) -> u64 {
         let mut all_time_sets: u64 = 0;
-        for (_day, sets_per_day) in &self.sets {
+        for sets_per_day in self.sets.values() {
             all_time_sets += sets_per_day.len() as u64
         }
         all_time_sets
     }
     pub fn weight_personal_record(&self) -> Kg {
         let mut pr = 0.0;
-        for (_day, sets_per_day) in &self.sets {
+        for sets_per_day in self.sets.values() {
             for set in sets_per_day {
                 if set.weight > pr {
                     pr = set.weight;
@@ -140,7 +140,7 @@ pub fn generate_example_exercise(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::client::backend::exercise::set::Reps;
+    use crate::client::backend::exercise_mod::set::Reps;
 
     const CUSTOM_TRACKED_DAYS: u32 = 45;
     const CUSTOM_SETS_PER_DAY: u32 = 10;
@@ -160,7 +160,7 @@ mod tests {
                 exercise
                     .sets
                     .entry(date)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(StrengthSet::new(
                         ExerciseWeight::Kg(weight_per_set),
                         reps_per_set,
@@ -201,7 +201,7 @@ mod tests {
                 exercise
                     .sets
                     .entry(MOCK_DATES[day])
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(StrengthSet::new(
                         ExerciseWeight::Kg(MOCK_WEIGHT[day][set]),
                         MOCK_REPS[day][set],

@@ -1,4 +1,4 @@
-use crate::client::server_communicator::server_communicator::LoginRequest;
+use crate::client::server_communication::server_communicator::LoginRequest;
 
 pub enum LoginStateError {
     UsernameEmpty,
@@ -15,10 +15,10 @@ pub struct LoginState {
 
 impl LoginState {
     pub fn try_login(&self) -> Result<LoginRequest, LoginStateError> {
-        if self.username == "" {
+        if self.username.is_empty() {
             return Err(LoginStateError::UsernameEmpty);
         }
-        if self.password == "" {
+        if self.password.is_empty() {
             return Err(LoginStateError::PasswordEmpty);
         }
         Ok((self.username.clone(), self.password.clone()).into())

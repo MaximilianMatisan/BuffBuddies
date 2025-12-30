@@ -1,4 +1,4 @@
-use crate::client::backend::mascot::mascot::Mascot;
+use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format;
@@ -64,7 +64,7 @@ where
     pub(crate) fn new(name: String, price: usize, mascot: Mascot, message: Message) -> Self {
         let buy_button: iced::widget::Button<'_, Message, Theme, iced::Renderer> =
             create_element_button(
-                mascot.clone(),
+                mascot,
                 row![
                     format_button_text(iced::widget::text("Buy")),
                     Space::with_width(Length::Fill),
@@ -97,7 +97,7 @@ where
     }
 }
 
-impl<'a, Message, Renderer> Widget<Message, Theme, Renderer> for ShopWidget<'a, Message, Renderer>
+impl<Message, Renderer> Widget<Message, Theme, Renderer> for ShopWidget<'_, Message, Renderer>
 where
     Renderer: renderer::Renderer + iced_core::text::Renderer + iced_core::image::Renderer,
     Message: Clone,

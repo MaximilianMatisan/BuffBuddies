@@ -1,6 +1,6 @@
-use crate::client::backend::mascot::mascot::Mascot;
-use crate::client::backend::mascot::mascot::Mascot::Rare;
-use crate::client::backend::mascot::rare_mascot::RareMascot;
+use crate::client::backend::mascot_mod::mascot::Mascot;
+use crate::client::backend::mascot_mod::mascot::Mascot::Rare;
+use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
 use iced::widget::combo_box::State;
 
 pub struct MascotManager {

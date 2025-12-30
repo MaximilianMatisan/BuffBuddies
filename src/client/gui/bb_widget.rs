@@ -1,4 +1,4 @@
-pub mod activity;
+pub mod activity_widget;
 mod exercise_stats;
 pub mod new_widget;
 pub mod progress;

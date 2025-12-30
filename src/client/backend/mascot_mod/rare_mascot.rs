@@ -1,6 +1,6 @@
-use crate::client::backend::mascot::mascot::MascotError;
-use crate::client::backend::mascot::mascot_manager::MascotManager;
-use crate::client::backend::mascot::mascot_trait::MascotTrait;
+use crate::client::backend::mascot_mod::mascot::MascotError;
+use crate::client::backend::mascot_mod::mascot_manager::MascotManager;
+use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use iced::{Color, color};
 use rand::Rng;
 use strum::{EnumCount, IntoEnumIterator};

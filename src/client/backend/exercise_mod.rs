@@ -1,6 +1,6 @@
-use crate::client::backend::exercise::exercise::{Exercise, generate_example_exercise};
-use crate::client::backend::exercise::set::Reps;
-use crate::client::backend::exercise::weight::Kg;
+use crate::client::backend::exercise_mod::exercise::{Exercise, generate_example_exercise};
+use crate::client::backend::exercise_mod::set::Reps;
+use crate::client::backend::exercise_mod::weight::Kg;
 use chrono::NaiveDate;
 use iced::widget::combo_box;
 
@@ -10,7 +10,7 @@ pub mod weight;
 
 pub struct ExerciseManager {
     pub exercises: Vec<Exercise>,
-    /// Not necessarily a valid exercise name
+    /// Not necessarily a valid exercise_mod name
     pub selected_exercise_name: String,
     pub owned_exercise_state: combo_box::State<String>,
 

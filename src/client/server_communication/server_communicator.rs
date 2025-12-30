@@ -1,4 +1,3 @@
-use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -35,13 +34,11 @@ pub fn valid_login(login_request: LoginRequest) -> Result<(), RequestValidUserEr
         .expect("checking user login went wrong");
 
     match res.json() {
-        Ok(answer) => {
-            return match answer {
-                RequestValidUserAnswer::UserNotFound => Err(RequestValidUserError::UserNotFound),
-                RequestValidUserAnswer::WrongPassword => Err(RequestValidUserError::WrongPassword),
-                RequestValidUserAnswer::Valid => Ok(()),
-            };
-        }
-        Err(e) => Err(RequestValidUserError::ServerError),
+        Ok(answer) => match answer {
+            RequestValidUserAnswer::UserNotFound => Err(RequestValidUserError::UserNotFound),
+            RequestValidUserAnswer::WrongPassword => Err(RequestValidUserError::WrongPassword),
+            RequestValidUserAnswer::Valid => Ok(()),
+        },
+        Err(_e) => Err(RequestValidUserError::ServerError),
     }
 }

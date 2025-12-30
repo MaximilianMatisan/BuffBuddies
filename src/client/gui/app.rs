@@ -1,9 +1,9 @@
-use crate::client::backend::exercise::ExerciseManager;
+use crate::client::backend::exercise_mod::ExerciseManager;
 use crate::client::backend::login_state::LoginState;
-use crate::client::backend::mascot::mascot::Mascot;
-use crate::client::backend::mascot::mascot_manager::MascotManager;
+use crate::client::backend::mascot_mod::mascot::Mascot;
+use crate::client::backend::mascot_mod::mascot_manager::MascotManager;
 pub(crate) use crate::client::gui::bb_tab::tab::Tab;
-use crate::client::gui::bb_widget::activity::activity::ActivityWidget;
+use crate::client::gui::bb_widget::activity_widget::activity::ActivityWidget;
 
 pub struct App {
     pub loading: bool,
@@ -21,7 +21,7 @@ impl Default for App {
             loading: false,
             screen: Tab::Home,
             login_state: LoginState::default(),
-            activity_widget: ActivityWidget::new(default_mascot.clone()),
+            activity_widget: ActivityWidget::new(default_mascot),
             mascot_manager: MascotManager::default(),
             exercise_manager: ExerciseManager::default(),
         }

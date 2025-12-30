@@ -5,9 +5,11 @@ use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button};
-use crate::client::gui::bb_widget::activity::activity::ActivityMessage;
+use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
 use crate::client::gui::{bb_theme, size};
-use crate::client::server_communicator::server_communicator::{RequestValidUserError, valid_login};
+use crate::client::server_communication::server_communicator::{
+    RequestValidUserError, valid_login,
+};
 use iced::widget::{Column, container, row};
 use iced::{Element, Task};
 use iced_core::Length::Fill;
@@ -53,7 +55,7 @@ impl UserInterface {
                 Task::none()
             }
             Message::TryLogin => {
-                return match self.app.login_state.try_login() {
+                match self.app.login_state.try_login() {
                     Err(err) => {
                         let error_text = &mut self.app.login_state.error_text;
                         match err {
@@ -74,7 +76,7 @@ impl UserInterface {
                             Message::RequestValidUser,
                         )
                     }
-                };
+                }
             }
             Message::RequestValidUser(Ok(_)) => {
                 self.app.loading = false;
@@ -123,7 +125,7 @@ impl UserInterface {
             for tab in Tab::iter() {
                 tab_bar = tab_bar.push(
                     create_text_button(
-                        self.app.mascot_manager.selected_mascot.clone(),
+                        self.app.mascot_manager.selected_mascot,
                         tab.to_string(),
                         if self.app.screen == tab {
                             ButtonStyle::ActiveTab
