@@ -1,6 +1,6 @@
-use crate::client::backend::mascot::epic_mascot::EpicMascot;
-use crate::client::backend::mascot::mascot_trait::MascotTrait;
-use crate::client::backend::mascot::rare_mascot::RareMascot;
+use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
+use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
+use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
 use iced_core::Color;
 use std::fmt::{Display, Formatter};
 
@@ -55,12 +55,6 @@ impl MascotTrait for Mascot {
             Mascot::Epic(epic_mascot) => epic_mascot.get_dark_color(),
         }
     }
-}
-
-#[derive(Debug, Clone)]
-pub enum MascotRarity {
-    Rare,
-    Epic,
 }
 
 impl From<RareMascot> for Mascot {

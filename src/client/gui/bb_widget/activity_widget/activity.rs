@@ -1,11 +1,11 @@
-use crate::client::backend::mascot::mascot::Mascot;
-use crate::client::backend::mascot::mascot_trait::MascotTrait;
+use crate::client::backend::mascot_mod::mascot::Mascot;
+use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, DEFAULT_BUTTON_RADIUS};
 use crate::client::gui::bb_theme::{color, custom_button};
-use crate::client::gui::bb_widget::activity::date_utils::{
+use crate::client::gui::bb_widget::activity_widget::date_utils::{
     DAYS_PER_WEEK, DateScope, Offset, get_date_by_offset, get_end_dates_of_offsets,
     get_start_dates_of_offsets, started_weeks_in_period,
 };
@@ -121,7 +121,7 @@ impl ActivityWidget {
         match self.current_scope {
             DateScope::Year => start_date.year().to_string(),
             DateScope::Month => start_date.format("%B").to_string(),
-            DateScope::Week => format!("Week {}", start_date.iso_week().week().to_string()),
+            DateScope::Week => format!("Week {}", start_date.iso_week().week()),
         }
     }
 
@@ -163,7 +163,7 @@ impl ActivityWidget {
 
             time_scope_buttons = time_scope_buttons.push(
                 custom_button::create_text_button(
-                    self.active_mascot.clone(),
+                    self.active_mascot,
                     time.to_string(),
                     style_of_button,
                     Some(time_scope_border_radius),
@@ -190,7 +190,7 @@ impl ActivityWidget {
 
             time_offset_buttons = time_offset_buttons.push(
                 custom_button::create_text_button(
-                    self.active_mascot.clone(),
+                    self.active_mascot,
                     self.offset_title(offset),
                     style_of_button,
                     None,

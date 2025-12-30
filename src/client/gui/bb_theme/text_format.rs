@@ -1,4 +1,4 @@
-use crate::client::backend::exercise::weight::Kg;
+use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::gui::bb_theme::color;
 use iced::Renderer;
 use iced_core::font::Family::Name;
@@ -22,11 +22,7 @@ pub fn format_button_text(msg: Text<Theme, Renderer>) -> Text<Theme, Renderer> {
         .color(color::TEXT_COLOR)
         .center()
 }
-pub fn format_description_text(msg: Text<Theme, Renderer>) -> Text<'_, Theme, Renderer> {
-    msg.font(FIRA_SANS_EXTRABOLD)
-        .color(color::DESCRIPTION_TEXT_COLOR)
-        .size(15)
-}
+
 pub fn kg_to_string(kg: Kg) -> String {
     format!("{} kg", kg)
 }

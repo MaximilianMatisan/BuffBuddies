@@ -175,14 +175,17 @@ where
                 break;
             }
         }
-        if self.exercises.len() == printable_index + 1 {
-            printable_exercises.push(self.exercises[printable_index].clone());
-        } else if self.exercises.len() > printable_index + 1 {
-            printable_exercises.push(". . .".to_string())
+
+        match self.exercises.len().cmp(&(printable_index + 1)) {
+            std::cmp::Ordering::Equal => {
+                printable_exercises.push(self.exercises[printable_index].clone());
+            }
+            std::cmp::Ordering::Greater => printable_exercises.push(". . .".to_string()),
+            std::cmp::Ordering::Less => {}
         }
 
-        let mut description_lines = 0;
-        for description_exercise in printable_exercises {
+        for (description_lines, description_exercise) in printable_exercises.into_iter().enumerate()
+        {
             renderer.fill_text(
                 text::Text {
                     content: description_exercise,
@@ -203,7 +206,6 @@ where
                 bb_theme::color::DESCRIPTION_TEXT_COLOR,
                 *viewport,
             );
-            description_lines += 1;
         }
     }
     fn on_event(

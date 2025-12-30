@@ -1,6 +1,6 @@
-use crate::client::backend::exercise::{ExerciseManager, exercise};
-use crate::client::backend::mascot::mascot::Mascot;
-use crate::client::backend::mascot::mascot_trait::MascotTrait;
+use crate::client::backend::exercise_mod::{ExerciseManager, exercise};
+use crate::client::backend::mascot_mod::mascot::Mascot;
+use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
@@ -107,12 +107,10 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
     .padding([8, 16])
     .into();
 
-    let progress_widget = ProgressWidget::new(
-        app.mascot_manager.selected_mascot.clone(),
-        &app.exercise_manager,
-    );
+    let progress_widget =
+        ProgressWidget::new(app.mascot_manager.selected_mascot, &app.exercise_manager);
 
-    let exercise_stats = exercise_stat_column(&app)
+    let exercise_stats = exercise_stat_column(app)
         .width(Length::Fixed(progress_widget.get_width()))
         .padding(Padding {
             top: 0.0,
@@ -150,7 +148,7 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         ))
         .into()
 }
-impl<'a, Message, Renderer> Widget<Message, Theme, Renderer> for ProgressWidget<'a, Renderer>
+impl<Message, Renderer> Widget<Message, Theme, Renderer> for ProgressWidget<'_, Renderer>
 where
     Renderer: renderer::Renderer + text::Renderer,
     Message: Clone,
@@ -380,11 +378,11 @@ where
                 );
 
                 //MOUSE_INTERACTION
-                let cursor_position;
-                match cursor.position() {
+
+                let cursor_position = match cursor.position() {
                     None => return,
-                    Some(pos) => cursor_position = pos,
-                }
+                    Some(pos) => pos,
+                };
                 if !coordinate_bounds.contains(cursor_position) {
                     return;
                 }

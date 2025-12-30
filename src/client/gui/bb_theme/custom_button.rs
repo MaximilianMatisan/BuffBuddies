@@ -1,5 +1,5 @@
-use crate::client::backend::mascot::mascot::Mascot;
-use crate::client::backend::mascot::mascot_trait::MascotTrait;
+use crate::client::backend::mascot_mod::mascot::Mascot;
+use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::user_interface::Message;
@@ -53,8 +53,10 @@ pub fn create_button_style(
     disabled_color: Color,
     hovered_color: Color,
 ) -> Style {
-    let mut style = button::Style::default();
-    style.border = border;
+    let mut style = iced::widget::button::Style {
+        border,
+        ..Default::default()
+    };
     match status {
         button::Status::Active => {
             style.background = Some(Background::Color(active_color));

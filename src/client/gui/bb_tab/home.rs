@@ -12,29 +12,28 @@ impl UserInterface {
     pub fn homescreen(&self) -> Element<Message> {
         let activity_widget: Element<Message> = self.app.activity_widget.view(&self.app);
 
-        let mut shop_widgets = row![
+        let shop_widgets = row![
             shop::ShopWidget::new(
-                "Random rare mascot-egg".to_string(),
+                "Random rare mascot_mod-egg".to_string(),
                 50,
-                self.app.mascot_manager.selected_mascot.clone(),
+                self.app.mascot_manager.selected_mascot,
                 Message::BuyMascot()
             ),
             shop::ShopWidget::new(
-                "Random epic mascot-egg".to_string(),
+                "Random epic mascot_mod-egg".to_string(),
                 100,
-                self.app.mascot_manager.selected_mascot.clone(),
+                self.app.mascot_manager.selected_mascot,
                 Message::BuyMascot()
             )
             .set_image(Image::new(Handle::from_path(
                 "assets/images/epic_gacha.png"
             )))
-        ];
-
-        shop_widgets = shop_widgets.spacing(30);
+        ]
+        .spacing(30);
 
         let contents = Column::new()
             .push(activity_widget)
-            //.push(shop_widgets)
+            .push(shop_widgets)
             .spacing(INDENT)
             .padding(INDENT);
 

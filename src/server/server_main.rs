@@ -6,6 +6,7 @@ use axum::{Json, Router};
 use serde_json::json;
 
 #[derive(Debug)]
+#[allow(dead_code)] //TODO: construct variants `NotFound`, `InvalidInput`, and `InternalError`
 pub enum ApiError {
     NotFound,
     InvalidInput(String),

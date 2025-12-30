@@ -10,12 +10,10 @@ use crate::client::gui::bb_widget::workout::{
 };
 use crate::client::gui::user_interface::Message;
 use iced::Renderer;
-use iced::advanced::widget::Widget;
+use iced::widget::column;
 use iced::widget::{Button, text};
 use iced::widget::{Space, button};
-use iced::widget::{column, container};
 use iced_core::alignment::Horizontal;
-use iced_core::alignment::Vertical;
 use iced_core::border::Radius;
 use iced_core::{Border, Length, Theme};
 
@@ -43,7 +41,7 @@ pub fn new_workout_widget_button<'a>() -> Button<'a, Message, Theme, Renderer> {
         column!(
             Space::with_height(Length::Fill),
             format_button_text(text("New workout")).size(DEFAULT_TITLE_FONT_SIZE),
-            format_button_text(text("+").size(65)),
+            format_button_text(text("+").size(ADD_SYMBOL_SIZE)),
             Space::with_height(Length::Fill)
         )
         .width(BUTTONS_WIDTH)
@@ -69,7 +67,7 @@ pub fn new_preset_widget_button<'a>() -> Button<'a, Message, Theme, Renderer> {
         column!(
             Space::with_height(Length::Fill),
             format_button_text(text("New preset")).size(DEFAULT_TITLE_FONT_SIZE),
-            format_button_text(text("+").size(65)),
+            format_button_text(text("+").size(ADD_SYMBOL_SIZE)),
             Space::with_height(Length::Fill)
         )
         .width(BUTTONS_WIDTH)
