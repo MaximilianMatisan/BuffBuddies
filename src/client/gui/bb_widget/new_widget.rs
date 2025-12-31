@@ -1,4 +1,4 @@
-use crate::client::gui::app::Tab;
+use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::color::{
     CONTAINER_COLOR, DARKER_CONTAINER_COLOR, HIGHLIGHTED_CONTAINER_COLOR,
 };

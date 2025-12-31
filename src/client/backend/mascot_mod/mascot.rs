@@ -3,12 +3,13 @@ use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
 use iced_core::Color;
 use std::fmt::{Display, Formatter};
+use strum::IntoEnumIterator;
 
 pub enum MascotError {
     AllBought,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Mascot {
     Rare(RareMascot),
     Epic(EpicMascot),
@@ -72,5 +73,11 @@ impl From<EpicMascot> for Mascot {
 impl Default for Mascot {
     fn default() -> Self {
         Mascot::Rare(RareMascot::Duck)
+    }
+}
+impl Mascot {
+    pub fn iter() -> impl Iterator<Item = Mascot> {
+        RareMascot::iter().map(Mascot::Rare)
+            .chain(EpicMascot::iter().map(Mascot::Epic))
     }
 }
