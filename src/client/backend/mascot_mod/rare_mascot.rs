@@ -6,7 +6,7 @@ use rand::Rng;
 use strum::{EnumCount, IntoEnumIterator};
 use strum_macros::{EnumCount, EnumIter};
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, EnumCount, EnumIter)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash,EnumCount, EnumIter)]
 pub enum RareMascot {
     #[default]
     Duck,

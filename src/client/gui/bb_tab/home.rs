@@ -14,13 +14,13 @@ impl UserInterface {
 
         let shop_widgets = row![
             shop::ShopWidget::new(
-                "Random rare mascot_mod-egg".to_string(),
+                "Random rare mascot-egg".to_string(),
                 50,
                 self.app.mascot_manager.selected_mascot,
                 Message::BuyMascot()
             ),
             shop::ShopWidget::new(
-                "Random epic mascot_mod-egg".to_string(),
+                "Random epic mascot-egg".to_string(),
                 100,
                 self.app.mascot_manager.selected_mascot,
                 Message::BuyMascot()
