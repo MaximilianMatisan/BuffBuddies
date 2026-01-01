@@ -77,7 +77,8 @@ impl Default for Mascot {
 }
 impl Mascot {
     pub fn iter() -> impl Iterator<Item = Mascot> {
-        RareMascot::iter().map(Mascot::Rare)
+        RareMascot::iter()
+            .map(Mascot::Rare)
             .chain(EpicMascot::iter().map(Mascot::Epic))
     }
 }

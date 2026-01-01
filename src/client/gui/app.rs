@@ -13,7 +13,7 @@ pub struct App {
     pub login_state: LoginState,
     pub mascot_manager: MascotManager,
     pub exercise_manager: ExerciseManager,
-    pub image_manager: ImageManager
+    pub image_manager: ImageManager,
 }
 
 impl Default for App {
@@ -26,7 +26,7 @@ impl Default for App {
             activity_widget: ActivityWidget::new(default_mascot),
             mascot_manager: MascotManager::default(),
             exercise_manager: ExerciseManager::default(),
-            image_manager: ImageManager::default()
+            image_manager: ImageManager::default(),
         }
     }
 }
