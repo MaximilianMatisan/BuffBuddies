@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use iced_core::image::Handle;
-use image::{DynamicImage};
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
+use iced_core::image::Handle;
+use image::DynamicImage;
+use std::collections::HashMap;
 
 pub struct ImageManager {
-    pub cropped_mascot_image_handles: HashMap<Mascot, Handle>
+    pub cropped_mascot_image_handles: HashMap<Mascot, Handle>,
 }
 impl Default for ImageManager {
     fn default() -> Self {
@@ -15,21 +15,22 @@ impl Default for ImageManager {
             let mascot_image = image::open(mascot.get_file_path());
 
             match mascot_image {
-                Ok(image) =>
-                    cropped_mascot_image_handles.insert(mascot, top_two_thirds_crop(image)),
+                Ok(image) => {
+                    cropped_mascot_image_handles.insert(mascot, top_two_thirds_crop(image))
+                }
                 Err(_) => continue,
             };
         }
 
         ImageManager {
-            cropped_mascot_image_handles
+            cropped_mascot_image_handles,
         }
     }
 }
 
 fn top_two_thirds_crop(image: DynamicImage) -> Handle {
     let goal_width = image.width();
-    let goal_height = image.height()/3 * 2;
+    let goal_height = image.height() / 3 * 2;
     let cropped = image.crop_imm(0, 0, goal_width, goal_height);
 
     let cropped_rgba8 = cropped.to_rgba8().into_raw();

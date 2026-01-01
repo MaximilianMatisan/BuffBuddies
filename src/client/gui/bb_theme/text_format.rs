@@ -22,7 +22,10 @@ pub fn format_button_text(msg: Text<Theme, Renderer>) -> Text<Theme, Renderer> {
         .color(color::TEXT_COLOR)
         .center()
 }
-
+pub fn format_description_text(msg: Text<Theme, Renderer>) -> Text<'_, Theme, Renderer> {
+    msg.font(FIRA_SANS_EXTRABOLD)
+        .color(color::DESCRIPTION_TEXT_COLOR)
+}
 pub fn kg_to_string(kg: Kg) -> String {
     format!("{} kg", kg)
 }
