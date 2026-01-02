@@ -16,6 +16,8 @@ use iced_core::Length::Fill;
 use iced_core::window::{Position, Settings};
 use iced_core::{Size, Theme};
 use strum::IntoEnumIterator;
+use crate::client::backend::user_mod::user::User;
+use crate::client::gui::bb_tab::user;
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -154,6 +156,7 @@ impl UserInterface {
                 .style(bb_theme::container::create_style_container(
                     ContainerStyle::Default,
                     None,
+                    None,
                 ))
                 .height(Fill);
 
@@ -162,7 +165,7 @@ impl UserInterface {
                 Tab::Workout => Some(self.workout_screen()),
                 Tab::Social => Some(self.social_screen()),
                 Tab::Mascot => Some(self.mascot_screen()),
-                Tab::Settings => Some(self.settings_screen()),
+                Tab::Settings => Some(user::view_profile(&User::default())),
                 Tab::Exit => None,
             };
 

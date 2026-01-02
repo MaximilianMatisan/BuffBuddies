@@ -145,6 +145,7 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .style(bb_theme::container::create_style_container(
             ContainerStyle::Default,
             None,
+            None,
         ))
         .into()
 }

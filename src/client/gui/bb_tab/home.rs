@@ -43,6 +43,7 @@ impl UserInterface {
             .style(create_style_container(
                 ContainerStyle::Background,
                 Some(0.0.into()),
+                None,
             ))
             .padding(20)
             .into();

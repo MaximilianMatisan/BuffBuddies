@@ -72,7 +72,7 @@ pub fn exercise_stat_column(app: &App) -> Column<Message> {
         lines = lines.push(
             container(line)
                 .padding(INDENT)
-                .style(create_style_container(container_style, container_border)),
+                .style(create_style_container(container_style, container_border, None)),
         );
     }
     lines

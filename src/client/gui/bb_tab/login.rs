@@ -80,6 +80,7 @@ pub fn view_login(app: &App) -> Element<'_, Message> {
         .style(crate::bb_theme::container::create_style_container(
             ContainerStyle::Dark,
             None,
+            None,
         ))
         .width(Fill)
         .height(Fill);
