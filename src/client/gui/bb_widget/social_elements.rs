@@ -77,13 +77,11 @@ pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &User) -> Button<'a
         create_element_button(*active_mascot, image("assets/images/user_plus.png").into(), ButtonStyle::Active, Some(DEFAULT_CONTAINER_RADIUS.into())).on_press(Message::AddUserAsFriend(user.username.clone()));
 
     let contents = Row::new()
-        .push(Space::with_width(50))
         .push(profile_picture)
         .push(Space::with_width(50))
         .push(text_column)
         .push(Space::with_width(Length::Fill))
         .push(add_friend_button)
-        .push(Space::with_width(50))
         .align_y(Vertical::Center);
 
     let user_profile_button =
