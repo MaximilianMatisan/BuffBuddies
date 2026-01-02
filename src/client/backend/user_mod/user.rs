@@ -15,9 +15,11 @@ pub struct User {
     pub gender: Gender,
     pub exercise_stats: Vec<Exercise>,
     pub weekly_workout_goal: u32,
+    pub weekly_workout_streak: u32,
     pub coin_balance: u32,
     pub favorite_mascot: Mascot,
-    pub selected_mascot: Mascot
+    pub selected_mascot: Mascot,
+    pub friends_with_active_user: bool
 }
 impl Default for User {
     fn default() -> Self {
@@ -30,9 +32,11 @@ impl Default for User {
             gender: Gender::Male,
             exercise_stats: vec![],
             weekly_workout_goal: 4,
+            weekly_workout_streak: 0,
             coin_balance: 0,
             favorite_mascot: Default::default(),
             selected_mascot: Default::default(),
+            friends_with_active_user: false
         }
     }
 }

@@ -118,7 +118,7 @@ impl UserInterface {
                 Task::none()
             }
             Message::AddUserAsFriend(username) => {
-                //TODO Handle
+                self.app.user_manager.add_user_as_friend(&*username);
                 Task::none()
             }
             Message::ViewProfile(username) => {

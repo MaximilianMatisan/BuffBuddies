@@ -3,6 +3,7 @@ use crate::client::backend::image::image_manager::ImageManager;
 use crate::client::backend::login_state::LoginState;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_manager::MascotManager;
+use crate::client::backend::user_mod::user_manager::UserManager;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityWidget;
 
@@ -13,6 +14,7 @@ pub struct App {
     pub login_state: LoginState,
     pub mascot_manager: MascotManager,
     pub exercise_manager: ExerciseManager,
+    pub user_manager: UserManager,
     pub image_manager: ImageManager,
 }
 
@@ -26,6 +28,7 @@ impl Default for App {
             activity_widget: ActivityWidget::new(default_mascot),
             mascot_manager: MascotManager::default(),
             exercise_manager: ExerciseManager::default(),
+            user_manager: UserManager::default(),
             image_manager: ImageManager::default(),
         }
     }

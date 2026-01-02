@@ -10,6 +10,7 @@ use iced::widget::{Button, Column, Space, image, text, Row};
 use iced_core::Length;
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
+use crate::client::backend::user_mod::user::User;
 
 const FRIEND_BUTTON_WIDTH: f32 = 200.0;
 const FRIEND_BUTTON_HEIGHT: f32 = 300.0;
@@ -20,24 +21,21 @@ const MAX_DISPLAYED_NAME_CHARS: usize = 8;
 
 pub fn friend_button<'a>(
     app: &App,
-    profile_picture_handle: &str,
-    username: String,
-    week_streak: u32,
-    favorite_mascot: &Mascot,
+    user: &User
 ) -> Button<'a, Message> {
-    let profile_picture: Element<Message> = image(Handle::from_path(profile_picture_handle))
+    let profile_picture: Element<Message> = image(Handle::from_path(user.profile_picture_handle.clone()))
         .width(LARGE_PROFILE_PICTURE_DIMENSION)
         .height(LARGE_PROFILE_PICTURE_DIMENSION)
         .into();
 
-    let cropped_username: String = username.chars().take(MAX_DISPLAYED_NAME_CHARS).collect();
+    let cropped_username: String = user.username.chars().take(MAX_DISPLAYED_NAME_CHARS).collect();
     let name = format_button_text(text(cropped_username)).size(24);
-    let streak = format_description_text(text(format!("{week_streak}-week-streak")));
+    let streak = format_description_text(text(format!("{}-week-streak", user.weekly_workout_streak)));
 
     let mascot_handle = app
         .image_manager
         .cropped_mascot_image_handles
-        .get(favorite_mascot)
+        .get(&user.favorite_mascot)
         .unwrap();
 
     let mascot_image = image(mascot_handle).width(FRIEND_BUTTON_WIDTH - 2.0 * INDENT);
@@ -52,31 +50,31 @@ pub fn friend_button<'a>(
         .align_x(Horizontal::Center);
 
     let button = create_element_button(
-        *favorite_mascot,
+        user.favorite_mascot,
         contents.into(),
         ButtonStyle::InactiveTab,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
     )
     .width(FRIEND_BUTTON_WIDTH)
     .height(FRIEND_BUTTON_HEIGHT)
-    .on_press(Message::ViewProfile(username));
+    .on_press(Message::ViewProfile(user.username.clone()));
 
     button
 }
-pub fn user_profile_button<'a>(active_mascot: &Mascot ,profile_picture_handle: &str, username: String, week_streak: u32) -> Button<'a,Message>{
+pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &User) -> Button<'a,Message>{
 
-    let profile_picture: Element<Message> = image(Handle::from_path(profile_picture_handle))
+    let profile_picture: Element<Message> = image(Handle::from_path(user.profile_picture_handle.clone()))
         .width(MEDIUM_PROFILE_PICTURE_DIMENSION)
         .height(MEDIUM_PROFILE_PICTURE_DIMENSION)
         .into();
 
-    let name = format_button_text(text(username.clone()));
-    let streak = format_description_text(text(format!("{week_streak}-week-streak")));
+    let name = format_button_text(text(user.username.clone()));
+    let streak = format_description_text(text(format!("{}-week-streak", user.weekly_workout_streak)));
 
     let text_column = Column::new().push(name).push(streak);
 
     let add_friend_button =
-        create_element_button(*active_mascot, image("assets/images/user_plus.png").into(), ButtonStyle::Active, Some(DEFAULT_CONTAINER_RADIUS.into())).on_press(Message::AddUserAsFriend(username.clone()));
+        create_element_button(*active_mascot, image("assets/images/user_plus.png").into(), ButtonStyle::Active, Some(DEFAULT_CONTAINER_RADIUS.into())).on_press(Message::AddUserAsFriend(user.username.clone()));
 
     let contents = Row::new()
         .push(Space::with_width(50))
@@ -91,7 +89,7 @@ pub fn user_profile_button<'a>(active_mascot: &Mascot ,profile_picture_handle: &
     let user_profile_button =
         create_element_button(*active_mascot, contents.into(),ButtonStyle::InactiveTab, Some(DEFAULT_CONTAINER_RADIUS.into()))
             .width(USER_BUTTON_WIDTH)
-            .height(Length::Shrink).on_press(Message::ViewProfile(username));
+            .height(Length::Shrink).on_press(Message::ViewProfile(user.username.clone()));
 
     user_profile_button
 }
