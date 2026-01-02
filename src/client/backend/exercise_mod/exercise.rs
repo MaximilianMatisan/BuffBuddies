@@ -86,7 +86,6 @@ impl Exercise {
         heaviest_set
     }
 }
-//TODO testable
 pub fn get_weight_milestones(start_number: u32, end_number: u32, steps: u32) -> Vec<u32> {
     let mut milestones = vec![];
 
