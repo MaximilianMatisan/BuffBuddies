@@ -213,6 +213,7 @@ impl ActivityWidget {
         .style(bb_theme::container::create_style_container(
             ContainerStyle::Default,
             None,
+            None,
         ))
         .padding(INDENT);
 
