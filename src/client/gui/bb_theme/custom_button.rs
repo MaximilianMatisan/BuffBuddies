@@ -11,8 +11,8 @@ use iced_core::border::Radius;
 use iced_core::widget::text;
 use iced_core::{Border, Theme};
 
-const TAB_BUTTON_WIDTH: f32 = 225.0;
-const TAB_BUTTON_HEIGHT: f32 = 45.0;
+pub const TAB_BUTTON_WIDTH: f32 = 225.0;
+pub const TAB_BUTTON_HEIGHT: f32 = 45.0;
 pub const DEFAULT_BUTTON_RADIUS: f32 = 190.0;
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -119,18 +119,14 @@ pub fn create_element_button(
             color::CONTAINER_COLOR,
             color::HIGHLIGHTED_CONTAINER_COLOR,
             custom_border_radius,
-        )
-        .width(TAB_BUTTON_WIDTH)
-        .height(TAB_BUTTON_HEIGHT),
+        ),
         ButtonStyle::ActiveTab => create_preset_button(
             element,
             color::HIGHLIGHTED_CONTAINER_COLOR,
             color::CONTAINER_COLOR,
             color::HIGHLIGHTED_CONTAINER_COLOR,
             custom_border_radius,
-        )
-        .width(TAB_BUTTON_WIDTH)
-        .height(TAB_BUTTON_HEIGHT),
+        ),
         ButtonStyle::InactiveTransparent => create_preset_button(
             element,
             Color::TRANSPARENT,
