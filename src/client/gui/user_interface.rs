@@ -15,9 +15,7 @@ use iced::{Element, Task};
 use iced_core::Length::Fill;
 use iced_core::window::{Position, Settings};
 use iced_core::{Size, Theme};
-use strum::IntoEnumIterator;
-use crate::client::backend::user_mod::user::User;
-use crate::client::gui::bb_tab::user;
+use crate::client::gui::bb_tab::user::view_profile;
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -120,11 +118,12 @@ impl UserInterface {
                 Task::none()
             }
             Message::AddUserAsFriend(username) => {
-                self.app.user_manager.add_user_as_friend(&*username);
+                self.app.user_manager.add_user_as_friend(&username);
                 Task::none()
             }
             Message::ViewProfile(username) => {
-                //TODO Handle
+                self.app.user_manager.most_recently_viewed_user = username;
+                self.app.screen = Tab::ViewProfile;
                 Task::none()
             }
         }
@@ -134,7 +133,7 @@ impl UserInterface {
             view_login(&self.app)
         } else {
             let mut tab_bar: Column<Message> = Column::new();
-            for tab in Tab::iter() {
+            for tab in Tab::get_tab_button_categories() {
                 tab_bar = tab_bar.push(
                     create_text_button(
                         self.app.mascot_manager.selected_mascot,
@@ -165,8 +164,18 @@ impl UserInterface {
                 Tab::Workout => Some(self.workout_screen()),
                 Tab::Social => Some(self.social_screen()),
                 Tab::Mascot => Some(self.mascot_screen()),
-                Tab::Settings => Some(user::view_profile(&User::default())),
+                Tab::Settings => Some(self.settings_screen()),
                 Tab::Exit => None,
+                Tab::ViewProfile => {
+                    let username = &self.app.user_manager.most_recently_viewed_user;
+                    let viewed_profile = self.app.user_manager.get_user_by_username(username);
+
+                    if let Some(profile) = viewed_profile {
+                        Some(view_profile(profile))
+                    } else {
+                        None
+                    }
+                }
             };
 
             let content = if let Some(tab_content) = tab_window {
@@ -181,8 +190,7 @@ impl UserInterface {
                 .style(|_theme: &Theme| container::Style {
                     text_color: None,
                     background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
-                    border: Default::default(),
-                    shadow: Default::default(),
+                    ..Default::default()
                 }).padding(20)
                 .into()
         }

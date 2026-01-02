@@ -6,6 +6,7 @@ use crate::client::backend::user_mod::user::{Gender, User};
 
 pub struct UserManager {
     pub loaded_users: Vec<User>,
+    pub most_recently_viewed_user: String
 }
 impl Default for UserManager {
     fn default() -> Self {
@@ -23,7 +24,7 @@ impl Default for UserManager {
             coin_balance: 12381,
             favorite_mascot: Mascot::Rare(RareMascot::Chameleon),
             selected_mascot: Mascot::Rare(RareMascot::Chameleon),
-            friends_with_active_user: true,
+            friends_with_active_user: false,
         };
         let test_user2 = User {
             username: "Stefano".to_string(),
@@ -38,7 +39,7 @@ impl Default for UserManager {
             coin_balance: 2972,
             favorite_mascot: Mascot::Rare(RareMascot::Whale),
             selected_mascot: Mascot::Rare(RareMascot::Duck),
-            friends_with_active_user: true,
+            friends_with_active_user: false,
         };
         let test_user3 = User {
             username: "Robert".to_string(),
@@ -53,7 +54,7 @@ impl Default for UserManager {
             coin_balance: 90,
             favorite_mascot: Mascot::Epic(EpicMascot::Capybara),
             selected_mascot: Mascot::Rare(RareMascot::Dog),
-            friends_with_active_user: true,
+            friends_with_active_user: false,
         };
         let test_user4 = User {
             username: "JohnP".to_string(),
@@ -70,8 +71,10 @@ impl Default for UserManager {
             selected_mascot: Mascot::Rare(RareMascot::Duck),
             friends_with_active_user: false,
         };
+        let default_user = User::default();
         UserManager {
-            loaded_users: vec![test_user1, test_user2, test_user3, test_user4]
+            loaded_users: vec![test_user1, test_user2, test_user3, test_user4, default_user],
+            most_recently_viewed_user: "".to_string(),
         }
     }
 }
