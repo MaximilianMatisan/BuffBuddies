@@ -166,31 +166,22 @@ impl UserInterface {
                 Tab::Exit => None,
             };
 
-            if let Some(tab_window_real) = tab_window {
-                container(row![tab_container, tab_window_real])
-                    .width(Fill)
-                    .height(Fill)
-                    .style(|_theme: &Theme| container::Style {
-                        text_color: None,
-                        background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
-                        border: Default::default(),
-                        shadow: Default::default(),
-                    })
-                    .padding(20)
-                    .into()
+            let content = if let Some(tab_content) = tab_window {
+                row![tab_container, tab_content]
             } else {
-                container(row![tab_container])
-                    .width(Fill)
-                    .height(Fill)
-                    .style(|_theme: &Theme| container::Style {
-                        text_color: None,
-                        background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
-                        border: Default::default(),
-                        shadow: Default::default(),
-                    })
-                    .padding(20)
-                    .into()
-            }
+                row![tab_container]
+            };
+
+            container(content)
+                .width(Fill)
+                .height(Fill)
+                .style(|_theme: &Theme| container::Style {
+                    text_color: None,
+                    background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
+                    border: Default::default(),
+                    shadow: Default::default(),
+                }).padding(20)
+                .into()
         }
     }
 }
