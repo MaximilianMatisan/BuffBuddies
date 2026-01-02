@@ -4,7 +4,7 @@ use crate::client::gui::bb_tab::login::view_login;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::container::ContainerStyle;
-use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button};
+use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button, TAB_BUTTON_WIDTH, TAB_BUTTON_HEIGHT};
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
 use crate::client::gui::{bb_theme, size};
 use crate::client::server_communication::server_communicator::{
@@ -33,6 +33,8 @@ pub enum Message {
     UsernameEntered(String),
     PasswordEntered(String),
     SelectExercise(String),
+    AddUserAsFriend(String),
+    ViewProfile(String)
 }
 
 impl UserInterface {
@@ -115,6 +117,14 @@ impl UserInterface {
                 self.app.exercise_manager.update_selected_exercise(exercise);
                 Task::none()
             }
+            Message::AddUserAsFriend(username) => {
+                //TODO Handle
+                Task::none()
+            }
+            Message::ViewProfile(username) => {
+                //TODO Handle
+                Task::none()
+            }
         }
     }
     fn view(&self) -> Element<'_, Message> {
@@ -134,6 +144,8 @@ impl UserInterface {
                         },
                         None,
                     )
+                    .width(TAB_BUTTON_WIDTH)
+                    .height(TAB_BUTTON_HEIGHT)
                     .on_press(Message::Select(tab)),
                 );
             }
