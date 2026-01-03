@@ -1,10 +1,8 @@
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_style_container};
 use crate::client::gui::bb_widget::shop;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::client::gui::size;
 use crate::client::gui::user_interface::{Message, UserInterface};
 use iced::Element;
-use iced::widget::{Column, container, row, Row, Space, Scrollable};
+use iced::widget::{Column, row, Row, Space, Scrollable};
 use iced::widget::scrollable::{Direction, Scrollbar};
 use iced_core::{Image, Length};
 use iced_core::image::Handle;

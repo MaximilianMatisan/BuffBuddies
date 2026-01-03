@@ -1,4 +1,4 @@
-use crate::client::backend::exercise_mod::ExerciseManager;
+use crate::client::backend::exercise_mod::{calculate_activity_data, ExerciseManager};
 use crate::client::backend::image::image_manager::ImageManager;
 use crate::client::backend::login_state::LoginState;
 use crate::client::backend::mascot_mod::mascot::Mascot;
@@ -20,14 +20,15 @@ pub struct App {
 
 impl Default for App {
     fn default() -> Self {
+        let exercise_manager = ExerciseManager::default();
         let default_mascot = Mascot::default();
         App {
             loading: false,
             screen: Tab::Home,
             login_state: LoginState::default(),
-            activity_widget: ActivityWidget::new(default_mascot),
+            activity_widget: ActivityWidget::new(default_mascot, calculate_activity_data(&exercise_manager.exercises)),
             mascot_manager: MascotManager::default(),
-            exercise_manager: ExerciseManager::default(),
+            exercise_manager,
             user_manager: UserManager::default(),
             image_manager: ImageManager::default(),
         }

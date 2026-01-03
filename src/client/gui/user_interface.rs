@@ -15,6 +15,7 @@ use iced::{Element, Task};
 use iced_core::Length::Fill;
 use iced_core::window::{Position, Settings};
 use iced_core::{Size, Theme};
+use crate::client::backend::exercise_mod::calculate_activity_data;
 use crate::client::gui::bb_tab::user::view_profile;
 
 #[derive(Default)]
@@ -42,6 +43,11 @@ impl UserInterface {
         match message {
             Message::Select(Tab::Exit) => iced::exit(),
             Message::Select(tab) => {
+                self.app.activity_widget
+                    .update_active_mascot(self.app.mascot_manager.selected_mascot);
+                self.app.activity_widget
+                    .update_activity_data(calculate_activity_data(&self.app.exercise_manager.exercises));
+                
                 self.app.screen = tab;
                 Task::none()
             }
@@ -122,6 +128,11 @@ impl UserInterface {
                 Task::none()
             }
             Message::ViewProfile(username) => {
+                let opt_user = self.app.user_manager.get_user_by_username(&username);
+                if let Some(user) = opt_user {
+                    self.app.activity_widget.update_active_mascot(user.favorite_mascot);
+                    self.app.activity_widget.update_activity_data(calculate_activity_data(&user.exercise_stats));
+                }
                 self.app.user_manager.most_recently_viewed_user = username;
                 self.app.screen = Tab::ViewProfile;
                 Task::none()
@@ -171,7 +182,7 @@ impl UserInterface {
                     let viewed_profile = self.app.user_manager.get_user_by_username(username);
 
                     if let Some(profile) = viewed_profile {
-                        Some(view_profile(profile))
+                        Some(view_profile(&self.app, profile))
                     } else {
                         None
                     }

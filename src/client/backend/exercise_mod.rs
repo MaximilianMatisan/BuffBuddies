@@ -1,8 +1,10 @@
+use std::collections::HashMap;
 use crate::client::backend::exercise_mod::exercise::{Exercise, generate_example_exercise};
 use crate::client::backend::exercise_mod::set::Reps;
 use crate::client::backend::exercise_mod::weight::Kg;
-use chrono::NaiveDate;
+use chrono::{NaiveDate};
 use iced::widget::combo_box;
+use crate::client::gui::bb_widget::activity_widget::activity::AmountOfSets;
 
 pub mod exercise;
 pub mod set;
@@ -10,13 +12,13 @@ pub mod weight;
 
 pub struct ExerciseManager {
     pub exercises: Vec<Exercise>,
+
     /// Not necessarily a valid exercise_mod name
     pub selected_exercise_name: String,
     pub owned_exercise_state: combo_box::State<String>,
-
+    //STATS OF SELECTED EXERCISE
     ///representing the heaviest weight used in a set per tracked day
     pub data_points: Vec<(NaiveDate, Kg)>,
-    //STATS
     pub all_time_lifted_weight: Kg,
     pub all_time_reps: Reps,
     pub all_time_sets: u64,
@@ -28,10 +30,11 @@ impl Default for ExerciseManager {
         let preacher_curl = generate_example_exercise("Preacher curl".to_string(), 50, 40.0);
         let bench_press = generate_example_exercise("Benchpress".to_string(), 200, 60.0);
         let barbell_row = generate_example_exercise("Barbell row".to_string(), 1, 80.0);
+        let lateral_pulldown = Exercise::new("Lateral pulldown".to_string());
 
         let selected_exercise_name = "Benchpress".to_string();
         let mut exercise_manager = ExerciseManager {
-            exercises: vec![preacher_curl, bench_press, barbell_row],
+            exercises: vec![preacher_curl, bench_press, barbell_row, lateral_pulldown],
             selected_exercise_name: selected_exercise_name.clone(),
             owned_exercise_state: combo_box::State::new(vec![]),
             data_points: vec![],
@@ -86,4 +89,18 @@ impl ExerciseManager {
             self.set_with_most_total_lifted_weight = (NaiveDate::default(), 0.0);
         }
     }
+}
+
+pub fn calculate_activity_data(exercise_data: &Vec<Exercise>) -> HashMap<NaiveDate, AmountOfSets> {
+    let mut map: HashMap<NaiveDate, AmountOfSets> = HashMap::new();
+
+    for exercise in exercise_data {
+        for (date, set) in &exercise.sets {
+            map
+                .entry(*date)
+                .and_modify(|entry| *entry += set.len() as AmountOfSets)
+                .or_insert(set.len() as AmountOfSets);
+        }
+    }
+    map
 }
