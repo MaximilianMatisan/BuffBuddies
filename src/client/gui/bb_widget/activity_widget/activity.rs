@@ -11,7 +11,7 @@ use crate::client::gui::bb_widget::activity_widget::date_utils::{
 };
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
-use chrono::{Datelike, Duration, Local, NaiveDate, Weekday};
+use chrono::{Datelike, Duration, Local, NaiveDate};
 use iced::widget::{Column, container, row};
 use iced::{Element, Task};
 use iced_core::alignment::Vertical;
@@ -35,16 +35,16 @@ pub struct SquareDimensions {
     pub(crate) max_squares_per_col: u32,
 }
 
-type AmountOfWorkouts = usize;
+pub type AmountOfSets = u32;
 #[derive(Debug, Clone)]
 pub struct ActivityWidget {
     width: f32,
     height: f32,
     current_scope: DateScope,
     current_offset: Offset,
-    activity: HashMap<NaiveDate, AmountOfWorkouts>,
+    activity: HashMap<NaiveDate, AmountOfSets>,
     //TODO zukünftig ergänzbar um map auf Vec<Exercise> / handle user-input
-    active_mascot: Mascot, //TODO Update nach Message::SelectMascot(...)
+    active_mascot: Mascot,
     today: NaiveDate,
 }
 
@@ -55,35 +55,26 @@ pub enum ActivityMessage {
 }
 
 impl ActivityWidget {
-    pub fn new(active_mascot: Mascot) -> Self {
+    pub fn new(active_mascot: Mascot, activity: HashMap<NaiveDate, AmountOfSets>) -> Self {
         let mut activity_widget = ActivityWidget {
             width: 0.0,
             height: 0.0,
             current_scope: DateScope::Month,
             current_offset: Offset::Current,
-            activity: Default::default(),
+            activity,
             active_mascot,
             today: Local::now().date_naive(),
         };
         activity_widget.width = activity_widget.compute_widget_width();
         activity_widget.height = activity_widget.compute_widget_height();
 
-        //EXAMPLES
-        let mut map: HashMap<NaiveDate, AmountOfWorkouts> = HashMap::new();
-        let mut cursor = activity_widget.start_date();
-
-        while cursor < activity_widget.today {
-            if cursor.weekday() == Weekday::Mon || cursor.weekday() == Weekday::Fri {
-                map.insert(cursor, 1);
-            }
-            cursor += Duration::days(1);
-        }
-        activity_widget.activity = map;
-
         activity_widget
     }
     pub fn update_active_mascot(&mut self, mascot: Mascot) {
         self.active_mascot = mascot
+    }
+    pub fn update_activity_data(&mut self, activity_data: HashMap<NaiveDate, AmountOfSets>) {
+        self.activity = activity_data;
     }
     fn compute_widget_width(&self) -> f32 {
         let side_length = self.current_scope.dimensions().side_length;

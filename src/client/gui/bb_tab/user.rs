@@ -1,15 +1,17 @@
 use iced::Element;
 use iced::widget::{image, row, column, Column, text, Row, container, Container, Space};
-use iced_core::alignment::{Vertical};
+use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::Length;
 use crate::client::backend::user_mod::user::User;
+use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::container::{create_style_container, ContainerStyle};
 use crate::client::gui::bb_theme::text_format::{format_description_text, FIRA_SANS_EXTRABOLD};
+use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::size::LARGE_PROFILE_PICTURE_DIMENSION;
 use crate::client::gui::user_interface::Message;
 
-pub fn view_profile<'a>(user: &User) -> Element<'a, Message> {
+pub fn view_profile<'a>(app: &'a App, user: &User) -> Element<'a, Message> {
     let profile_picture = container(
         image(user.profile_picture_handle.clone())
             .width(Length::Shrink)
@@ -40,7 +42,7 @@ pub fn view_profile<'a>(user: &User) -> Element<'a, Message> {
         description_element
     ]
         .height(Length::Fill)
-        .spacing(5);
+        .spacing(INDENT);
 
     let header: Container<Message> = container(row![
         profile_picture,
@@ -49,10 +51,15 @@ pub fn view_profile<'a>(user: &User) -> Element<'a, Message> {
         .width(Length::Fill)
         .height(LARGE_PROFILE_PICTURE_DIMENSION)
         .into();
+    
+    let activity_widget = app.activity_widget.view(app);
 
     let content = column![
-        header
-    ];
+        header,
+        activity_widget,
+    ]
+        .align_x(Horizontal::Center)
+        .spacing(LARGE_INDENT);
 
     content.into()
 }

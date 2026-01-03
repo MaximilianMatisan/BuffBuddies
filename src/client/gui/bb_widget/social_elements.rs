@@ -11,12 +11,11 @@ use iced_core::Length;
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
 use crate::client::backend::user_mod::user::User;
+use crate::client::gui::size::{LARGE_PROFILE_PICTURE_DIMENSION, MEDIUM_PROFILE_PICTURE_DIMENSION};
 
 const FRIEND_BUTTON_WIDTH: f32 = 200.0;
 const FRIEND_BUTTON_HEIGHT: f32 = 300.0;
 const USER_BUTTON_WIDTH: f32 = 700.0;
-const LARGE_PROFILE_PICTURE_DIMENSION: f32 = 75.0;
-const MEDIUM_PROFILE_PICTURE_DIMENSION: f32 = 50.0;
 const MAX_DISPLAYED_NAME_CHARS: usize = 8;
 
 pub fn friend_button<'a>(
