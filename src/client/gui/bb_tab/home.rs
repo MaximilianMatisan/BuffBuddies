@@ -1,12 +1,12 @@
+use crate::client::gui::bb_widget::progress::progress_environment_widget;
 use crate::client::gui::bb_widget::shop;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::{Message, UserInterface};
 use iced::Element;
-use iced::widget::{Column, row, Row, Space, Scrollable};
 use iced::widget::scrollable::{Direction, Scrollbar};
-use iced_core::{Image, Length};
+use iced::widget::{Column, Row, Scrollable, Space, row};
 use iced_core::image::Handle;
-use crate::client::gui::bb_widget::progress::progress_environment_widget;
+use iced_core::{Image, Length};
 
 impl UserInterface {
     pub fn homescreen(&self) -> Element<Message> {

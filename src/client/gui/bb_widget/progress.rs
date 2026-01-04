@@ -7,7 +7,7 @@ use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_
 use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_theme::{color, text_format};
-use crate::client::gui::bb_widget::exercise_stats::exercise_stat_column;
+use crate::client::gui::bb_widget::stats::exercise_stat_column;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use iced::Element;

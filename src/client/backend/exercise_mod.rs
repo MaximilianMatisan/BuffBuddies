@@ -1,10 +1,10 @@
-use std::collections::HashMap;
 use crate::client::backend::exercise_mod::exercise::{Exercise, generate_example_exercise};
 use crate::client::backend::exercise_mod::set::Reps;
 use crate::client::backend::exercise_mod::weight::Kg;
-use chrono::{NaiveDate};
-use iced::widget::combo_box;
 use crate::client::gui::bb_widget::activity_widget::activity::AmountOfSets;
+use chrono::NaiveDate;
+use iced::widget::combo_box;
+use std::collections::HashMap;
 
 pub mod exercise;
 pub mod set;
@@ -96,8 +96,7 @@ pub fn calculate_activity_data(exercise_data: &Vec<Exercise>) -> HashMap<NaiveDa
 
     for exercise in exercise_data {
         for (date, set) in &exercise.sets {
-            map
-                .entry(*date)
+            map.entry(*date)
                 .and_modify(|entry| *entry += set.len() as AmountOfSets)
                 .or_insert(set.len() as AmountOfSets);
         }

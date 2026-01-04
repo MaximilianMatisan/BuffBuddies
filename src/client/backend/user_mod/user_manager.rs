@@ -2,15 +2,22 @@ use crate::client::backend::exercise_mod::exercise::generate_example_exercise;
 use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
+use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::client::backend::user_mod::user::{Gender, User};
 
 pub struct UserManager {
     pub loaded_users: Vec<User>,
-    pub most_recently_viewed_user: String
+    pub most_recently_viewed_user: String,
 }
 impl Default for UserManager {
     fn default() -> Self {
         //TODO delete examples
+        let user1_exercises = vec![generate_example_exercise(
+            "Benchpress".to_string(),
+            49,
+            80.0,
+        )];
+        let user1_mascots = vec![Mascot::Rare(RareMascot::Chameleon)];
         let test_user1 = User {
             username: "Felix".to_string(),
             description: "The boss".to_string(),
@@ -18,14 +25,25 @@ impl Default for UserManager {
             weight: 75.0,
             height: 187,
             gender: Gender::Male,
-            exercise_stats: vec![generate_example_exercise("Benchpress".to_string(), 49, 80.0)],
+            profile_stat_manager: ProfileStatManager::new(&user1_exercises),
+            exercise_stats: user1_exercises,
             weekly_workout_goal: 5,
             weekly_workout_streak: 12,
             coin_balance: 12381,
             favorite_mascot: Mascot::Rare(RareMascot::Chameleon),
             selected_mascot: Mascot::Rare(RareMascot::Chameleon),
+            owned_mascots: user1_mascots,
             friends_with_active_user: false,
         };
+        let user2_exercises = vec![generate_example_exercise(
+            "Preacher curl".to_string(),
+            180,
+            40.0,
+        )];
+        let user2_mascots = vec![
+            Mascot::Rare(RareMascot::Whale),
+            Mascot::Rare(RareMascot::Duck),
+        ];
         let test_user2 = User {
             username: "Stefano".to_string(),
             description: "The beast".to_string(),
@@ -33,14 +51,21 @@ impl Default for UserManager {
             weight: 70.0,
             height: 178,
             gender: Gender::Male,
-            exercise_stats: vec![generate_example_exercise("Preacher curl".to_string(), 180, 40.0)],
+            profile_stat_manager: ProfileStatManager::new(&user2_exercises),
+            exercise_stats: user2_exercises,
             weekly_workout_goal: 7,
             weekly_workout_streak: 19,
             coin_balance: 2972,
             favorite_mascot: Mascot::Rare(RareMascot::Whale),
             selected_mascot: Mascot::Rare(RareMascot::Duck),
+            owned_mascots: user2_mascots,
             friends_with_active_user: false,
         };
+        let user3_exercises = vec![];
+        let user3_mascots = vec![
+            Mascot::Epic(EpicMascot::Capybara),
+            Mascot::Rare(RareMascot::Dog),
+        ];
         let test_user3 = User {
             username: "Robert".to_string(),
             description: "The titan".to_string(),
@@ -48,14 +73,21 @@ impl Default for UserManager {
             weight: 68.0,
             height: 188,
             gender: Gender::Male,
-            exercise_stats: vec![],
+            profile_stat_manager: ProfileStatManager::new(&user3_exercises),
+            exercise_stats: user3_exercises,
             weekly_workout_goal: 5,
             weekly_workout_streak: 9,
             coin_balance: 90,
             favorite_mascot: Mascot::Epic(EpicMascot::Capybara),
             selected_mascot: Mascot::Rare(RareMascot::Dog),
+            owned_mascots: user3_mascots,
             friends_with_active_user: false,
         };
+        let user4_exercises = vec![];
+        let user4_mascots = vec![
+            Mascot::Epic(EpicMascot::Shark),
+            Mascot::Rare(RareMascot::Duck),
+        ];
         let test_user4 = User {
             username: "JohnP".to_string(),
             description: "always on my phone".to_string(),
@@ -63,12 +95,14 @@ impl Default for UserManager {
             weight: 100.0,
             height: 150,
             gender: Gender::Male,
-            exercise_stats: vec![],
+            profile_stat_manager: ProfileStatManager::new(&user4_exercises),
+            exercise_stats: user4_exercises,
             weekly_workout_goal: 1,
             weekly_workout_streak: 2,
             coin_balance: 200,
             favorite_mascot: Mascot::Epic(EpicMascot::Shark),
             selected_mascot: Mascot::Rare(RareMascot::Duck),
+            owned_mascots: user4_mascots,
             friends_with_active_user: false,
         };
         let default_user = User::default();
@@ -86,21 +120,25 @@ impl UserManager {
             .find(|user| user.username.eq_ignore_ascii_case(username))
     }
     pub fn get_friends(&self) -> Vec<&User> {
-        self.loaded_users.iter().filter(|user| user.friends_with_active_user).collect()
+        self.loaded_users
+            .iter()
+            .filter(|user| user.friends_with_active_user)
+            .collect()
     }
     pub fn get_non_friend_users(&self) -> Vec<&User> {
-        self.loaded_users.iter().filter(|user| !user.friends_with_active_user).collect()
+        self.loaded_users
+            .iter()
+            .filter(|user| !user.friends_with_active_user)
+            .collect()
     }
     pub fn add_user_as_friend(&mut self, username: &str) {
-        let user_opt =
-            self.loaded_users
-                .iter_mut()
-                .find(|user| user.username.eq_ignore_ascii_case(username));
+        let user_opt = self
+            .loaded_users
+            .iter_mut()
+            .find(|user| user.username.eq_ignore_ascii_case(username));
 
-        
-        match user_opt {
-            Some(user) => user.friends_with_active_user = true,
-            None => return
+        if let Some(user) = user_opt {
+            user.friends_with_active_user = true;
         }
     }
 }
