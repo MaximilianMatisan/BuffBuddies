@@ -1,10 +1,14 @@
+use crate::client::backend::exercise_mod::calculate_activity_data;
 use crate::client::backend::login_state::LoginStateError;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
 use crate::client::gui::bb_tab::tab::Tab;
+use crate::client::gui::bb_tab::user::view_profile;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::container::ContainerStyle;
-use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button, TAB_BUTTON_WIDTH, TAB_BUTTON_HEIGHT};
+use crate::client::gui::bb_theme::custom_button::{
+    ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_text_button,
+};
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
 use crate::client::gui::{bb_theme, size};
 use crate::client::server_communication::server_communicator::{
@@ -15,8 +19,6 @@ use iced::{Element, Task};
 use iced_core::Length::Fill;
 use iced_core::window::{Position, Settings};
 use iced_core::{Size, Theme};
-use crate::client::backend::exercise_mod::calculate_activity_data;
-use crate::client::gui::bb_tab::user::view_profile;
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -35,7 +37,7 @@ pub enum Message {
     PasswordEntered(String),
     SelectExercise(String),
     AddUserAsFriend(String),
-    ViewProfile(String)
+    ViewProfile(String),
 }
 
 impl UserInterface {
@@ -43,11 +45,15 @@ impl UserInterface {
         match message {
             Message::Select(Tab::Exit) => iced::exit(),
             Message::Select(tab) => {
-                self.app.activity_widget
+                self.app
+                    .activity_widget
                     .update_active_mascot(self.app.mascot_manager.selected_mascot);
-                self.app.activity_widget
-                    .update_activity_data(calculate_activity_data(&self.app.exercise_manager.exercises));
-                
+                self.app
+                    .activity_widget
+                    .update_activity_data(calculate_activity_data(
+                        &self.app.exercise_manager.exercises,
+                    ));
+
                 self.app.screen = tab;
                 Task::none()
             }
@@ -130,8 +136,12 @@ impl UserInterface {
             Message::ViewProfile(username) => {
                 let opt_user = self.app.user_manager.get_user_by_username(&username);
                 if let Some(user) = opt_user {
-                    self.app.activity_widget.update_active_mascot(user.favorite_mascot);
-                    self.app.activity_widget.update_activity_data(calculate_activity_data(&user.exercise_stats));
+                    self.app
+                        .activity_widget
+                        .update_active_mascot(user.favorite_mascot);
+                    self.app
+                        .activity_widget
+                        .update_activity_data(calculate_activity_data(&user.exercise_stats));
                 }
                 self.app.user_manager.most_recently_viewed_user = username;
                 self.app.screen = Tab::ViewProfile;
@@ -181,11 +191,7 @@ impl UserInterface {
                     let username = &self.app.user_manager.most_recently_viewed_user;
                     let viewed_profile = self.app.user_manager.get_user_by_username(username);
 
-                    if let Some(profile) = viewed_profile {
-                        Some(view_profile(&self.app, profile))
-                    } else {
-                        None
-                    }
+                    viewed_profile.map(|profile| view_profile(&self.app, profile))
                 }
             };
 
@@ -202,7 +208,8 @@ impl UserInterface {
                     text_color: None,
                     background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
                     ..Default::default()
-                }).padding(20)
+                })
+                .padding(20)
                 .into()
         }
     }

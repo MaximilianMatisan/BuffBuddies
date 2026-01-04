@@ -7,8 +7,10 @@ use crate::client::gui::bb_theme::text_format::{format_button_text, kg_to_string
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use iced::Length;
-use iced::widget::{Column, Row, Space, container, text};
+use iced::widget::{Column, Container, Row, Space, container, image, text};
+use iced_core::alignment::Horizontal;
 use iced_core::border::Radius;
+use iced_core::image::Handle;
 
 const DISPLAYED_EXERCISE_STATS: usize = 5;
 const DISPLAYED_EXERCISE_STAT_LAST_INDEX: usize = DISPLAYED_EXERCISE_STATS - 1;
@@ -72,8 +74,40 @@ pub fn exercise_stat_column(app: &App) -> Column<Message> {
         lines = lines.push(
             container(line)
                 .padding(INDENT)
-                .style(create_style_container(container_style, container_border, None)),
+                .style(create_style_container(
+                    container_style,
+                    container_border,
+                    None,
+                )),
         );
     }
     lines
+}
+
+const PROFILE_STAT_CONTAINER_WIDTH: f32 = 165.0;
+const PROFILE_STAT_CONTAINER_HEIGHT: f32 = 180.0;
+
+pub fn profile_stat_container<'a>(
+    image_handle: Handle,
+    value: String,
+    description_line_one: String,
+    description_line_two: String,
+) -> Container<'a, Message> {
+    let image = image(image_handle).height(PROFILE_STAT_CONTAINER_HEIGHT / 2.0);
+
+    let value_text_element = format_button_text(text(value));
+    let description_one_text_element = format_button_text(text(description_line_one));
+    let description_two_text_element = format_button_text(text(description_line_two));
+
+    let contents = Column::new()
+        .push(image)
+        .push(value_text_element)
+        .push(description_one_text_element)
+        .push(description_two_text_element)
+        .align_x(Horizontal::Center);
+
+    container(contents)
+        .style(create_style_container(ContainerStyle::Default, None, None))
+        .center_x(Length::Fixed(PROFILE_STAT_CONTAINER_WIDTH))
+        .center_y(Length::Fixed(PROFILE_STAT_CONTAINER_HEIGHT))
 }
