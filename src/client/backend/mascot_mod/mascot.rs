@@ -9,6 +9,12 @@ pub enum MascotError {
     AllBought,
 }
 
+#[derive(Clone, Debug)]
+pub enum MascotRarity {
+    Epic,
+    Rare,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Mascot {
     Rare(RareMascot),

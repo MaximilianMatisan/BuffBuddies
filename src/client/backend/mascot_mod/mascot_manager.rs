@@ -19,7 +19,7 @@ impl MascotManager {
     pub fn new() -> Self {
         MascotManager {
             selected_mascot: Mascot::default(),
-            //TODO get from server i guess
+            //TODO get from server
             owned_mascots: vec![Rare(RareMascot::Duck)],
             owned_mascots_state: State::with_selection(vec![Rare(RareMascot::Duck)], None),
         }

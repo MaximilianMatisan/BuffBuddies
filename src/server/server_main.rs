@@ -1,7 +1,8 @@
 use crate::server::login::check_login;
+use crate::server::mascot_manager::save_mascot;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde_json::json;
 
@@ -48,6 +49,7 @@ fn create_app() -> Router {
     Router::new()
         .route("/server", get(health_check))
         .route("/user/login", get(check_login))
+        .route("/mascot/save", post(save_mascot))
 }
 
 async fn health_check() -> impl IntoResponse {

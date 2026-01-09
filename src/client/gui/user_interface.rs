@@ -1,5 +1,8 @@
 use crate::client::backend::exercise_mod::calculate_activity_data;
 use crate::client::backend::login_state::LoginStateError;
+use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
+use crate::client::backend::mascot_mod::mascot::{Mascot, MascotRarity};
+use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
 use crate::client::gui::bb_tab::tab::Tab;
@@ -12,7 +15,7 @@ use crate::client::gui::bb_theme::custom_button::{
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
 use crate::client::gui::{bb_theme, size};
 use crate::client::server_communication::server_communicator::{
-    RequestValidUserError, valid_login,
+    RequestValidUserError, SaveMascotError, save_mascot, valid_login,
 };
 use iced::widget::{Column, container, row};
 use iced::{Element, Task};
@@ -29,7 +32,9 @@ pub struct UserInterface {
 pub enum Message {
     Select(Tab),
     Activity(ActivityMessage),
-    BuyMascot(),
+    BuyMascot(MascotRarity),
+    SaveMascot(Result<Mascot, SaveMascotError>),
+    SelectMascot(Mascot),
     TryRegister,
     TryLogin,
     RequestValidUser(Result<(), RequestValidUserError>),
@@ -57,8 +62,61 @@ impl UserInterface {
                 self.app.screen = tab;
                 Task::none()
             }
-            Message::BuyMascot() => {
-                self.app.screen = Tab::Settings;
+            Message::BuyMascot(rarity) => {
+                if match rarity {
+                    MascotRarity::Rare => self.app.money >= 50,
+                    MascotRarity::Epic => self.app.money >= 100,
+                } {
+                    self.app.loading = true;
+                    let mut mascot_maybe: Option<Mascot> = None;
+                    match rarity {
+                        MascotRarity::Rare => {
+                            match RareMascot::random_new_rare(&self.app.mascot_manager) {
+                                Ok(mascot) => mascot_maybe = Some(mascot.into()),
+                                Err(_err) => println!(
+                                    "All mascots of this rarity have already been purchased!"
+                                ),
+                            }
+                        }
+                        MascotRarity::Epic => {
+                            match EpicMascot::random_new_epic(&self.app.mascot_manager) {
+                                Ok(mascot) => mascot_maybe = Some(mascot.into()),
+                                Err(_err) => println!(
+                                    "All mascots of this rarity have already been purchased!"
+                                ),
+                            }
+                        }
+                    };
+                    if let Some(mascot) = mascot_maybe {
+                        Task::perform(async move { save_mascot(mascot) }, Message::SaveMascot)
+                    } else {
+                        Task::none()
+                    }
+                } else {
+                    println!("No money remaining!");
+                    Task::none()
+                }
+            }
+            Message::SaveMascot(Ok(mascot)) => {
+                self.app.loading = false;
+                match mascot {
+                    Mascot::Epic(_) => self.app.money -= 100,
+                    Mascot::Rare(_) => self.app.money -= 50,
+                }
+                self.app.mascot_manager.add_mascot(mascot);
+                Task::none()
+            }
+            Message::SaveMascot(Err(_err)) => {
+                self.app.loading = false;
+                println!("Server offline or other server error");
+                Task::none()
+            }
+            Message::SelectMascot(mascot) => {
+                let active_mascot = &mut self.app.mascot_manager.selected_mascot;
+                *active_mascot = mascot;
+                self.app
+                    .activity_widget
+                    .update_active_mascot(*active_mascot);
                 Task::none()
             }
             Message::Activity(activity_message) => {
