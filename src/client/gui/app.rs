@@ -16,6 +16,7 @@ pub struct App {
     pub exercise_manager: ExerciseManager,
     pub user_manager: UserManager,
     pub image_manager: ImageManager,
+    pub money: u32,
 }
 
 impl Default for App {
@@ -34,6 +35,7 @@ impl Default for App {
             exercise_manager,
             user_manager: UserManager::default(),
             image_manager: ImageManager::default(),
+            money: 200,
         }
     }
 }
