@@ -1,6 +1,6 @@
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::color::{
-    CONTAINER_COLOR, DARKER_CONTAINER_COLOR, HIGHLIGHTED_CONTAINER_COLOR,
+    CONTAINER_COLOR, HIGHLIGHTED_CONTAINER_COLOR, LIGHTER_CONTAINER_COLOR,
 };
 use crate::client::gui::bb_theme::custom_button::create_button_style;
 use crate::client::gui::bb_theme::text_format::format_button_text;
@@ -53,7 +53,7 @@ pub fn new_workout_widget_button<'a>() -> Button<'a, Message, Theme, Renderer> {
             status,
             BORDER,
             HIGHLIGHTED_CONTAINER_COLOR,
-            DARKER_CONTAINER_COLOR,
+            LIGHTER_CONTAINER_COLOR,
             CONTAINER_COLOR,
         )
     })
@@ -79,7 +79,7 @@ pub fn new_preset_widget_button<'a>() -> Button<'a, Message, Theme, Renderer> {
             status,
             BORDER,
             HIGHLIGHTED_CONTAINER_COLOR,
-            DARKER_CONTAINER_COLOR,
+            LIGHTER_CONTAINER_COLOR,
             CONTAINER_COLOR,
         )
     })

@@ -7,7 +7,7 @@ pub const DEFAULT_CONTAINER_RADIUS: f32 = 15.0;
 pub enum ContainerStyle {
     Highlighted,
     Default,
-    Dark,
+    Light,
     Background,
 }
 impl ContainerStyle {
@@ -15,7 +15,7 @@ impl ContainerStyle {
         match self {
             ContainerStyle::Highlighted => bb_theme::color::HIGHLIGHTED_CONTAINER_COLOR,
             ContainerStyle::Default => bb_theme::color::CONTAINER_COLOR,
-            ContainerStyle::Dark => bb_theme::color::DARKER_CONTAINER_COLOR,
+            ContainerStyle::Light => bb_theme::color::LIGHTER_CONTAINER_COLOR,
             ContainerStyle::Background => bb_theme::color::BACKGROUND_COLOR,
         }
     }

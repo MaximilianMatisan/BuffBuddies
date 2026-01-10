@@ -80,7 +80,7 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
     .menu_style(|_theme: &Theme| menu::Style {
         background: Background::Color(color::CONTAINER_COLOR),
         border: Border {
-            color: color::DARKER_CONTAINER_COLOR,
+            color: color::LIGHTER_CONTAINER_COLOR,
             width: 0.0,
             radius: DEFAULT_CONTAINER_RADIUS.into(),
         },
