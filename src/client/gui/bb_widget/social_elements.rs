@@ -119,7 +119,6 @@ pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &ForeignUser) -> Bu
 }
 
 pub fn profile_tab_button(app: &App) -> Button<Message> {
-
     let user: Element<Message> = Row::new()
         .push(
             iced::widget::image(Handle::from_path(
