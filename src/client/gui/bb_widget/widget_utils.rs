@@ -9,7 +9,7 @@ pub fn background_quad(layout: Layout<'_>) -> Quad {
     Quad {
         bounds: layout.bounds(),
         border: Border {
-            color: color::DARKER_CONTAINER_COLOR,
+            color: color::LIGHTER_CONTAINER_COLOR,
             width: 1.0,
             radius: 10.0.into(),
         },

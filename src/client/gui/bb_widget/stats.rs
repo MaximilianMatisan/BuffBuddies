@@ -52,7 +52,7 @@ pub fn exercise_stat_column(app: &App) -> Column<Message> {
             .push(format_button_text(text(data.clone())));
 
         let container_style = if i % 2 == 0 {
-            ContainerStyle::Dark
+            ContainerStyle::Light
         } else {
             ContainerStyle::Highlighted
         };
@@ -95,7 +95,7 @@ pub fn profile_stat_container<'a>(
 ) -> Container<'a, Message> {
     let image = image(image_handle).height(PROFILE_STAT_CONTAINER_HEIGHT / 2.0);
 
-    let value_text_element = format_button_text(text(value));
+    let value_text_element = format_button_text(text(value)).size(20);
     let description_one_text_element = format_button_text(text(description_line_one));
     let description_two_text_element = format_button_text(text(description_line_two));
 
