@@ -308,7 +308,7 @@ where
                 renderer.fill_text(
                     Text {
                         content: date_iterator.format("%b").to_string(),
-                        bounds: layout.bounds().size(), 
+                        bounds: layout.bounds().size(),
                         size: TIME_TEXT_HEIGHT.into(),
                         line_height: Default::default(),
                         font: renderer.default_font(),

@@ -10,7 +10,7 @@ pub enum Gender {
 #[derive(Debug, Clone)]
 pub enum UserType {
     Own,
-    Other(String)
+    Other(String),
 }
 //TODO THE NAME COULD BE MORE CONCRETE
 pub struct UserInformation {
@@ -38,7 +38,7 @@ impl UserInformation {
             weekly_workout_goal: 4,
             weekly_workout_streak: 0,
             coin_balance: 0,
-            profile_stat_manager: ProfileStatManager::new(&exercise_data),
+            profile_stat_manager: ProfileStatManager::new(exercise_data),
         }
     }
 }

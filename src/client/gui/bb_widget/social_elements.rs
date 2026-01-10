@@ -2,13 +2,13 @@ use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::user_mod::user::{ForeignUser, UserType};
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
-use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button, TAB_BUTTON_WIDTH};
+use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{format_button_text, format_description_text};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::size::{MEDIUM_PROFILE_PICTURE_DIMENSION, SMALL_PROFILE_PICTURE_DIMENSION};
 use crate::client::gui::user_interface::Message;
 use iced::Element;
-use iced::widget::{Button, Column, Row, Space, image, text};
+use iced::widget::{Button, Column, Row, Space, column, image, text};
 use iced_core::Length;
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
@@ -19,11 +19,12 @@ const USER_BUTTON_WIDTH: f32 = 700.0;
 const MAX_DISPLAYED_NAME_CHARS: usize = 8;
 
 pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
-    let profile_picture: Element<Message> =
-        image(Handle::from_path(user.user_information.profile_picture_handle.clone()))
-            .width(MEDIUM_PROFILE_PICTURE_DIMENSION)
-            .height(MEDIUM_PROFILE_PICTURE_DIMENSION)
-            .into();
+    let profile_picture: Element<Message> = image(Handle::from_path(
+        user.user_information.profile_picture_handle.clone(),
+    ))
+    .width(MEDIUM_PROFILE_PICTURE_DIMENSION)
+    .height(MEDIUM_PROFILE_PICTURE_DIMENSION)
+    .into();
 
     let cropped_username: String = user
         .user_information
@@ -32,8 +33,10 @@ pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
         .take(MAX_DISPLAYED_NAME_CHARS)
         .collect();
     let name = format_button_text(text(cropped_username)).size(24);
-    let streak =
-        format_description_text(text(format!("{}-week-streak", user.user_information.weekly_workout_streak)));
+    let streak = format_description_text(text(format!(
+        "{}-week-streak",
+        user.user_information.weekly_workout_streak
+    )));
 
     let mascot_handle = app
         .image_manager
@@ -60,20 +63,25 @@ pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
     )
     .width(FRIEND_BUTTON_WIDTH)
     .height(FRIEND_BUTTON_HEIGHT)
-    .on_press(Message::ViewProfile(UserType::Other(user.user_information.username.clone())));
+    .on_press(Message::ViewProfile(UserType::Other(
+        user.user_information.username.clone(),
+    )));
 
     button
 }
 pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &ForeignUser) -> Button<'a, Message> {
-    let profile_picture: Element<Message> =
-        image(Handle::from_path(user.user_information.profile_picture_handle.clone()))
-            .width(SMALL_PROFILE_PICTURE_DIMENSION)
-            .height(SMALL_PROFILE_PICTURE_DIMENSION)
-            .into();
+    let profile_picture: Element<Message> = image(Handle::from_path(
+        user.user_information.profile_picture_handle.clone(),
+    ))
+    .width(SMALL_PROFILE_PICTURE_DIMENSION)
+    .height(SMALL_PROFILE_PICTURE_DIMENSION)
+    .into();
 
     let name = format_button_text(text(user.user_information.username.clone()));
-    let streak =
-        format_description_text(text(format!("{}-week-streak", user.user_information.weekly_workout_streak)));
+    let streak = format_description_text(text(format!(
+        "{}-week-streak",
+        user.user_information.weekly_workout_streak
+    )));
 
     let text_column = Column::new().push(name).push(streak);
 
@@ -83,7 +91,9 @@ pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &ForeignUser) -> Bu
         ButtonStyle::Active,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
     )
-    .on_press(Message::AddUserAsFriend(user.user_information.username.clone()));
+    .on_press(Message::AddUserAsFriend(
+        user.user_information.username.clone(),
+    ));
 
     let contents = Row::new()
         .push(profile_picture)
@@ -101,22 +111,51 @@ pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &ForeignUser) -> Bu
     )
     .width(USER_BUTTON_WIDTH)
     .height(Length::Shrink)
-    .on_press(Message::ViewProfile(UserType::Other(user.user_information.username.clone())));
+    .on_press(Message::ViewProfile(UserType::Other(
+        user.user_information.username.clone(),
+    )));
 
     user_profile_button
 }
 
 pub fn profile_tab_button(app: &App) -> Button<Message> {
-    //TODO create proper button
-    let content = Row::new();
+
+    let user: Element<Message> = Row::new()
+        .push(
+            iced::widget::image(Handle::from_path(
+                app.user_manager
+                    .user_information
+                    .profile_picture_handle
+                    .clone(),
+            ))
+            .width(100)
+            .height(100),
+        )
+        .push(Space::with_width(Length::FillPortion(2)))
+        .push(column![
+            format_button_text(iced::widget::text(
+                app.user_manager.user_information.username.clone()
+            ))
+            .size(25),
+            format_button_text(
+                iced::widget::text(format!(
+                    "{} week streak",
+                    app.user_manager.user_information.weekly_workout_streak
+                ))
+                .size(12)
+            )
+        ])
+        .push(Space::with_width(Length::FillPortion(7)))
+        .align_y(Vertical::Center)
+        .into();
 
     create_element_button(
         app.mascot_manager.selected_mascot,
-        content.into(),
+        user,
         ButtonStyle::InactiveTransparent,
-        Some(DEFAULT_CONTAINER_RADIUS.into())
+        Some(DEFAULT_CONTAINER_RADIUS.into()),
     )
-        .width(TAB_BUTTON_WIDTH)
-        .height(120)
-        .on_press(Message::ViewProfile(UserType::Own))
+    .width(Length::Fill)
+    .height(120)
+    .on_press(Message::ViewProfile(UserType::Own))
 }

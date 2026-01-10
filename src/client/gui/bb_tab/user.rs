@@ -1,5 +1,6 @@
+use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
-use crate::client::backend::user_mod::user::{UserInformation};
+use crate::client::backend::user_mod::user::UserInformation;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_style_container};
@@ -15,9 +16,13 @@ use iced::widget::{Column, Container, Row, Space, column, container, image, row,
 use iced_core::Length;
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
-use crate::client::backend::mascot_mod::mascot::Mascot;
 
-pub fn view_profile<'a>(app: &'a App, user: &UserInformation, owned_mascots: &Vec<Mascot>, favorite_mascot: &Mascot) -> Element<'a, Message> {
+pub fn view_profile<'a>(
+    app: &'a App,
+    user: &UserInformation,
+    owned_mascots: &[Mascot],
+    favorite_mascot: &Mascot,
+) -> Element<'a, Message> {
     let profile_picture = container(
         image(user.profile_picture_handle.clone())
             .width(Length::Shrink)

@@ -1,9 +1,9 @@
-use crate::client::backend::exercise_mod::exercise::{generate_example_exercise, Exercise};
+use crate::client::backend::exercise_mod::exercise::{Exercise, generate_example_exercise};
 use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
-use crate::client::backend::user_mod::user::{Gender, ForeignUser, UserInformation, UserType};
+use crate::client::backend::user_mod::user::{ForeignUser, Gender, UserInformation, UserType};
 
 pub struct UserManager {
     /// Contains general information about the currently logged in user.
@@ -126,9 +126,11 @@ impl UserManager {
 
 impl UserManager {
     pub fn get_user_by_username(&self, username: &str) -> Option<&ForeignUser> {
-        self.loaded_users
-            .iter()
-            .find(|user| user.user_information.username.eq_ignore_ascii_case(username))
+        self.loaded_users.iter().find(|user| {
+            user.user_information
+                .username
+                .eq_ignore_ascii_case(username)
+        })
     }
     pub fn get_friends(&self) -> Vec<&ForeignUser> {
         self.loaded_users
@@ -143,10 +145,11 @@ impl UserManager {
             .collect()
     }
     pub fn add_user_as_friend(&mut self, username: &str) {
-        let user_opt = self
-            .loaded_users
-            .iter_mut()
-            .find(|user| user.user_information.username.eq_ignore_ascii_case(username));
+        let user_opt = self.loaded_users.iter_mut().find(|user| {
+            user.user_information
+                .username
+                .eq_ignore_ascii_case(username)
+        });
 
         if let Some(user) = user_opt {
             user.friends_with_active_user = true;
