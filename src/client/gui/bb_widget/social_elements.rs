@@ -1,8 +1,8 @@
 use crate::client::backend::mascot_mod::mascot::Mascot;
-use crate::client::backend::user_mod::user::User;
+use crate::client::backend::user_mod::user::{ForeignUser, UserType};
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
-use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
+use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button, TAB_BUTTON_WIDTH};
 use crate::client::gui::bb_theme::text_format::{format_button_text, format_description_text};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::size::{MEDIUM_PROFILE_PICTURE_DIMENSION, SMALL_PROFILE_PICTURE_DIMENSION};
@@ -18,21 +18,22 @@ const FRIEND_BUTTON_HEIGHT: f32 = 300.0;
 const USER_BUTTON_WIDTH: f32 = 700.0;
 const MAX_DISPLAYED_NAME_CHARS: usize = 8;
 
-pub fn friend_button<'a>(app: &App, user: &User) -> Button<'a, Message> {
+pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
     let profile_picture: Element<Message> =
-        image(Handle::from_path(user.profile_picture_handle.clone()))
+        image(Handle::from_path(user.user_information.profile_picture_handle.clone()))
             .width(MEDIUM_PROFILE_PICTURE_DIMENSION)
             .height(MEDIUM_PROFILE_PICTURE_DIMENSION)
             .into();
 
     let cropped_username: String = user
+        .user_information
         .username
         .chars()
         .take(MAX_DISPLAYED_NAME_CHARS)
         .collect();
     let name = format_button_text(text(cropped_username)).size(24);
     let streak =
-        format_description_text(text(format!("{}-week-streak", user.weekly_workout_streak)));
+        format_description_text(text(format!("{}-week-streak", user.user_information.weekly_workout_streak)));
 
     let mascot_handle = app
         .image_manager
@@ -59,20 +60,20 @@ pub fn friend_button<'a>(app: &App, user: &User) -> Button<'a, Message> {
     )
     .width(FRIEND_BUTTON_WIDTH)
     .height(FRIEND_BUTTON_HEIGHT)
-    .on_press(Message::ViewProfile(user.username.clone()));
+    .on_press(Message::ViewProfile(UserType::Other(user.user_information.username.clone())));
 
     button
 }
-pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &User) -> Button<'a, Message> {
+pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &ForeignUser) -> Button<'a, Message> {
     let profile_picture: Element<Message> =
-        image(Handle::from_path(user.profile_picture_handle.clone()))
+        image(Handle::from_path(user.user_information.profile_picture_handle.clone()))
             .width(SMALL_PROFILE_PICTURE_DIMENSION)
             .height(SMALL_PROFILE_PICTURE_DIMENSION)
             .into();
 
-    let name = format_button_text(text(user.username.clone()));
+    let name = format_button_text(text(user.user_information.username.clone()));
     let streak =
-        format_description_text(text(format!("{}-week-streak", user.weekly_workout_streak)));
+        format_description_text(text(format!("{}-week-streak", user.user_information.weekly_workout_streak)));
 
     let text_column = Column::new().push(name).push(streak);
 
@@ -82,7 +83,7 @@ pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &User) -> Button<'a
         ButtonStyle::Active,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
     )
-    .on_press(Message::AddUserAsFriend(user.username.clone()));
+    .on_press(Message::AddUserAsFriend(user.user_information.username.clone()));
 
     let contents = Row::new()
         .push(profile_picture)
@@ -100,7 +101,22 @@ pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &User) -> Button<'a
     )
     .width(USER_BUTTON_WIDTH)
     .height(Length::Shrink)
-    .on_press(Message::ViewProfile(user.username.clone()));
+    .on_press(Message::ViewProfile(UserType::Other(user.user_information.username.clone())));
 
     user_profile_button
+}
+
+pub fn profile_tab_button(app: &App) -> Button<Message> {
+    //TODO create proper button
+    let content = Row::new();
+
+    create_element_button(
+        app.mascot_manager.selected_mascot,
+        content.into(),
+        ButtonStyle::InactiveTransparent,
+        Some(DEFAULT_CONTAINER_RADIUS.into())
+    )
+        .width(TAB_BUTTON_WIDTH)
+        .height(120)
+        .on_press(Message::ViewProfile(UserType::Own))
 }
