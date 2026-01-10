@@ -1,16 +1,19 @@
-use crate::client::backend::exercise_mod::exercise::generate_example_exercise;
+use crate::client::backend::exercise_mod::exercise::{generate_example_exercise, Exercise};
 use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
-use crate::client::backend::user_mod::user::{Gender, User};
+use crate::client::backend::user_mod::user::{Gender, ForeignUser, UserInformation, UserType};
 
 pub struct UserManager {
-    pub loaded_users: Vec<User>,
-    pub most_recently_viewed_user: String,
+    /// Contains general information about the currently logged in user.
+    /// <h3>TODO</h3> could be more concretely named / split up
+    pub user_information: UserInformation,
+    pub loaded_users: Vec<ForeignUser>,
+    pub most_recently_viewed_user: UserType,
 }
-impl Default for UserManager {
-    fn default() -> Self {
+impl UserManager {
+    pub fn new(exercise_data: &Vec<Exercise>) -> Self {
         //TODO delete examples
         let user1_exercises = vec![generate_example_exercise(
             "Benchpress".to_string(),
@@ -18,18 +21,20 @@ impl Default for UserManager {
             80.0,
         )];
         let user1_mascots = vec![Mascot::Rare(RareMascot::Chameleon)];
-        let test_user1 = User {
-            username: "Felix".to_string(),
-            description: "The boss".to_string(),
-            profile_picture_handle: "assets/images/profile_picture.png".to_string(),
-            weight: 75.0,
-            height: 187,
-            gender: Gender::Male,
-            profile_stat_manager: ProfileStatManager::new(&user1_exercises),
+        let test_user1 = ForeignUser {
+            user_information: UserInformation {
+                username: "Felix".to_string(),
+                description: "The boss".to_string(),
+                profile_picture_handle: "assets/images/profile_picture.png".to_string(),
+                weight: 75.0,
+                height: 187,
+                gender: Gender::Male,
+                weekly_workout_goal: 5,
+                weekly_workout_streak: 12,
+                coin_balance: 12381,
+                profile_stat_manager: ProfileStatManager::new(&user1_exercises),
+            },
             exercise_stats: user1_exercises,
-            weekly_workout_goal: 5,
-            weekly_workout_streak: 12,
-            coin_balance: 12381,
             favorite_mascot: Mascot::Rare(RareMascot::Chameleon),
             selected_mascot: Mascot::Rare(RareMascot::Chameleon),
             owned_mascots: user1_mascots,
@@ -44,18 +49,20 @@ impl Default for UserManager {
             Mascot::Rare(RareMascot::Whale),
             Mascot::Rare(RareMascot::Duck),
         ];
-        let test_user2 = User {
-            username: "Stefano".to_string(),
-            description: "The beast".to_string(),
-            profile_picture_handle: "assets/images/profile_picture.png".to_string(),
-            weight: 70.0,
-            height: 178,
-            gender: Gender::Male,
-            profile_stat_manager: ProfileStatManager::new(&user2_exercises),
+        let test_user2 = ForeignUser {
+            user_information: UserInformation {
+                username: "Stefano".to_string(),
+                description: "The beast".to_string(),
+                profile_picture_handle: "assets/images/profile_picture.png".to_string(),
+                weight: 70.0,
+                height: 178,
+                gender: Gender::Male,
+                weekly_workout_goal: 7,
+                weekly_workout_streak: 19,
+                coin_balance: 2972,
+                profile_stat_manager: ProfileStatManager::new(&user2_exercises),
+            },
             exercise_stats: user2_exercises,
-            weekly_workout_goal: 7,
-            weekly_workout_streak: 19,
-            coin_balance: 2972,
             favorite_mascot: Mascot::Rare(RareMascot::Whale),
             selected_mascot: Mascot::Rare(RareMascot::Duck),
             owned_mascots: user2_mascots,
@@ -66,18 +73,20 @@ impl Default for UserManager {
             Mascot::Epic(EpicMascot::Capybara),
             Mascot::Rare(RareMascot::Dog),
         ];
-        let test_user3 = User {
-            username: "Robert".to_string(),
-            description: "The titan".to_string(),
-            profile_picture_handle: "assets/images/profile_picture.png".to_string(),
-            weight: 68.0,
-            height: 188,
-            gender: Gender::Male,
-            profile_stat_manager: ProfileStatManager::new(&user3_exercises),
+        let test_user3 = ForeignUser {
+            user_information: UserInformation {
+                username: "Robert".to_string(),
+                description: "The titan".to_string(),
+                profile_picture_handle: "assets/images/profile_picture.png".to_string(),
+                weight: 68.0,
+                height: 188,
+                gender: Gender::Male,
+                weekly_workout_goal: 5,
+                weekly_workout_streak: 9,
+                coin_balance: 90,
+                profile_stat_manager: ProfileStatManager::new(&user3_exercises),
+            },
             exercise_stats: user3_exercises,
-            weekly_workout_goal: 5,
-            weekly_workout_streak: 9,
-            coin_balance: 90,
             favorite_mascot: Mascot::Epic(EpicMascot::Capybara),
             selected_mascot: Mascot::Rare(RareMascot::Dog),
             owned_mascots: user3_mascots,
@@ -88,44 +97,46 @@ impl Default for UserManager {
             Mascot::Epic(EpicMascot::Shark),
             Mascot::Rare(RareMascot::Duck),
         ];
-        let test_user4 = User {
-            username: "JohnP".to_string(),
-            description: "always on my phone".to_string(),
-            profile_picture_handle: "assets/images/profile_picture.png".to_string(),
-            weight: 100.0,
-            height: 150,
-            gender: Gender::Male,
-            profile_stat_manager: ProfileStatManager::new(&user4_exercises),
+        let test_user4 = ForeignUser {
+            user_information: UserInformation {
+                username: "JohnP".to_string(),
+                description: "always on my phone".to_string(),
+                profile_picture_handle: "assets/images/profile_picture.png".to_string(),
+                weight: 100.0,
+                height: 150,
+                gender: Gender::Male,
+                weekly_workout_goal: 1,
+                weekly_workout_streak: 2,
+                coin_balance: 200,
+                profile_stat_manager: ProfileStatManager::new(&user4_exercises),
+            },
             exercise_stats: user4_exercises,
-            weekly_workout_goal: 1,
-            weekly_workout_streak: 2,
-            coin_balance: 200,
             favorite_mascot: Mascot::Epic(EpicMascot::Shark),
             selected_mascot: Mascot::Rare(RareMascot::Duck),
             owned_mascots: user4_mascots,
             friends_with_active_user: false,
         };
-        let default_user = User::default();
         UserManager {
-            loaded_users: vec![test_user1, test_user2, test_user3, test_user4, default_user],
-            most_recently_viewed_user: "".to_string(),
+            user_information: UserInformation::new(exercise_data),
+            loaded_users: vec![test_user1, test_user2, test_user3, test_user4],
+            most_recently_viewed_user: UserType::Own,
         }
     }
 }
 
 impl UserManager {
-    pub fn get_user_by_username(&self, username: &str) -> Option<&User> {
+    pub fn get_user_by_username(&self, username: &str) -> Option<&ForeignUser> {
         self.loaded_users
             .iter()
-            .find(|user| user.username.eq_ignore_ascii_case(username))
+            .find(|user| user.user_information.username.eq_ignore_ascii_case(username))
     }
-    pub fn get_friends(&self) -> Vec<&User> {
+    pub fn get_friends(&self) -> Vec<&ForeignUser> {
         self.loaded_users
             .iter()
             .filter(|user| user.friends_with_active_user)
             .collect()
     }
-    pub fn get_non_friend_users(&self) -> Vec<&User> {
+    pub fn get_non_friend_users(&self) -> Vec<&ForeignUser> {
         self.loaded_users
             .iter()
             .filter(|user| !user.friends_with_active_user)
@@ -135,7 +146,7 @@ impl UserManager {
         let user_opt = self
             .loaded_users
             .iter_mut()
-            .find(|user| user.username.eq_ignore_ascii_case(username));
+            .find(|user| user.user_information.username.eq_ignore_ascii_case(username));
 
         if let Some(user) = user_opt {
             user.friends_with_active_user = true;

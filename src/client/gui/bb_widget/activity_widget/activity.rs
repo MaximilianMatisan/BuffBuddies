@@ -75,7 +75,8 @@ impl ActivityWidget {
     pub fn update_active_mascot(&mut self, mascot: Mascot) {
         self.active_mascot = mascot
     }
-    pub fn update_activity_data(&mut self, activity_data: HashMap<NaiveDate, AmountOfSets>) {
+    pub fn update_data(&mut self, mascot: Mascot, activity_data: HashMap<NaiveDate, AmountOfSets>) {
+        self.active_mascot = mascot;
         self.activity = activity_data;
     }
     fn compute_widget_width(&self) -> f32 {
@@ -307,7 +308,7 @@ where
                 renderer.fill_text(
                     Text {
                         content: date_iterator.format("%b").to_string(),
-                        bounds: layout.bounds().size(), //TODO ändern zu tatsächlichen bounds
+                        bounds: layout.bounds().size(), 
                         size: TIME_TEXT_HEIGHT.into(),
                         line_height: Default::default(),
                         font: renderer.default_font(),

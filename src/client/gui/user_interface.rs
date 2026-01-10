@@ -13,6 +13,8 @@ use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_text_button,
 };
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
+use crate::client::gui::bb_widget::social_elements::profile_tab_button;
+use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::{bb_theme, size};
 use crate::client::server_communication::server_communicator::{
     RequestValidUserError, SaveMascotError, save_mascot, valid_login,
@@ -22,6 +24,7 @@ use iced::{Element, Task};
 use iced_core::Length::Fill;
 use iced_core::window::{Position, Settings};
 use iced_core::{Size, Theme};
+use crate::client::backend::user_mod::user::UserType;
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -42,7 +45,7 @@ pub enum Message {
     PasswordEntered(String),
     SelectExercise(String),
     AddUserAsFriend(String),
-    ViewProfile(String),
+    ViewProfile(UserType),
 }
 
 impl UserInterface {
@@ -50,14 +53,7 @@ impl UserInterface {
         match message {
             Message::Select(Tab::Exit) => iced::exit(),
             Message::Select(tab) => {
-                self.app
-                    .activity_widget
-                    .update_active_mascot(self.app.mascot_manager.selected_mascot);
-                self.app
-                    .activity_widget
-                    .update_activity_data(calculate_activity_data(
-                        &self.app.exercise_manager.exercises,
-                    ));
+                self.app.activity_widget.update_data(self.app.mascot_manager.selected_mascot,calculate_activity_data(&self.app.exercise_manager.exercises));
 
                 self.app.screen = tab;
                 Task::none()
@@ -191,17 +187,20 @@ impl UserInterface {
                 self.app.user_manager.add_user_as_friend(&username);
                 Task::none()
             }
-            Message::ViewProfile(username) => {
-                let opt_user = self.app.user_manager.get_user_by_username(&username);
-                if let Some(user) = opt_user {
-                    self.app
-                        .activity_widget
-                        .update_active_mascot(user.favorite_mascot);
-                    self.app
-                        .activity_widget
-                        .update_activity_data(calculate_activity_data(&user.exercise_stats));
+            Message::ViewProfile(user_type) => {
+                match user_type {
+                    UserType::Own => {
+                        self.app.activity_widget.update_data(self.app.mascot_manager.selected_mascot,calculate_activity_data(&self.app.exercise_manager.exercises));
+                        self.app.user_manager.most_recently_viewed_user = UserType::Own
+                    },
+                    UserType::Other(username) => {
+                        let opt_user = self.app.user_manager.get_user_by_username(&username);
+                        if let Some(user) = opt_user {
+                            self.app.activity_widget.update_data(user.favorite_mascot, calculate_activity_data(&user.exercise_stats));
+                        }
+                        self.app.user_manager.most_recently_viewed_user = UserType::Other(username);
+                    }
                 }
-                self.app.user_manager.most_recently_viewed_user = username;
                 self.app.screen = Tab::ViewProfile;
                 Task::none()
             }
@@ -211,9 +210,10 @@ impl UserInterface {
         if !self.app.login_state.logged_in {
             view_login(&self.app)
         } else {
-            let mut tab_bar: Column<Message> = Column::new();
+            let mut tab_buttons: Column<Message> = Column::new();
+            tab_buttons = tab_buttons.push(profile_tab_button(&self.app));
             for tab in Tab::get_tab_button_categories() {
-                tab_bar = tab_bar.push(
+                tab_buttons = tab_buttons.push(
                     create_text_button(
                         self.app.mascot_manager.selected_mascot,
                         tab.to_string(),
@@ -229,8 +229,8 @@ impl UserInterface {
                     .on_press(Message::Select(tab)),
                 );
             }
-            let tab_container = container(tab_bar.spacing(10).padding(30))
-                .padding(10)
+            let tab_container = container(tab_buttons.spacing(INDENT).padding(LARGE_INDENT))
+                .padding(INDENT)
                 .style(bb_theme::container::create_style_container(
                     ContainerStyle::Default,
                     None,
@@ -246,10 +246,18 @@ impl UserInterface {
                 Tab::Settings => Some(self.settings_screen()),
                 Tab::Exit => None,
                 Tab::ViewProfile => {
-                    let username = &self.app.user_manager.most_recently_viewed_user;
-                    let viewed_profile = self.app.user_manager.get_user_by_username(username);
+                    let user_type = &self.app.user_manager.most_recently_viewed_user;
 
-                    viewed_profile.map(|profile| view_profile(&self.app, profile))
+                    match user_type {
+                        UserType::Own =>  Some(view_profile(&self.app, &self.app.user_manager.user_information, &self.app.mascot_manager.owned_mascots, &self.app.mascot_manager.favorite_mascot)),
+                        UserType::Other(username) => {
+                            let viewed_profile = self.app.user_manager.get_user_by_username(username);
+
+                            viewed_profile.map(|profile| view_profile(&self.app, &profile.user_information, &profile.owned_mascots, &profile.favorite_mascot))
+                        }
+
+
+                    }
                 }
             };
 

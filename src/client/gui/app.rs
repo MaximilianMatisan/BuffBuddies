@@ -31,9 +31,9 @@ impl Default for App {
                 default_mascot,
                 calculate_activity_data(&exercise_manager.exercises),
             ),
+            user_manager: UserManager::new(&exercise_manager.exercises),
             mascot_manager: MascotManager::default(),
             exercise_manager,
-            user_manager: UserManager::default(),
             image_manager: ImageManager::default(),
             money: 200,
         }
