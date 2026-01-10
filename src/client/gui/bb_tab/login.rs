@@ -1,7 +1,7 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::color::{ERROR_COLOR, TEXT_COLOR};
-use crate::client::gui::bb_theme::container::ContainerStyle;
+use crate::client::gui::bb_theme::container::{ContainerStyle, create_style_container};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_button_text};
 use crate::client::gui::user_interface::Message;
@@ -77,11 +77,7 @@ pub fn view_login(app: &App) -> Element<'_, Message> {
         .padding(20)
         .max_width(400)
         .max_height(420)
-        .style(crate::bb_theme::container::create_style_container(
-            ContainerStyle::Dark,
-            None,
-            None,
-        ))
+        .style(create_style_container(ContainerStyle::Default, None, None))
         .width(Fill)
         .height(Fill);
 

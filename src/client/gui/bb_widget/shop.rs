@@ -140,7 +140,7 @@ where
             Quad {
                 bounds: layout.bounds(),
                 border: Border {
-                    color: bb_theme::color::DARKER_CONTAINER_COLOR,
+                    color: bb_theme::color::LIGHTER_CONTAINER_COLOR,
                     width: 1.0,
                     radius: 10.0.into(),
                 },

@@ -13,20 +13,23 @@ use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use chrono::{Datelike, Duration, Local, NaiveDate};
 use iced::widget::{Column, container, row};
-use iced::{Element, Task};
+use iced::{Element, Point, Task};
 use iced_core::alignment::Vertical;
 use iced_core::border::Radius;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::{Quad, Style};
 use iced_core::widget::Tree;
-use iced_core::{Border, Color, Layout, Length, Rectangle, Size, Theme, Widget, renderer};
+use iced_core::{
+    Border, Color, Layout, Length, Rectangle, Size, Text, Theme, Widget, renderer, text,
+};
 use std::collections::HashMap;
 use strum::IntoEnumIterator;
 
 const DEFAULT_NAVIGATION_BUTTON_WIDTH: f32 = 130.0;
 const DEFAULT_NAVIGATION_BUTTON_HEIGHT: f32 = 40.0;
 pub const ACTIVITY_SQUARE_BORDER_RADIUS: f32 = 3.0;
+const TIME_TEXT_HEIGHT: f32 = 12.0;
 
 #[derive(Debug, Clone)]
 pub struct SquareDimensions {
@@ -43,7 +46,6 @@ pub struct ActivityWidget {
     current_scope: DateScope,
     current_offset: Offset,
     activity: HashMap<NaiveDate, AmountOfSets>,
-    //TODO zukünftig ergänzbar um map auf Vec<Exercise> / handle user-input
     active_mascot: Mascot,
     today: NaiveDate,
 }
@@ -90,8 +92,13 @@ impl ActivityWidget {
     fn compute_widget_height(&self) -> f32 {
         let dimensions = self.current_scope.dimensions();
 
-        dimensions.max_squares_per_col as f32 * dimensions.side_length
-            + (dimensions.max_squares_per_col - 1) as f32 * dimensions.spacing
+        let mut base = dimensions.max_squares_per_col as f32 * dimensions.side_length
+            + (dimensions.max_squares_per_col - 1) as f32 * dimensions.spacing;
+
+        if self.current_scope == DateScope::Year {
+            base += TIME_TEXT_HEIGHT;
+        }
+        base
     }
 
     pub fn start_date(&self) -> NaiveDate {
@@ -216,7 +223,7 @@ impl ActivityWidget {
 
 impl<Message, Renderer> Widget<Message, Theme, Renderer> for ActivityWidget
 where
-    Renderer: renderer::Renderer,
+    Renderer: renderer::Renderer + text::Renderer,
     Message: Clone,
 {
     fn size(&self) -> Size<Length> {
@@ -241,7 +248,7 @@ where
         _style: &Style,
         layout: Layout<'_>,
         _cursor: Cursor,
-        _viewport: &Rectangle,
+        viewport: &Rectangle,
     ) {
         let activity_square_dim: SquareDimensions = self.current_scope.dimensions();
 
@@ -277,14 +284,15 @@ where
 
             let column = (index / activity_square_dim.max_squares_per_col) as f32;
             let row = (index % activity_square_dim.max_squares_per_col) as f32;
+            let cur_x = layout.bounds().x
+                + column * (activity_square_dim.side_length + activity_square_dim.spacing);
+            let cur_y = layout.bounds().y
+                + row * (activity_square_dim.side_length + activity_square_dim.spacing);
             renderer.fill_quad(
                 Quad {
                     bounds: Rectangle {
-                        x: layout.bounds().x
-                            + column
-                                * (activity_square_dim.side_length + activity_square_dim.spacing),
-                        y: layout.bounds().y
-                            + row * (activity_square_dim.side_length + activity_square_dim.spacing),
+                        x: cur_x,
+                        y: cur_y,
                         width: activity_square_dim.side_length,
                         height: activity_square_dim.side_length,
                     },
@@ -293,6 +301,29 @@ where
                 },
                 activity_color,
             );
+            if self.current_scope == DateScope::Year
+                && (date_iterator - Duration::days(1)).month() != date_iterator.month()
+            {
+                renderer.fill_text(
+                    Text {
+                        content: date_iterator.format("%b").to_string(),
+                        bounds: layout.bounds().size(), //TODO ändern zu tatsächlichen bounds
+                        size: TIME_TEXT_HEIGHT.into(),
+                        line_height: Default::default(),
+                        font: renderer.default_font(),
+                        horizontal_alignment: iced::alignment::Horizontal::Left,
+                        vertical_alignment: Vertical::Top,
+                        shaping: Default::default(),
+                        wrapping: Default::default(),
+                    },
+                    Point {
+                        x: cur_x,
+                        y: layout.bounds().y + self.height - TIME_TEXT_HEIGHT,
+                    },
+                    color::DESCRIPTION_TEXT_COLOR,
+                    *viewport,
+                );
+            }
             date_iterator += Duration::days(1);
         }
     }
@@ -301,7 +332,7 @@ where
 impl<'a, Message: 'a, Renderer> From<ActivityWidget> for Element<'a, Message, Theme, Renderer>
 where
     Message: Clone,
-    Renderer: 'a + renderer::Renderer,
+    Renderer: 'a + renderer::Renderer + text::Renderer,
 {
     fn from(activity_widget: ActivityWidget) -> Self {
         Self::new(activity_widget)

@@ -115,7 +115,7 @@ pub fn create_element_button(
     match button_style {
         ButtonStyle::InactiveTab => create_preset_button(
             element,
-            color::DARKER_CONTAINER_COLOR,
+            color::LIGHTER_CONTAINER_COLOR,
             color::CONTAINER_COLOR,
             color::HIGHLIGHTED_CONTAINER_COLOR,
             custom_border_radius,

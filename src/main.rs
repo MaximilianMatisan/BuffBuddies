@@ -1,4 +1,3 @@
-use crate::client::gui::bb_theme;
 use crate::client::gui::user_interface::client_main;
 use crate::server::server_main::server_main;
 use std::io;
