@@ -3,6 +3,7 @@ use crate::client::backend::login_state::LoginStateError;
 use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
+use crate::client::backend::user_mod::user::UserType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
 use crate::client::gui::bb_tab::tab::Tab;
@@ -10,21 +11,23 @@ use crate::client::gui::bb_tab::user::view_profile;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_theme::custom_button::{
-    ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_text_button,
+    ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_element_button, create_text_button,
 };
+use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
-use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
+use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::{bb_theme, size};
 use crate::client::server_communication::server_communicator::{
     RequestValidUserError, SaveMascotError, save_mascot, valid_login,
 };
-use iced::widget::{Column, container, row};
+use iced::widget::{Column, Space, container, row};
 use iced::{Element, Task};
 use iced_core::Length::Fill;
+use iced_core::alignment::{Horizontal, Vertical};
+use iced_core::image::Handle;
 use iced_core::window::{Position, Settings};
-use iced_core::{Size, Theme};
-use crate::client::backend::user_mod::user::UserType;
+use iced_core::{Length, Size, Theme};
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -53,15 +56,20 @@ impl UserInterface {
         match message {
             Message::Select(Tab::Exit) => iced::exit(),
             Message::Select(tab) => {
-                self.app.activity_widget.update_data(self.app.mascot_manager.selected_mascot,calculate_activity_data(&self.app.exercise_manager.exercises));
+                self.app.activity_widget.update_data(
+                    self.app.mascot_manager.selected_mascot,
+                    calculate_activity_data(&self.app.exercise_manager.exercises),
+                );
 
                 self.app.screen = tab;
                 Task::none()
             }
             Message::BuyMascot(rarity) => {
                 if match rarity {
-                    MascotRarity::Rare => self.app.money >= 50,
-                    MascotRarity::Epic => self.app.money >= 100,
+                    MascotRarity::Rare => self.app.user_manager.user_information.coin_balance >= 50,
+                    MascotRarity::Epic => {
+                        self.app.user_manager.user_information.coin_balance >= 100
+                    }
                 } {
                     self.app.loading = true;
                     let mut mascot_maybe: Option<Mascot> = None;
@@ -96,8 +104,8 @@ impl UserInterface {
             Message::SaveMascot(Ok(mascot)) => {
                 self.app.loading = false;
                 match mascot {
-                    Mascot::Epic(_) => self.app.money -= 100,
-                    Mascot::Rare(_) => self.app.money -= 50,
+                    Mascot::Epic(_) => self.app.user_manager.user_information.coin_balance -= 100,
+                    Mascot::Rare(_) => self.app.user_manager.user_information.coin_balance -= 50,
                 }
                 self.app.mascot_manager.add_mascot(mascot);
                 Task::none()
@@ -190,13 +198,19 @@ impl UserInterface {
             Message::ViewProfile(user_type) => {
                 match user_type {
                     UserType::Own => {
-                        self.app.activity_widget.update_data(self.app.mascot_manager.selected_mascot,calculate_activity_data(&self.app.exercise_manager.exercises));
+                        self.app.activity_widget.update_data(
+                            self.app.mascot_manager.selected_mascot,
+                            calculate_activity_data(&self.app.exercise_manager.exercises),
+                        );
                         self.app.user_manager.most_recently_viewed_user = UserType::Own
-                    },
+                    }
                     UserType::Other(username) => {
                         let opt_user = self.app.user_manager.get_user_by_username(&username);
                         if let Some(user) = opt_user {
-                            self.app.activity_widget.update_data(user.favorite_mascot, calculate_activity_data(&user.exercise_stats));
+                            self.app.activity_widget.update_data(
+                                user.favorite_mascot,
+                                calculate_activity_data(&user.exercise_stats),
+                            );
                         }
                         self.app.user_manager.most_recently_viewed_user = UserType::Other(username);
                     }
@@ -210,7 +224,8 @@ impl UserInterface {
         if !self.app.login_state.logged_in {
             view_login(&self.app)
         } else {
-            let mut tab_buttons: Column<Message> = Column::new();
+            let mut tab_buttons: Column<Message> =
+                Column::new().padding(INDENT).align_x(Horizontal::Center);
             tab_buttons = tab_buttons.push(profile_tab_button(&self.app));
             for tab in Tab::get_tab_button_categories() {
                 tab_buttons = tab_buttons.push(
@@ -229,14 +244,45 @@ impl UserInterface {
                     .on_press(Message::Select(tab)),
                 );
             }
-            let tab_container = container(tab_buttons.spacing(INDENT).padding(LARGE_INDENT))
-                .padding(INDENT)
+
+            let money_button: iced::widget::Button<
+                '_,
+                crate::client::gui::user_interface::Message,
+                Theme,
+                iced::Renderer,
+            > = create_element_button(
+                self.app.mascot_manager.selected_mascot,
+                row![
+                    iced::widget::image(Handle::from_path("assets/images/coin.png"))
+                        .width(25)
+                        .height(25),
+                    Space::with_width(Length::Fill),
+                    format_button_text(iced::widget::text(
+                        self.app.user_manager.user_information.coin_balance
+                    ))
+                ]
+                .align_y(Vertical::Center)
+                .into(),
+                ButtonStyle::Active,
+                None,
+            )
+            .width(182)
+            .height(35);
+
+            let lower_tab_container_buttons =
+                row![Space::with_width(Length::Fill), money_button].width(310);
+
+            tab_buttons = tab_buttons.push(Space::with_height(Length::Fill));
+            tab_buttons = tab_buttons.push(lower_tab_container_buttons);
+
+            let tab_container = container(tab_buttons.spacing(INDENT))
                 .style(bb_theme::container::create_style_container(
                     ContainerStyle::Default,
                     None,
                     None,
                 ))
-                .height(Fill);
+                .height(Fill)
+                .width(310);
 
             let tab_window: Option<Element<Message>> = match self.app.screen {
                 Tab::Home => Some(self.homescreen()),
@@ -249,14 +295,25 @@ impl UserInterface {
                     let user_type = &self.app.user_manager.most_recently_viewed_user;
 
                     match user_type {
-                        UserType::Own =>  Some(view_profile(&self.app, &self.app.user_manager.user_information, &self.app.mascot_manager.owned_mascots, &self.app.mascot_manager.favorite_mascot)),
+                        UserType::Own => Some(view_profile(
+                            &self.app,
+                            &self.app.user_manager.user_information,
+                            &self.app.mascot_manager.owned_mascots,
+                            &self.app.mascot_manager.favorite_mascot,
+                        )),
                         UserType::Other(username) => {
-                            let viewed_profile = self.app.user_manager.get_user_by_username(username);
+                            let viewed_profile =
+                                self.app.user_manager.get_user_by_username(username);
 
-                            viewed_profile.map(|profile| view_profile(&self.app, &profile.user_information, &profile.owned_mascots, &profile.favorite_mascot))
+                            viewed_profile.map(|profile| {
+                                view_profile(
+                                    &self.app,
+                                    &profile.user_information,
+                                    &profile.owned_mascots,
+                                    &profile.favorite_mascot,
+                                )
+                            })
                         }
-
-
                     }
                 }
             };
