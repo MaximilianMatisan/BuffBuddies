@@ -4,17 +4,14 @@ use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
-use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_theme::{color, text_format};
 use crate::client::gui::bb_widget::stats::exercise_stat_column;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use iced::Element;
-use iced::overlay::menu;
 use iced::widget::combo_box;
-use iced::widget::text_input::Status;
-use iced::widget::{Column, Row, Space, container, text_input};
+use iced::widget::{Column, Row, Space, container};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::border::Radius;
 use iced_core::layout::{Limits, Node};
@@ -22,7 +19,7 @@ use iced_core::mouse::Cursor;
 use iced_core::renderer::{Quad, Style};
 use iced_core::widget::Tree;
 use iced_core::{
-    Background, Border, Layout, Length, Padding, Point, Rectangle, Size, Text, Theme, Widget,
+    Border, Layout, Length, Padding, Point, Rectangle, Size, Text, Theme, Widget,
     renderer, text,
 };
 
@@ -77,31 +74,8 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         Some(&app.exercise_manager.selected_exercise_name),
         Message::SelectExercise,
     )
-    .menu_style(|_theme: &Theme| menu::Style {
-        background: Background::Color(color::CONTAINER_COLOR),
-        border: Border {
-            color: color::LIGHTER_CONTAINER_COLOR,
-            width: 0.0,
-            radius: DEFAULT_CONTAINER_RADIUS.into(),
-        },
-        text_color: color::TEXT_COLOR,
-        selected_text_color: color::TEXT_COLOR,
-        selected_background: Background::Color(
-            app.mascot_manager.selected_mascot.get_primary_color(),
-        ),
-    })
-    .input_style(|_theme: &Theme, _status: Status| text_input::Style {
-        background: Background::Color(color::BACKGROUND_COLOR),
-        border: Border {
-            color: Default::default(),
-            width: 0.0,
-            radius: DEFAULT_BUTTON_RADIUS.into(),
-        },
-        icon: Default::default(),
-        placeholder: color::DESCRIPTION_TEXT_COLOR,
-        value: color::TEXT_COLOR,
-        selection: app.mascot_manager.selected_mascot.get_secondary_color(),
-    })
+    .menu_style(bb_theme::combo_box::create_menu_style(&app.mascot_manager.selected_mascot))
+    .input_style( bb_theme::combo_box::create_text_input_style(&app.mascot_manager.selected_mascot))
     .font(text_format::FIRA_SANS_EXTRABOLD)
     .width(Length::Fixed(250.0))
     .padding([8, 16])
@@ -358,8 +332,7 @@ where
                             width: LINE_THICKNESS,
                             height: y_axis_length,
                         },
-                        border: Default::default(),
-                        shadow: Default::default(),
+                        ..Default::default()
                     },
                     self.active_mascot.get_secondary_color(),
                 );
@@ -372,8 +345,7 @@ where
                             width: x_axis_length,
                             height: LINE_THICKNESS,
                         },
-                        border: Default::default(),
-                        shadow: Default::default(),
+                        ..Default::default()
                     },
                     self.active_mascot.get_secondary_color(),
                 );
