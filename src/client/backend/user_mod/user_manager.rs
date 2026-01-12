@@ -4,14 +4,20 @@ use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::client::backend::user_mod::user::{ForeignUser, Gender, UserInformation, UserType};
+use iced::widget::combo_box;
+use strum::IntoEnumIterator;
 
 pub struct UserManager {
     /// Contains general information about the currently logged in user.
     /// <h3>TODO</h3> could be more concretely named / split up
     pub user_info: UserInformation,
     pub pending_user_info_changes: Option<UserInformation>,
+
     pub loaded_users: Vec<ForeignUser>,
     pub most_recently_viewed_user: UserType,
+
+    //Utils
+    pub gender_combo_box_state: combo_box::State<Gender>,
 }
 impl UserManager {
     pub fn new(exercise_data: &Vec<Exercise>) -> Self {
@@ -122,6 +128,7 @@ impl UserManager {
             pending_user_info_changes: None,
             loaded_users: vec![test_user1, test_user2, test_user3, test_user4],
             most_recently_viewed_user: UserType::Own,
+            gender_combo_box_state: combo_box::State::new(Gender::iter().collect()),
         }
     }
 }
