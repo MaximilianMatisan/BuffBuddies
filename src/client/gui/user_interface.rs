@@ -305,7 +305,7 @@ impl UserInterface {
         for tab in Tab::get_tab_button_categories() {
             tab_buttons = tab_buttons.push(
                 create_text_button(
-                    self.app.mascot_manager.selected_mascot,
+                    &self.app.mascot_manager.selected_mascot,
                     tab.to_string(),
                     if self.app.screen == tab {
                         ButtonStyle::ActiveTab
@@ -325,7 +325,7 @@ impl UserInterface {
             Theme,
             iced::Renderer,
         > = create_element_button(
-            self.app.mascot_manager.selected_mascot,
+            &self.app.mascot_manager.selected_mascot,
             row![
                     iced::widget::image(Handle::from_path("assets/images/coin.png"))
                         .width(25)

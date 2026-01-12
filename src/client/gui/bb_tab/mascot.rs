@@ -137,7 +137,7 @@ impl UserInterface {
             shop::ShopWidget::new(
                 "Random rare pet-egg".to_string(),
                 50,
-                self.app.mascot_manager.selected_mascot,
+                &self.app.mascot_manager.selected_mascot,
                 Message::BuyMascot(MascotRarity::Rare),
             )
             .set_image(Image::new(Handle::from_path(
@@ -146,7 +146,7 @@ impl UserInterface {
             shop::ShopWidget::new(
                 "Random epic pet-egg".to_string(),
                 100,
-                self.app.mascot_manager.selected_mascot,
+                &self.app.mascot_manager.selected_mascot,
                 Message::BuyMascot(MascotRarity::Epic),
             )
             .set_image(Image::new(Handle::from_path(
@@ -184,7 +184,7 @@ fn mascot_select_box(mascot_manager: &MascotManager, mascot: Mascot) -> Element<
     let name = mascot.get_name().to_string();
 
     create_text_button(
-        mascot_manager.selected_mascot,
+        &mascot_manager.selected_mascot,
         name,
         ButtonStyle::InactiveTab,
         None,
@@ -199,7 +199,7 @@ fn mascot_current_box(mascot_manager: &MascotManager, mascot: Mascot) -> Element
     let name = mascot.get_name().to_string();
 
     create_text_button(
-        mascot_manager.selected_mascot,
+        &mascot_manager.selected_mascot,
         name,
         ButtonStyle::Active,
         None,
@@ -212,7 +212,7 @@ fn mascot_current_box(mascot_manager: &MascotManager, mascot: Mascot) -> Element
 
 fn mascot_locked_box(mascot_manager: &MascotManager) -> Element<'static, Message> {
     create_element_button(
-        mascot_manager.selected_mascot,
+        &mascot_manager.selected_mascot,
         format_description_text(text("???"))
             .size(15)
             .center()

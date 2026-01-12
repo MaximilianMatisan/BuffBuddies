@@ -56,7 +56,7 @@ pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
         .align_x(Horizontal::Center);
 
     let button = create_element_button(
-        user.favorite_mascot,
+        &user.favorite_mascot,
         contents.into(),
         ButtonStyle::InactiveTab,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
@@ -86,7 +86,7 @@ pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &ForeignUser) -> Bu
     let text_column = Column::new().push(name).push(streak);
 
     let add_friend_button = create_element_button(
-        *active_mascot,
+        active_mascot,
         image("assets/images/user_plus.png").into(),
         ButtonStyle::Active,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
@@ -104,7 +104,7 @@ pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &ForeignUser) -> Bu
         .align_y(Vertical::Center);
 
     let user_profile_button = create_element_button(
-        *active_mascot,
+        active_mascot,
         contents.into(),
         ButtonStyle::InactiveTab,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
@@ -146,7 +146,7 @@ pub fn profile_tab_button(app: &App) -> Button<Message> {
         .into();
 
     create_element_button(
-        app.mascot_manager.selected_mascot,
+        &app.mascot_manager.selected_mascot,
         user,
         ButtonStyle::InactiveTransparent,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
