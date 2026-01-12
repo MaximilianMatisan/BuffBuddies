@@ -122,10 +122,7 @@ pub fn profile_tab_button(app: &App) -> Button<Message> {
     let user: Element<Message> = Row::new()
         .push(
             iced::widget::image(Handle::from_path(
-                app.user_manager
-                    .user_information
-                    .profile_picture_handle
-                    .clone(),
+                app.user_manager.user_info.profile_picture_handle.clone(),
             ))
             .width(100)
             .height(100),
@@ -133,13 +130,13 @@ pub fn profile_tab_button(app: &App) -> Button<Message> {
         .push(Space::with_width(Length::FillPortion(2)))
         .push(column![
             format_button_text(iced::widget::text(
-                app.user_manager.user_information.username.clone()
+                app.user_manager.user_info.username.clone()
             ))
             .size(25),
             format_button_text(
                 iced::widget::text(format!(
                     "{} week streak",
-                    app.user_manager.user_information.weekly_workout_streak
+                    app.user_manager.user_info.weekly_workout_streak
                 ))
                 .size(12)
             )
@@ -155,6 +152,6 @@ pub fn profile_tab_button(app: &App) -> Button<Message> {
         Some(DEFAULT_CONTAINER_RADIUS.into()),
     )
     .width(Length::Fill)
-    .height(120)
+    .height(Length::Shrink)
     .on_press(Message::ViewProfile(UserType::Own))
 }

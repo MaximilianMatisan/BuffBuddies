@@ -4,6 +4,7 @@ use crate::client::backend::exercise_mod::weight::Kg;
 
 /// The data included in this struct is only there for performance enhancement purposes
 /// so that these values don't have to be calculated with every frame inside the view function
+#[derive(Clone)]
 pub struct ProfileStatManager {
     pub total_sets: u64,
     pub total_reps: Reps,

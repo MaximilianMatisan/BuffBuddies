@@ -19,8 +19,7 @@ use iced_core::mouse::Cursor;
 use iced_core::renderer::{Quad, Style};
 use iced_core::widget::Tree;
 use iced_core::{
-    Border, Layout, Length, Padding, Point, Rectangle, Size, Text, Theme, Widget,
-    renderer, text,
+    Border, Layout, Length, Padding, Point, Rectangle, Size, Text, Theme, Widget, renderer, text,
 };
 
 const PROGRESS_WIDGET_WIDTH: f32 = 700.0;
@@ -74,8 +73,12 @@ pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         Some(&app.exercise_manager.selected_exercise_name),
         Message::SelectExercise,
     )
-    .menu_style(bb_theme::combo_box::create_menu_style(&app.mascot_manager.selected_mascot))
-    .input_style( bb_theme::combo_box::create_text_input_style(&app.mascot_manager.selected_mascot))
+    .menu_style(bb_theme::combo_box::create_menu_style(
+        &app.mascot_manager.selected_mascot,
+    ))
+    .input_style(bb_theme::combo_box::create_text_input_style(
+        &app.mascot_manager.selected_mascot,
+    ))
     .font(text_format::FIRA_SANS_EXTRABOLD)
     .width(Length::Fixed(250.0))
     .padding([8, 16])

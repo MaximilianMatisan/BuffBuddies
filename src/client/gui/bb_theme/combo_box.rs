@@ -1,12 +1,12 @@
-use iced::overlay::menu;
-use iced::widget::text_input;
-use iced::widget::text_input::{Status};
-use iced_core::{Background, Border, Theme};
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
+use iced::overlay::menu;
+use iced::widget::text_input;
+use iced::widget::text_input::Status;
+use iced_core::{Background, Border, Theme};
 
 pub fn create_text_input_style(mascot: &Mascot) -> impl Fn(&Theme, Status) -> text_input::Style {
     |_theme: &Theme, _status: Status| text_input::Style {

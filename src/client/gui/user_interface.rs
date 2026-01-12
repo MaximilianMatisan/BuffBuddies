@@ -52,6 +52,7 @@ pub enum Message {
     AddUserAsFriend(String),
     ViewProfile(UserType),
     ResetPopUp,
+    EditProfile,
 }
 
 impl UserInterface {
@@ -69,10 +70,8 @@ impl UserInterface {
             }
             Message::BuyMascot(rarity) => {
                 if match rarity {
-                    MascotRarity::Rare => self.app.user_manager.user_information.coin_balance >= 50,
-                    MascotRarity::Epic => {
-                        self.app.user_manager.user_information.coin_balance >= 100
-                    }
+                    MascotRarity::Rare => self.app.user_manager.user_info.coin_balance >= 50,
+                    MascotRarity::Epic => self.app.user_manager.user_info.coin_balance >= 100,
                 } {
                     self.app.loading = true;
                     let mut mascot_maybe: Option<Mascot> = None;
@@ -117,8 +116,8 @@ impl UserInterface {
             Message::SaveMascot(Ok(mascot)) => {
                 self.app.loading = false;
                 match mascot {
-                    Mascot::Epic(_) => self.app.user_manager.user_information.coin_balance -= 100,
-                    Mascot::Rare(_) => self.app.user_manager.user_information.coin_balance -= 50,
+                    Mascot::Epic(_) => self.app.user_manager.user_info.coin_balance -= 100,
+                    Mascot::Rare(_) => self.app.user_manager.user_info.coin_balance -= 50,
                 }
                 self.app.mascot_manager.add_mascot(mascot);
                 Task::none()
@@ -239,6 +238,10 @@ impl UserInterface {
                 self.app.pop_up_manager.reset();
                 Task::none()
             }
+            Message::EditProfile => {
+                self.app.user_manager.pending_user_info_changes = Some(self.app.user_manager.user_info.clone());
+                Task::none()
+            }
         }
     }
     fn view(&self) -> Element<'_, Message> {
@@ -263,35 +266,34 @@ impl UserInterface {
                     },
                     None,
                 )
-                .width(TAB_BUTTON_WIDTH)
-                .height(TAB_BUTTON_HEIGHT)
-                .on_press(Message::Select(tab)),
+                    .width(TAB_BUTTON_WIDTH)
+                    .height(TAB_BUTTON_HEIGHT)
+                    .on_press(Message::Select(tab)),
             );
         }
-
         let money_button: iced::widget::Button<
             '_,
-            crate::client::gui::user_interface::Message,
+            Message,
             Theme,
             iced::Renderer,
         > = create_element_button(
             self.app.mascot_manager.selected_mascot,
             row![
-                iced::widget::image(Handle::from_path("assets/images/coin.png"))
-                    .width(25)
-                    .height(25),
-                Space::with_width(Length::Fill),
-                format_button_text(iced::widget::text(
-                    self.app.user_manager.user_information.coin_balance
-                ))
-            ]
-            .align_y(Vertical::Center)
-            .into(),
+                    iced::widget::image(Handle::from_path("assets/images/coin.png"))
+                        .width(25)
+                        .height(25),
+                    Space::with_width(Length::Fill),
+                    format_button_text(iced::widget::text(
+                        self.app.user_manager.user_info.coin_balance
+                    ))
+                ]
+                .align_y(Vertical::Center)
+                .into(),
             ButtonStyle::Active,
             None,
         )
-        .width(182)
-        .height(35);
+            .width(182)
+            .height(35);
 
         let lower_tab_container_buttons =
             row![Space::with_width(Length::Fill), money_button].width(310);
@@ -321,7 +323,7 @@ impl UserInterface {
                 match user_type {
                     UserType::Own => Some(view_profile(
                         &self.app,
-                        &self.app.user_manager.user_information,
+                        &self.app.user_manager.user_info,
                         &self.app.mascot_manager.owned_mascots,
                         &self.app.mascot_manager.favorite_mascot,
                     )),
@@ -363,6 +365,7 @@ impl UserInterface {
             .into()
     }
 }
+
 
 pub fn client_main() -> iced::Result {
     let default_size = Size::new(size::FRAME_WIDTH, size::FRAME_HEIGHT);
