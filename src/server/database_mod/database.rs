@@ -1,0 +1,125 @@
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions};
+use std::str::FromStr;
+
+pub async fn init_pool() -> Result<SqlitePool, sqlx::Error> {
+    let options =
+        SqliteConnectOptions::from_str("sqlite:database/database.db")?.create_if_missing(true);
+
+    let pool = SqlitePoolOptions::new().connect_with(options).await?;
+    Ok(pool)
+}
+
+pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    user_password TEXT NOT NULL,
+    weekly_workout_goal INTEGER NOT NULL,
+    weight INTEGER NOT NULL,
+    height INTEGER NOT NULL,
+    profile_picture TEXT
+    );",
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS mascot(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT NULL
+    );",
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS user_mascot(
+    user_id INTEGER NOT NULL,
+    mascot_id INTEGER NOT NULL,
+    level INTEGER NOT NULL,
+    PRIMARY KEY (user_id, mascot_id),
+
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (mascot_id) REFERENCES mascot (id)
+    );",
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS exercise (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    exercise_name TEXT NOT NULL,
+    description TEXT
+    );",
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        " CREATE TABLE IF NOT EXISTS exerciseLog (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    user_id INTEGER NOT NULL,
+    username TEXT NOT NULL,
+    reps INTEGER NOT NULL,
+    exercise_id INTEGER NOT NULL,
+    weight_in_kg FLOAT NOT NULL,
+    FOREIGN KEY (username) REFERENCES users(username),
+    FOREIGN KEY (exercise_id) REFERENCES exercise(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    );",
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS preset (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    PresetName TEXT NOT NULL,
+    number_of_exercises INTEGER NOT NULL,
+    estimated_duration INTEGER NOT NULL,
+    description TEXT
+    );",
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS user_preset(
+    user_id INTEGER NOT NULL,
+    preset_id INTEGER NOT NULL,
+    times_preset_trained INTEGER NOT NULL,
+    PRIMARY KEY (user_id, preset_id),
+
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (preset_id) REFERENCES preset (id)
+    )",
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+#[allow(dead_code)]
+pub async fn add_user(
+    pool: &SqlitePool,
+    username: &str,
+    password: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("INSERT INTO users (username, user_password, weekly_workout_goal, weight, height, profile_picture)
+         VALUES (?, ?, ?, ?, ?, ?)")
+        .bind(username)
+        .bind(password)
+        .bind(0)
+        .bind(0)
+        .bind(0)
+        .bind("")
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}

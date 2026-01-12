@@ -1,10 +1,15 @@
+use crate::server::database_mod::database;
+use crate::server::database_mod::database::init_db;
 use crate::server::login::check_login;
 use crate::server::mascot_manager::save_mascot;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use axum::{Json, Router};
+use database::init_pool;
 use serde_json::json;
+use sqlx::SqlitePool;
+use tokio;
 
 #[derive(Debug)]
 #[allow(dead_code)] //TODO: construct variants `NotFound`, `InvalidInput`, and `InternalError`
@@ -33,8 +38,10 @@ impl IntoResponse for ApiError {
 }
 
 pub async fn server_main() {
+    let pool = create_database().await.expect("DB init failed");
+
     println!("Launching Server!");
-    let app = create_app();
+    let app = create_app(pool);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
         .expect("failed to bind tcp listener");
@@ -45,11 +52,12 @@ pub async fn server_main() {
         .expect("failed to start server")
 }
 
-fn create_app() -> Router {
+fn create_app(pool: SqlitePool) -> Router {
     Router::new()
         .route("/server", get(health_check))
         .route("/user/login", get(check_login))
         .route("/mascot/save", post(save_mascot))
+        .with_state(pool)
 }
 
 async fn health_check() -> impl IntoResponse {
@@ -57,4 +65,10 @@ async fn health_check() -> impl IntoResponse {
         "status": "ok",
         "message": "Server is running",
     }))
+}
+
+pub async fn create_database() -> Result<SqlitePool, sqlx::Error> {
+    let pool = init_pool().await?;
+    init_db(&pool).await?;
+    Ok(pool)
 }
