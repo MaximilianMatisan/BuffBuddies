@@ -2,7 +2,9 @@ use crate::client::backend::exercise_mod::exercise::Exercise;
 use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
+use strum_macros::Display;
 
+#[derive(Clone,Display)]
 pub enum Gender {
     Male,
     Female,
@@ -13,6 +15,7 @@ pub enum UserType {
     Other(String),
 }
 //TODO THE NAME COULD BE MORE CONCRETE
+#[derive(Clone)]
 pub struct UserInformation {
     pub username: String,
     pub description: String,
@@ -30,7 +33,7 @@ impl UserInformation {
     pub fn new(exercise_data: &Vec<Exercise>) -> Self {
         UserInformation {
             username: "Default_user".to_string(),
-            description: "Hi, I am a user and I like to work out!".to_string(),
+            description: "".to_string(),
             profile_picture_handle: "assets/images/profile_picture.png".to_string(),
             weight: 60.0,
             height: 170,
