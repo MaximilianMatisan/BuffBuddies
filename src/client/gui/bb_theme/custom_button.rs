@@ -95,7 +95,7 @@ pub fn create_button_style(
     }
 }
 pub fn create_text_button<'a>(
-    mascot: Mascot,
+    mascot: &Mascot,
     text: String,
     button_style: ButtonStyle,
     custom_border_radius: Option<Radius>,
@@ -106,12 +106,12 @@ pub fn create_text_button<'a>(
     create_element_button(mascot, text_elem, button_style, custom_border_radius)
 }
 
-pub fn create_element_button(
-    mascot: Mascot,
-    element: Element<Message, Theme, Renderer>,
+pub fn create_element_button<'a>(
+    mascot: &Mascot,
+    element: Element<'a, Message, Theme, Renderer>,
     button_style: ButtonStyle,
     custom_border_radius: Option<Radius>,
-) -> Button<Message, Theme, Renderer> {
+) -> Button<'a,Message, Theme, Renderer> {
     match button_style {
         ButtonStyle::InactiveTab => create_preset_button(
             element,

@@ -61,7 +61,7 @@ where
         self.image = image;
         self
     }
-    pub(crate) fn new(name: String, price: usize, mascot: Mascot, message: Message) -> Self {
+    pub(crate) fn new(name: String, price: usize, mascot: &Mascot, message: Message) -> Self {
         let buy_button: iced::widget::Button<'_, Message, Theme, iced::Renderer> =
             create_element_button(
                 mascot,
@@ -92,7 +92,7 @@ where
             height: DEFAULT_PRESET_HEIGHT,
             buy_element: buy_button.on_press(message).into(),
             font: text_format::FIRA_SANS_EXTRABOLD.into(),
-            active_mascot: mascot,
+            active_mascot: *mascot,
         }
     }
 }

@@ -162,7 +162,7 @@ impl ActivityWidget {
 
             time_scope_buttons = time_scope_buttons.push(
                 custom_button::create_text_button(
-                    self.active_mascot,
+                    &self.active_mascot,
                     time.to_string(),
                     style_of_button,
                     Some(time_scope_border_radius),
@@ -189,7 +189,7 @@ impl ActivityWidget {
 
             time_offset_buttons = time_offset_buttons.push(
                 custom_button::create_text_button(
-                    self.active_mascot,
+                    &self.active_mascot,
                     self.offset_title(offset),
                     style_of_button,
                     None,

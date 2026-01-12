@@ -23,7 +23,7 @@ pub fn view_pop_up(user_interface: &UserInterface) -> Element<'_, Message> {
         .into();
 
     let ok_button: Element<Message> = create_text_button(
-        user_interface.app.mascot_manager.selected_mascot,
+        &user_interface.app.mascot_manager.selected_mascot,
         "Okay".to_string(),
         ButtonStyle::Active,
         None,

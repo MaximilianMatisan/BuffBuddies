@@ -2,7 +2,7 @@ use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_style_container};
-use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
+use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button, create_text_button};
 use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, cm_to_string, format_button_text, format_description_text, kg_to_string,
 };
@@ -10,7 +10,6 @@ use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::size;
 use crate::client::gui::user_interface::{Message, UserInterface};
 use iced::Element;
-use iced::futures::Stream;
 use iced::widget::{
     Column, ComboBox, Container, Row, Space, TextInput, combo_box, container, image, text,
     text_input,
@@ -18,7 +17,7 @@ use iced::widget::{
 use iced_core::image::Handle;
 use iced_core::{Length, Padding, Theme};
 
-const SETTINGS_TEXT_INPUT_WIDTH: f32 = 200.0;
+const SETTINGS_TEXT_INPUT_WIDTH: f32 = 250.0;
 impl UserInterface {
     pub fn settings_screen(&self) -> Element<Message> {
         settings_user_info_preview(&self.app)
@@ -69,7 +68,7 @@ fn preview_user_info_column(app: &App) -> Column<Message> {
         .color(TEXT_COLOR)
         .size(40);
     let edit_profile_button = create_element_button(
-        app.mascot_manager.selected_mascot,
+        &app.mascot_manager.selected_mascot,
         image(Handle::from_path("assets/images/edit.png")).into(),
         ButtonStyle::InactiveTransparent,
         None,
@@ -92,14 +91,14 @@ fn preview_user_info_column(app: &App) -> Column<Message> {
         .style(create_style_container(
             ContainerStyle::Background,
             None,
-            Some(HIGHLIGHTED_CONTAINER_COLOR),
+            None,
         ))
-        .width(Length::FillPortion(10))
+        .width(SETTINGS_TEXT_INPUT_WIDTH)
         .padding([3.0, INDENT]); //[top/bottom, left/right]
 
     let description = Row::new()
         .push(format_description_text(text("Description:")))
-        .push(Space::with_width(Length::FillPortion(3)))
+        .push(Space::with_width(Length::Fill))
         .push(description_text_container);
 
     let user_data_column = Column::new()
@@ -193,6 +192,7 @@ fn edit_user_info_column(app: &App) -> Column<Message> {
             user_data_column.push(create_user_data_entry(description_text, text_input.into()));
     }
 
+    let save_changes_button = create_text_button(&app.mascot_manager.selected_mascot, "Save changes".to_string(), ButtonStyle::Active, None);
     let username_and_data_column = Column::new()
         .push(username)
         .push(Space::with_height(INDENT))
