@@ -144,7 +144,7 @@ impl UserInterface {
                         }
                         Task::none()
                     }
-                    //TODO check with server database
+                    //TODO check with server database_mod
                     Ok(login_request) => {
                         self.app.loading = true;
                         Task::perform(
