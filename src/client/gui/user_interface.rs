@@ -1,10 +1,11 @@
 use crate::client::backend::exercise_mod::calculate_activity_data;
+use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::login_state::LoginStateError;
 use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
 use crate::client::backend::pop_up_manager::PopUpType;
-use crate::client::backend::user_mod::user::UserType;
+use crate::client::backend::user_mod::user::{Gender, MAX_DESCRIPTION_CHARACTERS, UserType};
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
 use crate::client::gui::bb_tab::tab::Tab;
@@ -52,7 +53,14 @@ pub enum Message {
     AddUserAsFriend(String),
     ViewProfile(UserType),
     ResetPopUp,
-    EditProfile,
+
+    //TODO über eigene edit updates
+    StartEditingProfile,
+    SelectGender(Gender),
+    EditHeight(String),
+    EditWeight(String),
+    EditWeeklyWorkoutGoal(String),
+    EditDescription(String),
 }
 
 impl UserInterface {
@@ -238,8 +246,48 @@ impl UserInterface {
                 self.app.pop_up_manager.reset();
                 Task::none()
             }
-            Message::EditProfile => {
-                self.app.user_manager.pending_user_info_changes = Some(self.app.user_manager.user_info.clone());
+            Message::StartEditingProfile => {
+                self.app.user_manager.pending_user_info_changes =
+                    Some(self.app.user_manager.user_info.clone());
+                Task::none()
+            }
+            Message::SelectGender(new_gender) => {
+                //TODO variable für pending_user_info
+                if let Some(pending) = &mut self.app.user_manager.pending_user_info_changes {
+                    pending.gender = new_gender;
+                }
+                Task::none()
+            }
+            Message::EditHeight(new_height) => {
+                let numbers: u32 = new_height.parse().unwrap_or_else(|_| 0);
+                if let Some(pending) = &mut self.app.user_manager.pending_user_info_changes {
+                    pending.height = numbers;
+                }
+                Task::none()
+            }
+            Message::EditWeight(new_weight) => {
+                //TODO floats don't work rn idk what's the issue
+                let number: Kg = new_weight.parse().unwrap_or_else(|_| 0.0);
+                if let Some(pending) = &mut self.app.user_manager.pending_user_info_changes {
+                    pending.weight = number;
+                }
+                Task::none()
+            }
+            Message::EditWeeklyWorkoutGoal(new_goal) => {
+                let number: u32 = new_goal.parse().unwrap_or_else(|_| 0);
+                if let Some(pending) = &mut self.app.user_manager.pending_user_info_changes {
+                    pending.weekly_workout_goal = number;
+                }
+                Task::none()
+            }
+            Message::EditDescription(new_description) => {
+                let cut_description = new_description
+                    .chars()
+                    .take(MAX_DESCRIPTION_CHARACTERS)
+                    .collect();
+                if let Some(pending) = &mut self.app.user_manager.pending_user_info_changes {
+                    pending.description = cut_description;
+                }
                 Task::none()
             }
         }

@@ -1,5 +1,6 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
+use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_style_container};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{
@@ -9,10 +10,15 @@ use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::size;
 use crate::client::gui::user_interface::{Message, UserInterface};
 use iced::Element;
-use iced::widget::{Column, Container, Row, Space, container, image, text};
+use iced::futures::Stream;
+use iced::widget::{
+    Column, ComboBox, Container, Row, Space, TextInput, combo_box, container, image, text,
+    text_input,
+};
 use iced_core::image::Handle;
-use iced_core::{Length, Padding};
+use iced_core::{Length, Padding, Theme};
 
+const SETTINGS_TEXT_INPUT_WIDTH: f32 = 200.0;
 impl UserInterface {
     pub fn settings_screen(&self) -> Element<Message> {
         settings_user_info_preview(&self.app)
@@ -25,7 +31,39 @@ fn settings_user_info_preview(app: &App) -> Element<Message> {
         .width(size::LARGE_PROFILE_PICTURE_DIMENSION)
         .height(size::LARGE_PROFILE_PICTURE_DIMENSION);
 
-    //Username should currently not be changeable
+    let username_and_data_column = if app.user_manager.pending_user_info_changes.is_none() {
+        preview_user_info_column(app)
+    } else {
+        edit_user_info_column(app)
+    };
+
+    let contents = Row::new()
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(profile_picture)
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(username_and_data_column)
+        .push(Space::with_width(Length::FillPortion(1)));
+
+    let user_info_container = container(contents)
+        .style(create_style_container(ContainerStyle::Default, None, None))
+        .height(Length::Shrink)
+        .width(Length::FillPortion(10))
+        .padding(Padding {
+            top: LARGE_INDENT,
+            bottom: LARGE_INDENT,
+            ..Default::default()
+        });
+
+    let user_info_element: Element<Message> = Row::new()
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(user_info_container)
+        .push(Space::with_width(Length::FillPortion(1)))
+        .into();
+
+    user_info_element
+}
+fn preview_user_info_column(app: &App) -> Column<Message> {
+    let user_info = &app.user_manager.user_info;
     let username = text(user_info.username.clone())
         .font(FIRA_SANS_EXTRABOLD)
         .color(TEXT_COLOR)
@@ -35,7 +73,8 @@ fn settings_user_info_preview(app: &App) -> Element<Message> {
         image(Handle::from_path("assets/images/edit.png")).into(),
         ButtonStyle::InactiveTransparent,
         None,
-    ).on_press(Message::EditProfile);
+    )
+    .on_press(Message::StartEditingProfile);
 
     let username_and_edit_button = Row::new()
         .push(username)
@@ -92,35 +131,89 @@ fn settings_user_info_preview(app: &App) -> Element<Message> {
         .push(Space::with_height(INDENT))
         .push(user_data_column);
 
-    let contents = Row::new()
-        .push(Space::with_width(Length::FillPortion(1)))
-        .push(profile_picture)
-        .push(Space::with_width(Length::FillPortion(1)))
-        .push(username_and_data_column)
-        .push(Space::with_width(Length::FillPortion(1)));
+    username_and_data_column
+}
+fn edit_user_info_column(app: &App) -> Column<Message> {
+    let pending_info = if let Some(pending) = &app.user_manager.pending_user_info_changes {
+        pending
+    } else {
+        return Column::new();
+    };
+    //Username should currently not be changeable
+    let username = text(pending_info.username.clone())
+        .font(FIRA_SANS_EXTRABOLD)
+        .color(TEXT_COLOR)
+        .size(40);
 
-    let user_info_container = container(contents)
-        .style(create_style_container(ContainerStyle::Default, None, None))
-        .height(Length::Shrink)
-        .width(Length::FillPortion(10))
-        .padding(Padding {
-            top: LARGE_INDENT,
-            bottom: LARGE_INDENT,
-            ..Default::default()
-        });
+    let gender_combo_box = combo_box(
+        &app.user_manager.gender_combo_box_state,
+        "Select gender...",
+        Some(&pending_info.gender),
+        Message::SelectGender,
+    )
+    .font(FIRA_SANS_EXTRABOLD)
+    .width(SETTINGS_TEXT_INPUT_WIDTH)
+    .input_style(create_text_input_style(&app.mascot_manager.selected_mascot))
+    .menu_style(create_menu_style(&app.mascot_manager.selected_mascot));
 
-    let user_info_element: Element<Message> = Row::new()
-        .push(Space::with_width(Length::FillPortion(1)))
-        .push(user_info_container)
-        .push(Space::with_width(Length::FillPortion(1)))
-        .into();
+    let height_text_input = text_input("Enter your height in cm", &pending_info.height.to_string())
+        .on_input(Message::EditHeight);
 
-    user_info_element
+    let weight_text_input = text_input("Enter your weight in kg", &pending_info.weight.to_string())
+        .on_input(Message::EditWeight);
+
+    let weekly_workout_goal_text_input = text_input(
+        "Enter your weekly workout goal",
+        &pending_info.weekly_workout_goal.to_string(),
+    )
+    .on_input(Message::EditWeeklyWorkoutGoal);
+
+    let mascot_combo_box: ComboBox<Message, Theme>; //TODO create and add to user_data_column
+
+    let description_text_input = text_input("Tell something about you!", &pending_info.description)
+        .on_input(Message::EditDescription);
+
+    let text_input_data_fields: [(&str, TextInput<Message>); 4] = [
+        ("Weight:", weight_text_input),
+        ("Height:", height_text_input),
+        ("Weekly workout goal:", weekly_workout_goal_text_input),
+        ("Description:", description_text_input),
+    ];
+
+    let mut user_data_column = Column::new()
+            .spacing(3)
+            .push(create_user_data_entry("Gender:", gender_combo_box.into()));
+
+    for (description_text, mut text_input) in text_input_data_fields {
+        text_input = text_input
+            .style(create_text_input_style(&app.mascot_manager.selected_mascot))
+            .font(FIRA_SANS_EXTRABOLD)
+            .width(SETTINGS_TEXT_INPUT_WIDTH);
+        user_data_column =
+            user_data_column.push(create_user_data_entry(description_text, text_input.into()));
+    }
+
+    let username_and_data_column = Column::new()
+        .push(username)
+        .push(Space::with_height(INDENT))
+        .push(user_data_column)
+        .width(Length::FillPortion(15));
+
+    username_and_data_column
 }
 
 fn create_user_data_preview(description_text: &str, information_text: String) -> Row<Message> {
+    create_user_data_entry(
+        description_text,
+        format_button_text(text(information_text)).into(),
+    )
+}
+fn create_user_data_entry<'a>(
+    description_text: &'a str,
+    data_element: Element<'a, Message>,
+) -> Row<'a, Message> {
     Row::new()
         .push(format_description_text(text(description_text)))
         .push(Space::with_width(Length::Fill))
-        .push(format_button_text(text(information_text)))
+        .push(data_element)
 }
