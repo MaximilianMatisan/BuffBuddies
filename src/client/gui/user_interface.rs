@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use crate::client::backend::exercise_mod::calculate_activity_data;
 use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::login_state::LoginStateError;
@@ -61,6 +62,8 @@ pub enum Message {
     EditWeight(String),
     EditWeeklyWorkoutGoal(String),
     EditDescription(String),
+    SavePendingUserInfoChanges,
+    DiscardPendingUserInfoChanges,
 }
 
 impl UserInterface {
@@ -288,6 +291,17 @@ impl UserInterface {
                 if let Some(pending) = &mut self.app.user_manager.pending_user_info_changes {
                     pending.description = cut_description;
                 }
+                Task::none()
+            }
+            Message::SavePendingUserInfoChanges => {
+               if let Some(pending_changes) = self.app.user_manager.pending_user_info_changes.take() {
+                    self.app.user_manager.user_info = pending_changes;
+                    //TODO SEND TO DATABASE
+                }
+                Task::none()
+            }
+            Message::DiscardPendingUserInfoChanges => {
+                self.app.user_manager.pending_user_info_changes = None;
                 Task::none()
             }
         }

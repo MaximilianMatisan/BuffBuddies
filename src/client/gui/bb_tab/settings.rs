@@ -192,11 +192,23 @@ fn edit_user_info_column(app: &App) -> Column<Message> {
             user_data_column.push(create_user_data_entry(description_text, text_input.into()));
     }
 
-    let save_changes_button = create_text_button(&app.mascot_manager.selected_mascot, "Save changes".to_string(), ButtonStyle::Active, None);
+    let save_changes_button = create_text_button(&app.mascot_manager.selected_mascot, "Save changes".to_string(), ButtonStyle::Active, None)
+        .width(Length::Fill)
+        .on_press(Message::SavePendingUserInfoChanges);
+    let discard_changes_button = create_text_button(&app.mascot_manager.selected_mascot, "Discard changes".to_string(), ButtonStyle::InactiveTab, None)
+        .width(Length::Fill)
+        .on_press(Message::DiscardPendingUserInfoChanges);
+
+    let button_row = Row::new()
+        .push(save_changes_button)
+        .push(discard_changes_button)
+        .spacing(INDENT);
+
     let username_and_data_column = Column::new()
         .push(username)
-        .push(Space::with_height(INDENT))
         .push(user_data_column)
+        .push(button_row)
+        .spacing(INDENT)
         .width(Length::FillPortion(15));
 
     username_and_data_column
