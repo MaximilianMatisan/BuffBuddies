@@ -1,7 +1,7 @@
 mod home;
 pub mod login;
 mod mascot;
-mod settings;
+pub mod settings;
 mod social;
 pub mod tab;
 pub mod user;

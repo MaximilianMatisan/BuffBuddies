@@ -2,7 +2,6 @@ use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color;
-use crate::client::gui::user_interface::Message;
 use iced::gradient::{ColorStop, Linear};
 use iced::widget::button::{Status, Style};
 use iced::widget::{Button, button};
@@ -24,13 +23,16 @@ pub enum ButtonStyle {
     InactiveTransparent,
     InactiveSolid,
 }
-pub fn create_preset_button(
-    element: Element<Message, Theme, Renderer>,
+pub fn create_preset_button<Msg>(
+    element: Element<Msg, Theme, Renderer>,
     active_color: Color,
     disabled_color: Color,
     hovered_color: Color,
     custom_border_radius: Option<Radius>,
-) -> Button<Message, Theme, Renderer> {
+) -> Button<Msg, Theme, Renderer>
+where
+    Msg: Clone
+{
     let radius = if let Some(border_radius) = custom_border_radius {
         border_radius
     } else {
@@ -94,24 +96,30 @@ pub fn create_button_style(
         }
     }
 }
-pub fn create_text_button<'a>(
+pub fn create_text_button<'a, Msg>(
     mascot: &Mascot,
     text: String,
     button_style: ButtonStyle,
     custom_border_radius: Option<Radius>,
-) -> Button<'a, Message, Theme, Renderer> {
-    let text_elem: Element<Message> =
+) -> Button<'a, Msg, Theme, Renderer>
+where
+    Msg: Clone
+{
+    let text_elem: Element<Msg> =
         bb_theme::text_format::format_button_text(text::Text::new(text)).into();
 
     create_element_button(mascot, text_elem, button_style, custom_border_radius)
 }
 
-pub fn create_element_button<'a>(
+pub fn create_element_button<'a, Msg>(
     mascot: &Mascot,
-    element: Element<'a, Message, Theme, Renderer>,
+    element: Element<'a, Msg, Theme, Renderer>,
     button_style: ButtonStyle,
     custom_border_radius: Option<Radius>,
-) -> Button<'a,Message, Theme, Renderer> {
+) -> Button<'a, Msg, Theme, Renderer>
+where
+    Msg: Clone
+{
     match button_style {
         ButtonStyle::InactiveTab => create_preset_button(
             element,
