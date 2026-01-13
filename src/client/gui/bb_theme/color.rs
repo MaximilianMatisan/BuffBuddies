@@ -8,3 +8,4 @@ pub const HIGHLIGHTED_CONTAINER_COLOR: iced::Color = color!(102, 102, 102);
 pub const TEXT_COLOR: iced::Color = color!(255, 255, 255);
 pub const ERROR_COLOR: iced::Color = color!(220, 54, 46);
 pub const DESCRIPTION_TEXT_COLOR: iced::Color = color!(142, 142, 147);
+pub const DARK_SHADOW: iced::Color = color!(0, 0, 0);

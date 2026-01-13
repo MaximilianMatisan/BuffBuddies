@@ -3,6 +3,7 @@ use crate::client::backend::login_state::LoginStateError;
 use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
+use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::backend::user_mod::user::UserType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
@@ -15,13 +16,14 @@ use crate::client::gui::bb_theme::custom_button::{
 };
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
+use crate::client::gui::bb_widget::pop_up::view_pop_up;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::{bb_theme, size};
 use crate::client::server_communication::server_communicator::{
     RequestValidUserError, SaveMascotError, save_mascot, valid_login,
 };
-use iced::widget::{Column, Space, container, row};
+use iced::widget::{Column, Space, Stack, container, row};
 use iced::{Element, Task};
 use iced_core::Length::Fill;
 use iced_core::alignment::{Horizontal, Vertical};
@@ -49,6 +51,7 @@ pub enum Message {
     SelectExercise(String),
     AddUserAsFriend(String),
     ViewProfile(UserType),
+    ResetPopUp,
 }
 
 impl UserInterface {
@@ -77,16 +80,22 @@ impl UserInterface {
                         MascotRarity::Rare => {
                             match RareMascot::random_new_rare(&self.app.mascot_manager) {
                                 Ok(mascot) => mascot_maybe = Some(mascot.into()),
-                                Err(_err) => println!(
+                                Err(_err) => self.app.pop_up_manager.new_pop_up(
+                                    PopUpType::Minor,
+                                    "Failed to buy mascot!".to_string(),
                                     "All mascots of this rarity have already been purchased!"
+                                        .to_string(),
                                 ),
                             }
                         }
                         MascotRarity::Epic => {
                             match EpicMascot::random_new_epic(&self.app.mascot_manager) {
                                 Ok(mascot) => mascot_maybe = Some(mascot.into()),
-                                Err(_err) => println!(
+                                Err(_err) => self.app.pop_up_manager.new_pop_up(
+                                    PopUpType::Minor,
+                                    "Failed to buy mascot!".to_string(),
                                     "All mascots of this rarity have already been purchased!"
+                                        .to_string(),
                                 ),
                             }
                         }
@@ -97,7 +106,11 @@ impl UserInterface {
                         Task::none()
                     }
                 } else {
-                    println!("No money remaining!");
+                    self.app.pop_up_manager.new_pop_up(
+                        PopUpType::Minor,
+                        "Funds lacking!".to_string(),
+                        "You do not have enough money to buy a mascot of this type".to_string(),
+                    );
                     Task::none()
                 }
             }
@@ -112,7 +125,11 @@ impl UserInterface {
             }
             Message::SaveMascot(Err(_err)) => {
                 self.app.loading = false;
-                println!("Server offline or other server error");
+                self.app.pop_up_manager.new_pop_up(
+                    PopUpType::Minor,
+                    "Server error!".to_string(),
+                    "Server is either offline or had an internal error!\nPlease start server or report bug".to_string(),
+                );
                 Task::none()
             }
             Message::SelectMascot(mascot) => {
@@ -218,123 +235,132 @@ impl UserInterface {
                 self.app.screen = Tab::ViewProfile;
                 Task::none()
             }
+            Message::ResetPopUp => {
+                self.app.pop_up_manager.reset();
+                Task::none()
+            }
         }
     }
     fn view(&self) -> Element<'_, Message> {
+        if self.app.pop_up_manager.major_pop_up {
+            return view_pop_up(self);
+        }
         if !self.app.login_state.logged_in {
-            view_login(&self.app)
-        } else {
-            let mut tab_buttons: Column<Message> =
-                Column::new().padding(INDENT).align_x(Horizontal::Center);
-            tab_buttons = tab_buttons.push(profile_tab_button(&self.app));
-            for tab in Tab::get_tab_button_categories() {
-                tab_buttons = tab_buttons.push(
-                    create_text_button(
-                        self.app.mascot_manager.selected_mascot,
-                        tab.to_string(),
-                        if self.app.screen == tab {
-                            ButtonStyle::ActiveTab
-                        } else {
-                            ButtonStyle::InactiveTab
-                        },
-                        None,
-                    )
-                    .width(TAB_BUTTON_WIDTH)
-                    .height(TAB_BUTTON_HEIGHT)
-                    .on_press(Message::Select(tab)),
-                );
-            }
-
-            let money_button: iced::widget::Button<
-                '_,
-                crate::client::gui::user_interface::Message,
-                Theme,
-                iced::Renderer,
-            > = create_element_button(
-                self.app.mascot_manager.selected_mascot,
-                row![
-                    iced::widget::image(Handle::from_path("assets/images/coin.png"))
-                        .width(25)
-                        .height(25),
-                    Space::with_width(Length::Fill),
-                    format_button_text(iced::widget::text(
-                        self.app.user_manager.user_information.coin_balance
-                    ))
-                ]
-                .align_y(Vertical::Center)
-                .into(),
-                ButtonStyle::Active,
-                None,
-            )
-            .width(182)
-            .height(35);
-
-            let lower_tab_container_buttons =
-                row![Space::with_width(Length::Fill), money_button].width(310);
-
-            tab_buttons = tab_buttons.push(Space::with_height(Length::Fill));
-            tab_buttons = tab_buttons.push(lower_tab_container_buttons);
-
-            let tab_container = container(tab_buttons.spacing(INDENT))
-                .style(bb_theme::container::create_style_container(
-                    ContainerStyle::Default,
+            return view_login(&self.app);
+        }
+        let mut tab_buttons: Column<Message> =
+            Column::new().padding(INDENT).align_x(Horizontal::Center);
+        tab_buttons = tab_buttons.push(profile_tab_button(&self.app));
+        for tab in Tab::get_tab_button_categories() {
+            tab_buttons = tab_buttons.push(
+                create_text_button(
+                    self.app.mascot_manager.selected_mascot,
+                    tab.to_string(),
+                    if self.app.screen == tab {
+                        ButtonStyle::ActiveTab
+                    } else {
+                        ButtonStyle::InactiveTab
+                    },
                     None,
-                    None,
+                )
+                .width(TAB_BUTTON_WIDTH)
+                .height(TAB_BUTTON_HEIGHT)
+                .on_press(Message::Select(tab)),
+            );
+        }
+
+        let money_button: iced::widget::Button<
+            '_,
+            crate::client::gui::user_interface::Message,
+            Theme,
+            iced::Renderer,
+        > = create_element_button(
+            self.app.mascot_manager.selected_mascot,
+            row![
+                iced::widget::image(Handle::from_path("assets/images/coin.png"))
+                    .width(25)
+                    .height(25),
+                Space::with_width(Length::Fill),
+                format_button_text(iced::widget::text(
+                    self.app.user_manager.user_information.coin_balance
                 ))
-                .height(Fill)
-                .width(310);
+            ]
+            .align_y(Vertical::Center)
+            .into(),
+            ButtonStyle::Active,
+            None,
+        )
+        .width(182)
+        .height(35);
 
-            let tab_window: Option<Element<Message>> = match self.app.screen {
-                Tab::Home => Some(self.homescreen()),
-                Tab::Workout => Some(self.workout_screen()),
-                Tab::Social => Some(self.social_screen()),
-                Tab::Mascot => Some(self.mascot_screen()),
-                Tab::Settings => Some(self.settings_screen()),
-                Tab::Exit => None,
-                Tab::ViewProfile => {
-                    let user_type = &self.app.user_manager.most_recently_viewed_user;
+        let lower_tab_container_buttons =
+            row![Space::with_width(Length::Fill), money_button].width(310);
 
-                    match user_type {
-                        UserType::Own => Some(view_profile(
-                            &self.app,
-                            &self.app.user_manager.user_information,
-                            &self.app.mascot_manager.owned_mascots,
-                            &self.app.mascot_manager.favorite_mascot,
-                        )),
-                        UserType::Other(username) => {
-                            let viewed_profile =
-                                self.app.user_manager.get_user_by_username(username);
+        tab_buttons = tab_buttons.push(Space::with_height(Length::Fill));
+        tab_buttons = tab_buttons.push(lower_tab_container_buttons);
 
-                            viewed_profile.map(|profile| {
-                                view_profile(
-                                    &self.app,
-                                    &profile.user_information,
-                                    &profile.owned_mascots,
-                                    &profile.favorite_mascot,
-                                )
-                            })
-                        }
+        let tab_container = container(tab_buttons.spacing(INDENT))
+            .style(bb_theme::container::create_style_container(
+                ContainerStyle::Default,
+                None,
+                None,
+            ))
+            .height(Fill)
+            .width(310);
+
+        let tab_window: Option<Element<Message>> = match self.app.screen {
+            Tab::Home => Some(self.homescreen()),
+            Tab::Workout => Some(self.workout_screen()),
+            Tab::Social => Some(self.social_screen()),
+            Tab::Mascot => Some(self.mascot_screen()),
+            Tab::Settings => Some(self.settings_screen()),
+            Tab::Exit => None,
+            Tab::ViewProfile => {
+                let user_type = &self.app.user_manager.most_recently_viewed_user;
+
+                match user_type {
+                    UserType::Own => Some(view_profile(
+                        &self.app,
+                        &self.app.user_manager.user_information,
+                        &self.app.mascot_manager.owned_mascots,
+                        &self.app.mascot_manager.favorite_mascot,
+                    )),
+                    UserType::Other(username) => {
+                        let viewed_profile = self.app.user_manager.get_user_by_username(username);
+
+                        viewed_profile.map(|profile| {
+                            view_profile(
+                                &self.app,
+                                &profile.user_information,
+                                &profile.owned_mascots,
+                                &profile.favorite_mascot,
+                            )
+                        })
                     }
                 }
-            };
+            }
+        };
+        let mut stack = Stack::new();
+        let content = if let Some(tab_content) = tab_window {
+            stack = stack.push(tab_content);
+            if self.app.pop_up_manager.minor_pop_up {
+                stack = stack.push(view_pop_up(self));
+            }
+            row![tab_container, stack]
+        } else {
+            row![tab_container]
+        };
 
-            let content = if let Some(tab_content) = tab_window {
-                row![tab_container, tab_content]
-            } else {
-                row![tab_container]
-            };
-
-            container(content)
-                .width(Fill)
-                .height(Fill)
-                .style(|_theme: &Theme| container::Style {
-                    text_color: None,
-                    background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
-                    ..Default::default()
-                })
-                .padding(20)
-                .into()
-        }
+        container(content)
+            .width(Fill)
+            .height(Fill)
+            .style(|_theme: &Theme| container::Style {
+                text_color: None,
+                background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
+                ..Default::default()
+            })
+            .padding(20)
+            .into()
     }
 }
 

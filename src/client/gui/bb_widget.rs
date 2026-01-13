@@ -1,5 +1,6 @@
 pub mod activity_widget;
 pub mod new_widget;
+pub mod pop_up;
 pub mod progress;
 pub mod shop;
 pub mod social_elements;
