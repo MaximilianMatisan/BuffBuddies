@@ -47,7 +47,7 @@ where
 impl<'a> ShopWidget<'a, Message, Renderer>
 where
     Renderer: iced_core::image::Renderer + iced_core::text::Renderer + 'a,
-    Message: std::clone::Clone + 'a,
+    Message: Clone + 'a,
 {
     pub fn update_active_mascot(mut self, mascot: Mascot) -> Self {
         self.active_mascot = mascot;
@@ -233,7 +233,7 @@ where
         &self,
         _tree: &Tree,
         layout: Layout<'_>,
-        cursor: mouse::Cursor,
+        cursor: Cursor,
         _viewport: &Rectangle,
         _renderer: &Renderer,
     ) -> mouse::Interaction {

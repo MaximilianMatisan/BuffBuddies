@@ -15,7 +15,6 @@ pub enum UserType {
     Own,
     Other(String),
 }
-//TODO THE NAME COULD BE MORE CONCRETE
 #[derive(Clone)]
 pub struct UserInformation {
     pub username: String,
@@ -31,7 +30,7 @@ pub struct UserInformation {
     pub profile_stat_manager: ProfileStatManager,
 }
 impl UserInformation {
-    pub fn new(exercise_data: &Vec<Exercise>) -> Self {
+    pub fn default(exercise_data: &Vec<Exercise>) -> Self {
         UserInformation {
             username: "Default_user".to_string(),
             description: "".to_string(),
@@ -58,7 +57,7 @@ impl Default for ForeignUser {
     fn default() -> Self {
         let exercise_data = vec![];
         ForeignUser {
-            user_information: UserInformation::new(&exercise_data),
+            user_information: UserInformation::default(&exercise_data),
 
             exercise_stats: exercise_data,
             favorite_mascot: Default::default(),

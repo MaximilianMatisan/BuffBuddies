@@ -8,9 +8,9 @@ use iced::widget::combo_box;
 use strum::IntoEnumIterator;
 
 pub struct UserManager {
-    /// Contains general information about the currently logged in user.
-    /// <h3>TODO</h3> could be more concretely named / split up
+    /// Contains general information about the currently logged-in user.
     pub user_info: UserInformation,
+    /// Contains information if the user is currently inside of edit mode of the user_info in the settings
     pub pending_user_info_changes: Option<UserInformation>,
 
     pub loaded_users: Vec<ForeignUser>,
@@ -124,7 +124,7 @@ impl UserManager {
             friends_with_active_user: false,
         };
         UserManager {
-            user_info: UserInformation::new(exercise_data),
+            user_info: UserInformation::default(exercise_data),
             pending_user_info_changes: None,
             loaded_users: vec![test_user1, test_user2, test_user3, test_user4],
             most_recently_viewed_user: UserType::Own,
