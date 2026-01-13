@@ -4,9 +4,10 @@ use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
 use crate::client::backend::pop_up_manager::PopUpType;
-use crate::client::backend::user_mod::user::{UserType};
+use crate::client::backend::user_mod::user::UserType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
+use crate::client::gui::bb_tab::settings::SettingsMessage;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_tab::user::view_profile;
 use crate::client::gui::bb_theme::color;
@@ -29,7 +30,6 @@ use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
-use crate::client::gui::bb_tab::settings::SettingsMessage;
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -238,9 +238,7 @@ impl UserInterface {
                 self.app.pop_up_manager.reset();
                 Task::none()
             }
-            Message::Settings(settings_msg) => {
-                settings_msg.update(self)
-            }
+            Message::Settings(settings_msg) => settings_msg.update(self),
         }
     }
     fn view(&self) -> Element<'_, Message> {
@@ -265,19 +263,15 @@ impl UserInterface {
                     },
                     None,
                 )
-                    .width(TAB_BUTTON_WIDTH)
-                    .height(TAB_BUTTON_HEIGHT)
-                    .on_press(Message::Select(tab)),
+                .width(TAB_BUTTON_WIDTH)
+                .height(TAB_BUTTON_HEIGHT)
+                .on_press(Message::Select(tab)),
             );
         }
-        let money_button: iced::widget::Button<
-            '_,
-            Message,
-            Theme,
-            iced::Renderer,
-        > = create_element_button(
-            &self.app.mascot_manager.selected_mascot,
-            row![
+        let money_button: iced::widget::Button<'_, Message, Theme, iced::Renderer> =
+            create_element_button(
+                &self.app.mascot_manager.selected_mascot,
+                row![
                     iced::widget::image(Handle::from_path("assets/images/coin.png"))
                         .width(25)
                         .height(25),
@@ -288,9 +282,9 @@ impl UserInterface {
                 ]
                 .align_y(Vertical::Center)
                 .into(),
-            ButtonStyle::Active,
-            None,
-        )
+                ButtonStyle::Active,
+                None,
+            )
             .width(182)
             .height(35);
 
@@ -364,7 +358,6 @@ impl UserInterface {
             .into()
     }
 }
-
 
 pub fn client_main() -> iced::Result {
     let default_size = Size::new(size::FRAME_WIDTH, size::FRAME_HEIGHT);

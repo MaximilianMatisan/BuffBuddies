@@ -31,14 +31,14 @@ pub fn create_preset_button<Msg>(
     custom_border_radius: Option<Radius>,
 ) -> Button<Msg, Theme, Renderer>
 where
-    Msg: Clone
+    Msg: Clone,
 {
     let radius = if let Some(border_radius) = custom_border_radius {
         border_radius
     } else {
         DEFAULT_BUTTON_RADIUS.into()
     };
-    button(element).style(move |_, status: button::Status| {
+    button(element).style(move |_, status: Status| {
         let border = Border {
             color: iced::color!(0, 0, 0),
             width: 0.0,
@@ -55,24 +55,24 @@ pub fn create_button_style(
     disabled_color: Color,
     hovered_color: Color,
 ) -> Style {
-    let mut style = iced::widget::button::Style {
+    let mut style = Style {
         border,
         ..Default::default()
     };
     match status {
-        button::Status::Active => {
+        Status::Active => {
             style.background = Some(Background::Color(active_color));
             style
         }
-        button::Status::Disabled => {
+        Status::Disabled => {
             style.background = Some(Background::Color(disabled_color));
             style
         }
-        button::Status::Hovered => {
+        Status::Hovered => {
             style.background = Some(Background::Color(hovered_color));
             style
         }
-        button::Status::Pressed => {
+        Status::Pressed => {
             let mut linear = Linear::new(0);
             linear.stops = [
                 Some(ColorStop {
@@ -103,7 +103,7 @@ pub fn create_text_button<'a, Msg>(
     custom_border_radius: Option<Radius>,
 ) -> Button<'a, Msg, Theme, Renderer>
 where
-    Msg: Clone
+    Msg: Clone,
 {
     let text_elem: Element<Msg> =
         bb_theme::text_format::format_button_text(text::Text::new(text)).into();
@@ -118,7 +118,7 @@ pub fn create_element_button<'a, Msg>(
     custom_border_radius: Option<Radius>,
 ) -> Button<'a, Msg, Theme, Renderer>
 where
-    Msg: Clone
+    Msg: Clone,
 {
     match button_style {
         ButtonStyle::InactiveTab => create_preset_button(

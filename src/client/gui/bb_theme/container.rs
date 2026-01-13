@@ -11,7 +11,7 @@ pub enum ContainerStyle {
     Background,
 }
 impl ContainerStyle {
-    fn get_color(&self) -> iced::Color {
+    fn get_color(&self) -> Color {
         match self {
             ContainerStyle::Highlighted => bb_theme::color::HIGHLIGHTED_CONTAINER_COLOR,
             ContainerStyle::Default => bb_theme::color::CONTAINER_COLOR,

@@ -1,5 +1,7 @@
+use crate::client::backend::exercise_mod::weight::Kg;
+use crate::client::backend::user_mod::user::{Gender, MAX_DESCRIPTION_CHARACTERS};
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color::{TEXT_COLOR};
+use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_style_container};
 use crate::client::gui::bb_theme::custom_button::{
@@ -11,17 +13,18 @@ use crate::client::gui::bb_theme::text_format::{
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::size;
 use crate::client::gui::user_interface::{Message, UserInterface};
+use iced::widget::{
+    Button, Column, ComboBox, Container, Row, Space, TextInput, combo_box, container, image, text,
+    text_input,
+};
 use iced::{Element, Task};
-use iced::widget::{Column, ComboBox, Container, Row, Space, TextInput, combo_box, container, image, text, text_input, Button};
 use iced_core::image::Handle;
 use iced_core::{Length, Padding, Theme};
-use crate::client::backend::exercise_mod::weight::Kg;
-use crate::client::backend::user_mod::user::{Gender, MAX_DESCRIPTION_CHARACTERS};
 
 const SETTINGS_TEXT_INPUT_WIDTH: f32 = 250.0;
 impl UserInterface {
     pub fn settings_screen(&self) -> Element<Message> {
-        settings_user_info_preview(&self.app).map(|msg| Message::Settings(msg))
+        settings_user_info_preview(&self.app).map(Message::Settings)
     }
 }
 fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
@@ -168,7 +171,7 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     )
     .on_input(SettingsMessage::EditWeeklyWorkoutGoal);
 
-    let mascot_combo_box: ComboBox<Message, Theme>; //TODO create and add to user_data_column
+    let _mascot_combo_box: ComboBox<Message, Theme>; //TODO create and add to user_data_column
 
     let description_text_input = text_input("Tell something about you!", &pending_info.description)
         .on_input(SettingsMessage::EditDescription);
@@ -226,7 +229,10 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     username_and_data_column
 }
 
-fn create_user_data_preview(description_text: &str, information_text: String) -> Row<SettingsMessage> {
+fn create_user_data_preview(
+    description_text: &str,
+    information_text: String,
+) -> Row<SettingsMessage> {
     create_user_data_entry(
         description_text,
         format_button_text(text(information_text)).into(),
@@ -267,20 +273,19 @@ impl SettingsMessage {
                 }
             }
             SettingsMessage::EditHeight(new_height) => {
-                let numbers: u32 = new_height.parse().unwrap_or_else(|_| 0);
+                let numbers: u32 = new_height.parse().unwrap_or(0);
                 if let Some(pending) = pending_user_info_changes {
                     pending.height = numbers;
                 }
             }
             SettingsMessage::EditWeight(new_weight) => {
-                //TODO floats don't work rn idk what's the issue
-                let number: Kg = new_weight.parse().unwrap_or_else(|_| 0.0);
+                let number: u32 = new_weight.parse().unwrap_or(0);
                 if let Some(pending) = pending_user_info_changes {
-                    pending.weight = number;
+                    pending.weight = number as Kg;
                 }
             }
             SettingsMessage::EditWeeklyWorkoutGoal(new_goal) => {
-                let number: u32 = new_goal.parse().unwrap_or_else(|_| 0);
+                let number: u32 = new_goal.parse().unwrap_or(0);
                 if let Some(pending) = pending_user_info_changes {
                     pending.weekly_workout_goal = number;
                 }
@@ -295,8 +300,7 @@ impl SettingsMessage {
                 }
             }
             SettingsMessage::SavePendingUserInfoChanges => {
-                if let Some(pending_changes) =
-                    ui.app.user_manager.pending_user_info_changes.take()
+                if let Some(pending_changes) = ui.app.user_manager.pending_user_info_changes.take()
                 {
                     ui.app.user_manager.user_info = pending_changes;
                     //TODO SEND TO DATABASE
