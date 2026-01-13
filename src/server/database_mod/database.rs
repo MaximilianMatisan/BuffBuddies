@@ -127,7 +127,6 @@ pub async fn add_user(
     pool: &SqlitePool,
     username: &str,
     password: &str,
-    gender: &str,
 ) -> Result<(), sqlx::Error> {
     sqlx::query("INSERT INTO users (username, user_password, weekly_workout_goal, weekly_workout_streak, coin_balance, weight, height, gender, profile_picture)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
@@ -138,7 +137,7 @@ pub async fn add_user(
         .bind(0)
         .bind(0)
         .bind(0)
-        .bind(gender)
+        .bind("Male")
         .bind("")
         .execute(pool)
         .await?;
@@ -223,13 +222,7 @@ pub async fn update_user_weekly_workout_goal(
     Ok(())
 }
 #[allow(dead_code)]
-pub async fn get_user_id(pool: &SqlitePool, name: &str) -> Result<i64, sqlx::Error> {
-    let user_id = sqlx::query("SELECT id FROM users WHERE username = ?")
-        .bind(name)
-        .fetch_optional(pool)
-        .await?;
-    Ok(user_id.expect("getting id failed ").get("id"))
-}
+
 #[allow(dead_code)]
 pub async fn update_user_gender(
     pool: &SqlitePool,
