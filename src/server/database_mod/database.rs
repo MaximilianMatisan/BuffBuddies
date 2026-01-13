@@ -270,6 +270,7 @@ pub async fn update_user_coin_balance(
     Ok(())
 }
 
+#[allow(dead_code)]
 pub async fn update_user_description(
     pool: &SqlitePool,
     username: &str,
