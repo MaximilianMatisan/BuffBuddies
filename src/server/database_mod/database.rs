@@ -1,6 +1,6 @@
+use sqlx::Row;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions};
 use std::str::FromStr;
-use sqlx::Row;
 
 pub async fn init_pool() -> Result<SqlitePool, sqlx::Error> {
     let options =
@@ -127,36 +127,47 @@ pub async fn add_user(
 pub enum ValidUser {
     UserNotFound,
     WrongPassword,
-    Valid
+    Valid,
 }
-
-pub async fn check_user(pool: &SqlitePool, username: &str, passwort: &str ) -> Result<ValidUser, sqlx:: Error>{
-    let user = sqlx::query("SELECT user_password FROM users WHERE username == ? ").bind(username).fetch_optional(pool).await?;
+#[allow(dead_code)]
+pub async fn check_user(
+    pool: &SqlitePool,
+    username: &str,
+    passwort: &str,
+) -> Result<ValidUser, sqlx::Error> {
+    let user = sqlx::query("SELECT user_password FROM users WHERE username == ? ")
+        .bind(username)
+        .fetch_optional(pool)
+        .await?;
     match user {
         None => Ok(ValidUser::UserNotFound),
         Some(row) => {
             let saved_passwort: String = row.get("user_password");
             if saved_passwort == passwort {
-                Ok(ValidUser::Valid) }
-            else {
+                Ok(ValidUser::Valid)
+            } else {
                 Ok(ValidUser::WrongPassword)
             }
         }
     }
 }
-
-pub async fn print_all_users(pool: &SqlitePool) -> Result<String, sqlx::Error>{
+#[allow(dead_code)]
+pub async fn print_all_users(pool: &SqlitePool) -> Result<String, sqlx::Error> {
     let rows = sqlx::query("SELECT * from users").fetch_all(pool).await?;
     let mut namen: String = String::from("User: ");
     for row in rows {
-        let user:String  = row.get("username");
+        let user: String = row.get("username");
         namen.push_str(&user);
-        namen.push_str(" ");
+        namen.push_str(", ");
     }
     Ok(namen)
 }
-
-pub async fn update_user_weight(pool: &SqlitePool, username: &str, new_weight: f32) -> Result<(), sqlx::Error>{
+#[allow(dead_code)]
+pub async fn update_user_weight(
+    pool: &SqlitePool,
+    username: &str,
+    new_weight: f32,
+) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE users SET weight = ? WHERE username = ?")
         .bind(new_weight)
         .bind(username)
@@ -164,8 +175,12 @@ pub async fn update_user_weight(pool: &SqlitePool, username: &str, new_weight: f
         .await?;
     Ok(())
 }
-
-pub async fn update_user_height(pool: &SqlitePool, username: &str, new_height: f32) -> Result<(), sqlx::Error>{
+#[allow(dead_code)]
+pub async fn update_user_height(
+    pool: &SqlitePool,
+    username: &str,
+    new_height: f32,
+) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE users SET height = ? WHERE username = ?")
         .bind(new_height)
         .bind(username)
@@ -173,8 +188,12 @@ pub async fn update_user_height(pool: &SqlitePool, username: &str, new_height: f
         .await?;
     Ok(())
 }
-
-pub async fn update_user_weekly_workout_goal(pool: &SqlitePool, username: &str, new_goal: f32) -> Result<(), sqlx::Error>{
+#[allow(dead_code)]
+pub async fn update_user_weekly_workout_goal(
+    pool: &SqlitePool,
+    username: &str,
+    new_goal: f32,
+) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE users SET weekly_workout_goal = ? WHERE username = ?")
         .bind(new_goal)
         .bind(username)
@@ -182,7 +201,7 @@ pub async fn update_user_weekly_workout_goal(pool: &SqlitePool, username: &str, 
         .await?;
     Ok(())
 }
-
+#[allow(dead_code)]
 pub async fn get_user_id(pool: &SqlitePool, name: &str) -> Result<i64, sqlx::Error> {
     let user_id = sqlx::query("SELECT id FROM users WHERE username = ?")
         .bind(name)
@@ -190,4 +209,3 @@ pub async fn get_user_id(pool: &SqlitePool, name: &str) -> Result<i64, sqlx::Err
         .await?;
     Ok(user_id.expect("getting id failed ").get("id"))
 }
-
