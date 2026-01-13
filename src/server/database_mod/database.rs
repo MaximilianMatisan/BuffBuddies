@@ -221,7 +221,6 @@ pub async fn update_user_weekly_workout_goal(
         .await?;
     Ok(())
 }
-#[allow(dead_code)]
 
 #[allow(dead_code)]
 pub async fn update_user_gender(
