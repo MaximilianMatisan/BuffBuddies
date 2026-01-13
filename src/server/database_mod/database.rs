@@ -269,6 +269,21 @@ pub async fn update_user_coin_balance(
         .await?;
     Ok(())
 }
+
+pub async fn update_user_description(
+    pool: &SqlitePool,
+    username: &str,
+    new_description: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE users SET description = ? WHERE username = ?")
+        .bind(new_description)
+        .bind(username)
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}
+
 #[allow(dead_code)]
 pub async fn add_friend(
     pool: &SqlitePool,
