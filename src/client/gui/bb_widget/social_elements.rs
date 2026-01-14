@@ -41,7 +41,7 @@ pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
     let mascot_handle = app
         .image_manager
         .cropped_mascot_image_handles
-        .get(&user.favorite_mascot)
+        .get(&user.user_information.favorite_mascot)
         .unwrap();
 
     let mascot_image = image(mascot_handle).width(FRIEND_BUTTON_WIDTH - 2.0 * INDENT);
@@ -56,7 +56,7 @@ pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
         .align_x(Horizontal::Center);
 
     let button = create_element_button(
-        &user.favorite_mascot,
+        &user.user_information.favorite_mascot,
         contents.into(),
         ButtonStyle::InactiveTab,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
