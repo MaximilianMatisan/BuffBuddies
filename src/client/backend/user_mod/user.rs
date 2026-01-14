@@ -67,3 +67,23 @@ impl Default for ForeignUser {
         }
     }
 }
+
+///Only used to store temporary text_input_strings
+pub struct UserInformationStrings {
+    pub weight: String,
+    pub height: String,
+    pub weekly_workout_goal: String,
+}
+impl UserInformationStrings {
+    pub fn new(
+        weight: String,
+        height: String,
+        weekly_workout_goal: String,
+    ) -> UserInformationStrings {
+        UserInformationStrings {
+            weight,
+            height,
+            weekly_workout_goal,
+        }
+    }
+}
