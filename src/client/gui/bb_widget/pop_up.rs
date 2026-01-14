@@ -44,7 +44,7 @@ pub fn view_pop_up(user_interface: &UserInterface) -> Element<'_, Message> {
         .padding(29)
         .max_width(399)
         .max_height(419)
-        .style(bb_theme::container::create_style_container(
+        .style(bb_theme::container::create_container_style(
             ContainerStyle::Highlighted,
             None,
             None,

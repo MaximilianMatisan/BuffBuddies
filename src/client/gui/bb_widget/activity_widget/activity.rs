@@ -209,7 +209,7 @@ impl ActivityWidget {
             .spacing(10)
             .align_y(Vertical::Center),
         )
-        .style(bb_theme::container::create_style_container(
+        .style(bb_theme::container::create_container_style(
             ContainerStyle::Default,
             None,
             None,

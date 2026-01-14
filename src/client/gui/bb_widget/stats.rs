@@ -1,6 +1,6 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::container::{
-    ContainerStyle, DEFAULT_CONTAINER_RADIUS, create_style_container,
+    ContainerStyle, DEFAULT_CONTAINER_RADIUS, create_container_style,
 };
 use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
 use crate::client::gui::bb_theme::text_format::{format_button_text, kg_to_string};
@@ -74,7 +74,7 @@ pub fn exercise_stat_column(app: &App) -> Column<Message> {
         lines = lines.push(
             container(line)
                 .padding(INDENT)
-                .style(create_style_container(
+                .style(create_container_style(
                     container_style,
                     container_border,
                     None,
@@ -107,7 +107,7 @@ pub fn profile_stat_container<'a>(
         .align_x(Horizontal::Center);
 
     container(contents)
-        .style(create_style_container(ContainerStyle::Default, None, None))
+        .style(create_container_style(ContainerStyle::Default, None, None))
         .center_x(Length::Fixed(PROFILE_STAT_CONTAINER_WIDTH))
         .center_y(Length::Fixed(PROFILE_STAT_CONTAINER_HEIGHT))
 }

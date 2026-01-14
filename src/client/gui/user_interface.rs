@@ -295,7 +295,7 @@ impl UserInterface {
         tab_buttons = tab_buttons.push(lower_tab_container_buttons);
 
         let tab_container = container(tab_buttons.spacing(INDENT))
-            .style(bb_theme::container::create_style_container(
+            .style(bb_theme::container::create_container_style(
                 ContainerStyle::Default,
                 None,
                 None,
