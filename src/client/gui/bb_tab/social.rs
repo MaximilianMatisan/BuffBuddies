@@ -1,5 +1,5 @@
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_style_container};
+use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use crate::client::gui::bb_widget::social_elements::{friend_button, user_profile_button};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
@@ -34,7 +34,7 @@ impl UserInterface {
             .align_x(Horizontal::Center);
 
         let friend_container = container(friends_with_title)
-            .style(create_style_container(ContainerStyle::Default, None, None))
+            .style(create_container_style(ContainerStyle::Default, None, None))
             .width(Length::Shrink)
             .padding(INDENT);
 
@@ -58,7 +58,7 @@ impl UserInterface {
         let user_elements = Column::new().push(user_navigation).push(user_buttons);
 
         let user_container = container(user_elements)
-            .style(create_style_container(ContainerStyle::Default, None, None))
+            .style(create_container_style(ContainerStyle::Default, None, None))
             .padding(INDENT);
 
         let mut content = Column::new()

@@ -3,7 +3,7 @@ use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::backend::user_mod::user::UserInformation;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_style_container};
+use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, format_description_text, kg_to_string,
 };
@@ -38,7 +38,7 @@ pub fn view_profile<'a>(
 
     let description_container: Container<Message> =
         container(format_description_text(text(user.description.clone())))
-            .style(create_style_container(
+            .style(create_container_style(
                 ContainerStyle::Background,
                 None,
                 Some(HIGHLIGHTED_CONTAINER_COLOR),

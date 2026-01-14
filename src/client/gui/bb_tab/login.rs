@@ -1,7 +1,7 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::color::{ERROR_COLOR, TEXT_COLOR};
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_style_container};
+use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_button_text};
 use crate::client::gui::user_interface::Message;
@@ -9,6 +9,7 @@ use iced::Element;
 use iced::widget::{Column, Space, container, text, text_input};
 use iced_core::Length::Fill;
 use iced_core::Theme;
+use crate::client::gui::bb_theme::combo_box::create_text_input_style;
 
 pub fn view_login(app: &App) -> Element<'_, Message> {
     let login_text: Element<Message> = text("LOGIN")
@@ -28,11 +29,15 @@ pub fn view_login(app: &App) -> Element<'_, Message> {
 
     let username_field: Element<Message> =
         text_input("Enter username...", &app.login_state.username)
+            .style(create_text_input_style(&app.mascot_manager.selected_mascot))
+            .font(FIRA_SANS_EXTRABOLD)
             .on_input(Message::UsernameEntered)
             .into();
 
     let password_field: Element<Message> =
         text_input("Enter password...", &app.login_state.password)
+            .style(create_text_input_style(&app.mascot_manager.selected_mascot))
+            .font(FIRA_SANS_EXTRABOLD)
             .on_input(Message::PasswordEntered)
             .on_submit(Message::TryLogin)
             .secure(true)
@@ -77,7 +82,7 @@ pub fn view_login(app: &App) -> Element<'_, Message> {
         .padding(20)
         .max_width(400)
         .max_height(420)
-        .style(create_style_container(ContainerStyle::Default, None, None))
+        .style(create_container_style(ContainerStyle::Default, None, None))
         .width(Fill)
         .height(Fill);
 

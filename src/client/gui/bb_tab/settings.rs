@@ -5,7 +5,7 @@ use crate::client::backend::user_mod::user::{
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_style_container};
+use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, create_element_button, create_text_button,
 };
@@ -50,7 +50,7 @@ fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
         .push(Space::with_width(Length::FillPortion(1)));
 
     let user_info_container = container(contents)
-        .style(create_style_container(ContainerStyle::Default, None, None))
+        .style(create_container_style(ContainerStyle::Default, None, None))
         .height(Length::Shrink)
         .width(Length::FillPortion(10))
         .padding(Padding {
@@ -94,7 +94,7 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
             .color(TEXT_COLOR)
     };
     let description_text_container: Container<SettingsMessage> = container(description_text)
-        .style(create_style_container(
+        .style(create_container_style(
             ContainerStyle::Background,
             None,
             None,

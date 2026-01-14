@@ -21,7 +21,7 @@ impl ContainerStyle {
     }
 }
 
-pub fn create_style_container(
+pub fn create_container_style(
     style: ContainerStyle,
     custom_border_radius: Option<Radius>,
     custom_border_color: Option<Color>,
