@@ -215,7 +215,7 @@ impl UserInterface {
                 match user_type {
                     UserType::Own => {
                         self.app.activity_widget.update_data(
-                            self.app.mascot_manager.selected_mascot,
+                            self.app.user_manager.user_info.favorite_mascot,
                             calculate_activity_data(&self.app.exercise_manager.exercises),
                         );
                         self.app.user_manager.most_recently_viewed_user = UserType::Own
@@ -224,7 +224,7 @@ impl UserInterface {
                         let opt_user = self.app.user_manager.get_user_by_username(&username);
                         if let Some(user) = opt_user {
                             self.app.activity_widget.update_data(
-                                user.favorite_mascot,
+                                user.user_information.favorite_mascot,
                                 calculate_activity_data(&user.exercise_stats),
                             );
                         }
@@ -318,7 +318,7 @@ impl UserInterface {
                         &self.app,
                         &self.app.user_manager.user_info,
                         &self.app.mascot_manager.owned_mascots,
-                        &self.app.mascot_manager.favorite_mascot,
+                        &self.app.user_manager.user_info.favorite_mascot,
                     )),
                     UserType::Other(username) => {
                         let viewed_profile = self.app.user_manager.get_user_by_username(username);
@@ -328,7 +328,7 @@ impl UserInterface {
                                 &self.app,
                                 &profile.user_information,
                                 &profile.owned_mascots,
-                                &profile.favorite_mascot,
+                                &profile.user_information.favorite_mascot,
                             )
                         })
                     }

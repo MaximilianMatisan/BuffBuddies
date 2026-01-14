@@ -1,6 +1,7 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::color::{ERROR_COLOR, TEXT_COLOR};
+use crate::client::gui::bb_theme::combo_box::create_text_input_style;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_button_text};
@@ -9,7 +10,6 @@ use iced::Element;
 use iced::widget::{Column, Space, container, text, text_input};
 use iced_core::Length::Fill;
 use iced_core::Theme;
-use crate::client::gui::bb_theme::combo_box::create_text_input_style;
 
 pub fn view_login(app: &App) -> Element<'_, Message> {
     let login_text: Element<Message> = text("LOGIN")

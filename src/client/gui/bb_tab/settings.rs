@@ -1,4 +1,5 @@
 use crate::client::backend::exercise_mod::weight::Kg;
+use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::user_mod::user::{
     Gender, MAX_DESCRIPTION_CHARACTERS, UserInformation, UserInformationStrings,
 };
@@ -16,12 +17,11 @@ use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::size;
 use crate::client::gui::user_interface::{Message, UserInterface};
 use iced::widget::{
-    Button, Column, ComboBox, Container, Row, Space, TextInput, combo_box, container, image, text,
-    text_input,
+    Button, Column, Container, Row, Space, TextInput, combo_box, container, image, text, text_input,
 };
 use iced::{Element, Task};
 use iced_core::image::Handle;
-use iced_core::{Length, Padding, Theme};
+use iced_core::{Length, Padding};
 
 const SETTINGS_TEXT_INPUT_WIDTH: f32 = 250.0;
 impl UserInterface {
@@ -109,6 +109,10 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
 
     let user_data_column = Column::new()
         .push(create_user_data_preview(
+            "Favorite Mascot:",
+            app.user_manager.user_info.favorite_mascot.to_string(),
+        ))
+        .push(create_user_data_preview(
             "Gender:",
             user_info.gender.to_string(),
         ))
@@ -123,10 +127,6 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
         .push(create_user_data_preview(
             "Weekly workout goal:",
             user_info.weekly_workout_goal.to_string(),
-        ))
-        .push(create_user_data_preview(
-            "Favorite Mascot:",
-            app.mascot_manager.favorite_mascot.to_string(),
         ))
         .push(description)
         .width(Length::FillPortion(15));
@@ -179,7 +179,17 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     )
     .on_input(SettingsMessage::EditWeeklyWorkoutGoal);
 
-    let _mascot_combo_box: ComboBox<Message, Theme>; //TODO create and add to user_data_column
+    let mascot_combo_box: Element<SettingsMessage> = combo_box(
+        &app.mascot_manager.owned_mascots_state,
+        "Select mascot...",
+        Some(&pending_info.favorite_mascot),
+        SettingsMessage::EditMascot,
+    )
+    .font(FIRA_SANS_EXTRABOLD)
+    .width(SETTINGS_TEXT_INPUT_WIDTH)
+    .input_style(create_text_input_style(&app.mascot_manager.selected_mascot))
+    .menu_style(create_menu_style(&app.mascot_manager.selected_mascot))
+    .into();
 
     //Didn't use pending_info_strings here as description is already a string in pending_info
     let description_text_input = text_input("Tell something about you!", &pending_info.description)
@@ -194,6 +204,7 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
 
     let mut user_data_column = Column::new()
         .spacing(3)
+        .push(create_user_data_entry("Favorite Mascot:", mascot_combo_box))
         .push(create_user_data_entry("Gender:", gender_combo_box.into()));
 
     for (description_text, mut text_input) in text_input_data_fields {
@@ -265,6 +276,7 @@ pub enum SettingsMessage {
     EditWeight(String),
     EditWeeklyWorkoutGoal(String),
     EditDescription(String),
+    EditMascot(Mascot),
     SavePendingUserInfoChanges,
     DiscardPendingUserInfoChanges,
 }
@@ -354,6 +366,11 @@ impl SettingsMessage {
                     .collect();
                 if let Some((user_info, _)) = pending_user_info_changes {
                     user_info.description = cut_description;
+                }
+            }
+            SettingsMessage::EditMascot(new_mascot) => {
+                if let Some((user_info, _)) = pending_user_info_changes {
+                    user_info.favorite_mascot = new_mascot;
                 }
             }
             SettingsMessage::SavePendingUserInfoChanges => {
