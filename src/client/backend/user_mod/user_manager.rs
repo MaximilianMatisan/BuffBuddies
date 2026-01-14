@@ -3,7 +3,9 @@ use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
-use crate::client::backend::user_mod::user::{ForeignUser, Gender, UserInformation, UserType};
+use crate::client::backend::user_mod::user::{
+    ForeignUser, Gender, UserInformation, UserInformationStrings, UserType,
+};
 use iced::widget::combo_box;
 use strum::IntoEnumIterator;
 
@@ -11,7 +13,7 @@ pub struct UserManager {
     /// Contains general information about the currently logged-in user.
     pub user_info: UserInformation,
     /// Contains information if the user is currently inside of edit mode of the user_info in the settings
-    pub pending_user_info_changes: Option<UserInformation>,
+    pub pending_user_info_changes: Option<(UserInformation, UserInformationStrings)>,
 
     pub loaded_users: Vec<ForeignUser>,
     pub most_recently_viewed_user: UserType,

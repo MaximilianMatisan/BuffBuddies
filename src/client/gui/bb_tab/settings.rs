@@ -1,5 +1,7 @@
 use crate::client::backend::exercise_mod::weight::Kg;
-use crate::client::backend::user_mod::user::{Gender, MAX_DESCRIPTION_CHARACTERS};
+use crate::client::backend::user_mod::user::{
+    Gender, MAX_DESCRIPTION_CHARACTERS, UserInformation, UserInformationStrings,
+};
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
@@ -137,11 +139,17 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
     username_and_data_column
 }
 fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
-    let pending_info = if let Some(pending) = &app.user_manager.pending_user_info_changes {
-        pending
+    let pending_info: &UserInformation;
+    //These strings are necessary for proper text_input functionality
+    let pending_info_strings: &UserInformationStrings;
+
+    if let Some((user_info, user_info_strings)) = &app.user_manager.pending_user_info_changes {
+        pending_info = user_info;
+        pending_info_strings = user_info_strings;
     } else {
         return Column::new();
     };
+
     //Username should currently not be changeable
     let username = text(pending_info.username.clone())
         .font(FIRA_SANS_EXTRABOLD)
@@ -159,20 +167,21 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     .input_style(create_text_input_style(&app.mascot_manager.selected_mascot))
     .menu_style(create_menu_style(&app.mascot_manager.selected_mascot));
 
-    let height_text_input = text_input("Enter your height in cm", &pending_info.height.to_string())
+    let height_text_input = text_input("Enter your height in cm", &pending_info_strings.height)
         .on_input(SettingsMessage::EditHeight);
 
-    let weight_text_input = text_input("Enter your weight in kg", &pending_info.weight.to_string())
+    let weight_text_input = text_input("Enter your weight in kg", &pending_info_strings.weight)
         .on_input(SettingsMessage::EditWeight);
 
     let weekly_workout_goal_text_input = text_input(
         "Enter your weekly workout goal",
-        &pending_info.weekly_workout_goal.to_string(),
+        &pending_info_strings.weekly_workout_goal,
     )
     .on_input(SettingsMessage::EditWeeklyWorkoutGoal);
 
     let _mascot_combo_box: ComboBox<Message, Theme>; //TODO create and add to user_data_column
 
+    //Didn't use pending_info_strings here as description is already a string in pending_info
     let description_text_input = text_input("Tell something about you!", &pending_info.description)
         .on_input(SettingsMessage::EditDescription);
 
@@ -261,33 +270,81 @@ pub enum SettingsMessage {
 }
 impl SettingsMessage {
     pub fn update(self, ui: &mut UserInterface) -> Task<Message> {
+        let existing_user_info = &ui.app.user_manager.user_info;
         let pending_user_info_changes = &mut ui.app.user_manager.pending_user_info_changes;
         match self {
             SettingsMessage::StartEditingProfile => {
-                ui.app.user_manager.pending_user_info_changes =
-                    Some(ui.app.user_manager.user_info.clone());
+                ui.app.user_manager.pending_user_info_changes = Some((
+                    ui.app.user_manager.user_info.clone(),
+                    UserInformationStrings::new(
+                        existing_user_info.weight.to_string(),
+                        existing_user_info.height.to_string(),
+                        existing_user_info.weekly_workout_goal.to_string(),
+                    ),
+                ));
             }
             SettingsMessage::SelectGender(new_gender) => {
-                if let Some(pending) = pending_user_info_changes {
-                    pending.gender = new_gender;
+                if let Some((user_info, _)) = pending_user_info_changes {
+                    user_info.gender = new_gender;
                 }
             }
             SettingsMessage::EditHeight(new_height) => {
-                let numbers: u32 = new_height.parse().unwrap_or(0);
-                if let Some(pending) = pending_user_info_changes {
-                    pending.height = numbers;
+                if let Some((pending_info, pending_user_info_strings)) = pending_user_info_changes {
+                    let digit_string = new_height
+                        .chars()
+                        .filter(|char| char.is_ascii_digit())
+                        .take(3)
+                        .collect();
+                    pending_user_info_strings.height = digit_string;
+
+                    let new_height_integer: u32 = pending_user_info_strings
+                        .height
+                        .parse()
+                        .unwrap_or(existing_user_info.height);
+                    pending_info.height = new_height_integer;
                 }
             }
             SettingsMessage::EditWeight(new_weight) => {
-                let number: u32 = new_weight.parse().unwrap_or(0);
-                if let Some(pending) = pending_user_info_changes {
-                    pending.weight = number as Kg;
+                if let Some((pending_info, pending_user_info_strings)) = pending_user_info_changes {
+                    //TODO maybe cap amount of input characters
+                    let digit_string: String = new_weight
+                        .chars()
+                        .map(|char| if char == ',' { '.' } else { char })
+                        .scan(false, |dot_seen, char| {
+                            if char.is_ascii_digit() {
+                                return Some(char);
+                            }
+                            if char.eq(&'.') && !*dot_seen {
+                                *dot_seen = true;
+                                return Some(char);
+                            }
+                            None
+                        })
+                        .collect();
+                    pending_user_info_strings.weight = digit_string;
+
+                    let new_weight_float: Kg = pending_user_info_strings
+                        .weight
+                        .parse()
+                        .unwrap_or(existing_user_info.weight);
+                    let new_weight_float_shortened = (new_weight_float * 10.0).round() / 10.0;
+                    pending_info.weight = new_weight_float_shortened;
                 }
             }
             SettingsMessage::EditWeeklyWorkoutGoal(new_goal) => {
-                let number: u32 = new_goal.parse().unwrap_or(0);
-                if let Some(pending) = pending_user_info_changes {
-                    pending.weekly_workout_goal = number;
+                if let Some((pending_info, pending_user_info_strings)) = pending_user_info_changes {
+                    let digit_string: String = new_goal
+                        .chars()
+                        .filter(|char| char.is_ascii_digit())
+                        .take(2)
+                        .collect();
+                    pending_user_info_strings.weekly_workout_goal = digit_string;
+
+                    let new_goal_integer: u32 = pending_user_info_strings
+                        .weekly_workout_goal
+                        .parse()
+                        .unwrap_or(existing_user_info.weekly_workout_goal);
+                    pending_info.weekly_workout_goal = new_goal_integer;
                 }
             }
             SettingsMessage::EditDescription(new_description) => {
@@ -295,14 +352,15 @@ impl SettingsMessage {
                     .chars()
                     .take(MAX_DESCRIPTION_CHARACTERS)
                     .collect();
-                if let Some(pending) = pending_user_info_changes {
-                    pending.description = cut_description;
+                if let Some((user_info, _)) = pending_user_info_changes {
+                    user_info.description = cut_description;
                 }
             }
             SettingsMessage::SavePendingUserInfoChanges => {
-                if let Some(pending_changes) = ui.app.user_manager.pending_user_info_changes.take()
+                if let Some((pending_user_info, _)) =
+                    ui.app.user_manager.pending_user_info_changes.take()
                 {
-                    ui.app.user_manager.user_info = pending_changes;
+                    ui.app.user_manager.user_info = pending_user_info;
                     //TODO SEND TO DATABASE
                 }
             }
