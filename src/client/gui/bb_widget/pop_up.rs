@@ -59,8 +59,8 @@ pub fn view_pop_up(user_interface: &UserInterface) -> Element<'_, Message> {
             },
             shadow: Shadow {
                 color: DARK_SHADOW,
-                offset: Vector::new(7.0, 7.0),
-                blur_radius: 0.1,
+                offset: Vector::new(0.0, 0.0),
+                blur_radius: 15.0,
             },
         })
         .width(Fill)
