@@ -4,7 +4,7 @@ use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_s
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text};
 use crate::client::gui::bb_widget::general_exercise_info_elements::display_general_exercise_infos;
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
-use crate::client::gui::bb_widget::{new_widget, workout};
+use crate::client::gui::bb_widget::{new_widget, workout,circle_widget};
 use crate::client::gui::user_interface::Message;
 use iced::Element;
 use iced::widget::scrollable::{Direction, Scrollbar};
@@ -53,7 +53,10 @@ impl App {
             .style(create_container_style(ContainerStyle::Default, None, None))
             .padding(LARGE_INDENT);
 
+        let circle_widget =  circle_widget::CircleWidget::new().view();
+
         let content = column![
+            circle_widget,
             recent_workout_row,
             workout_preset_row,
             exercise_info_container,
