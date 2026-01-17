@@ -1,6 +1,5 @@
 use serde::Deserialize;
 use sqlx::{Sqlite, SqlitePool, Transaction};
-use strum_macros::{Display, EnumString};
 
 //TODO use enums for force, level, equipment, primary_muscle, category
 #[derive(Deserialize)]
