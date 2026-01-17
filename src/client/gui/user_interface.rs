@@ -12,9 +12,7 @@ use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_tab::user::view_profile;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::container::ContainerStyle;
-use crate::client::gui::bb_theme::custom_button::{
-    ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_element_button, create_text_button,
-};
+use crate::client::gui::bb_theme::custom_button::{ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_element_button, create_text_button, create_button_style};
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
 use crate::client::gui::bb_widget::pop_up::view_pop_up;
@@ -282,11 +280,12 @@ impl UserInterface {
                 ]
                 .align_y(Vertical::Center)
                 .into(),
-                ButtonStyle::Active,
+                ButtonStyle::InactiveTab,
                 None,
             )
-            .width(182)
-            .height(35);
+            .on_press(Message::Select(Tab::Mascot))
+            .width(Length::Fill)
+            .height(Length::Shrink);
 
         let lower_tab_container_buttons =
             row![Space::with_width(Length::Fill), money_button].width(310);
