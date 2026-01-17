@@ -56,12 +56,31 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS exercise (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    exercise_name TEXT NOT NULL,
-    description TEXT
+    name TEXT NOT NULL,
+    exercise_force_name TEXT,
+    exercise_level_name TEXT NOT NULL,
+    exercise_equipment_name TEXT,
+    muscle_name TEXT,
+    instructions TEXT NOT NULL,
+    exercise_category_name TEXT NOT NULL
+/*
+    FOREIGN KEY (exercise_force_name) REFERENCES exercise_force (name),
+    FOREIGN KEY (exercise_level_name) REFERENCES exercise_level (name),
+    FOREIGN KEY (exercise_equipment_name) REFERENCES exercise_equipment (name),
+    FOREIGN KEY (muscle_name) REFERENCES muscle (name),
+    FOREIGN KEY (exercise_category_name) REFERENCES exercise_category (name)
+ */
     );",
     )
     .execute(pool)
     .await?;
+    /*
+       create_enum_database_table(pool, "exercise_force").await?;
+       create_enum_database_table(pool, "exercise_level").await?;
+       create_enum_database_table(pool, "exercise_equipment").await?;
+       create_enum_database_table(pool, "muscle").await?;
+       create_enum_database_table(pool, "exercise_category").await?;
+    */
 
     sqlx::query(
         " CREATE TABLE IF NOT EXISTS exerciseLog (
@@ -119,6 +138,22 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     .execute(pool)
     .await?;
 
+    Ok(())
+}
+async fn create_enum_database_table(
+    pool: &SqlitePool,
+    table_name: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        format!(
+            "CREATE TABLE IF NOT EXISTS {table_name}(
+    name TEXT PRIMARY KEY NOT NULL
+    );"
+        )
+        .as_str(),
+    )
+    .execute(pool)
+    .await?;
     Ok(())
 }
 
