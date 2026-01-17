@@ -1,2 +1,2 @@
 pub mod database;
-mod import_exercises;
+pub mod import_exercises;
