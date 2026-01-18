@@ -1,6 +1,5 @@
 use crate::server::database_mod::database;
 use crate::server::database_mod::database::init_db;
-use crate::server::database_mod::import_exercises::import_exercises;
 use crate::server::login::check_login;
 use crate::server::mascot_manager::save_mascot;
 use axum::http::StatusCode;

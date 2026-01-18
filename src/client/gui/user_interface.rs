@@ -13,8 +13,7 @@ use crate::client::gui::bb_tab::user::view_profile;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_theme::custom_button::{
-    ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_button_style, create_element_button,
-    create_text_button,
+    ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_element_button, create_text_button,
 };
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
