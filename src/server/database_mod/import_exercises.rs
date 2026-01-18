@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use sqlx::{Sqlite, SqlitePool, Transaction};
 
-//TODO use enums for force, level, equipment, primary_muscle, category
+//TODO maybe use enums for force, level, equipment, primary_muscle, category
 #[derive(Deserialize)]
 pub struct ExerciseInfo {
     name: String,
@@ -13,6 +13,7 @@ pub struct ExerciseInfo {
     instructions: Vec<String>,
     category: String,
 }
+#[allow(dead_code)]
 pub enum Muscle {
     Abdominals,
     Hamstrings,
@@ -33,22 +34,26 @@ pub enum Muscle {
     Neck,
 }
 
+#[allow(dead_code)]
 pub enum ExerciseForce {
     Pull,
     Push,
 }
 
+#[allow(dead_code)]
 pub enum ExerciseLevel {
     Beginner,
     Intermediate,
     Expert,
 }
 
+#[allow(dead_code)]
 pub enum ExerciseMechanic {
     Compound,
     Isolation,
 }
 
+#[allow(dead_code)]
 pub enum ExerciseEquipment {
     Body,
     Machine,
@@ -63,6 +68,7 @@ pub enum ExerciseEquipment {
     FoamRoll,
 }
 
+#[allow(dead_code)]
 pub enum ExerciseCategory {
     Strength,
     Stretching,
@@ -85,7 +91,11 @@ pub async fn import_exercises(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         .await
         .expect("exercise folder err");
 
-    while let Some(exercise_folder) = exercise_folders.next_entry().await.expect("next err") {
+    while let Some(exercise_folder) = exercise_folders
+        .next_entry()
+        .await
+        .expect("next exercise err")
+    {
         let exercise_json_path = exercise_folder.path().join("exercise.json");
         if !exercise_json_path.exists() {
             continue;
@@ -108,16 +118,16 @@ pub async fn import_exercises(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
 /// Only used for initial filling of the exercise table
 #[allow(dead_code)]
-async fn insert_exercise_in_db<'a>(
-    transaction: &mut Transaction<'a, Sqlite>,
+async fn insert_exercise_in_db(
+    transaction: &mut Transaction<'_, Sqlite>,
     exercise_json: &ExerciseInfo,
 ) -> Result<(), sqlx::Error> {
-    let instructions = exercise_json.instructions.join("\n");
+    let instructions = exercise_json.instructions.join(" ");
     let muscle = exercise_json
         .primary_muscle
-        .get(0)
+        .first()
         .map(|mus| mus.as_str())
-        .unwrap_or("None");
+        .unwrap_or("None"); //Sollte normalerweise nicht passieren
 
     sqlx::query(
         "INSERT INTO exercise (name,exercise_force_name,exercise_level_name,exercise_equipment_name, muscle_name, instructions, exercise_category_name)
@@ -127,7 +137,7 @@ async fn insert_exercise_in_db<'a>(
         .bind(&exercise_json.force)
         .bind(&exercise_json.level)
         .bind(&exercise_json.equipment)
-        .bind(&muscle)
+        .bind(muscle)
         .bind(&instructions)
         .bind(&exercise_json.category)
         .execute(&mut **transaction)
