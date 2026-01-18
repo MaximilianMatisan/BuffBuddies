@@ -318,7 +318,6 @@ impl SettingsMessage {
             }
             SettingsMessage::EditWeight(new_weight) => {
                 if let Some((pending_info, pending_user_info_strings)) = pending_user_info_changes {
-                    //TODO maybe cap amount of input characters
                     let digit_string: String = new_weight
                         .chars()
                         .map(|char| if char == ',' { '.' } else { char })
@@ -332,6 +331,7 @@ impl SettingsMessage {
                             }
                             None
                         })
+                        .take(5)
                         .collect();
                     pending_user_info_strings.weight = digit_string;
 
