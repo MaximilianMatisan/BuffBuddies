@@ -1,17 +1,16 @@
-use crate::client::backend::exercise_mod::exercise::{Exercise, generate_example_exercise};
-use crate::client::backend::exercise_mod::set::Reps;
-use crate::client::backend::exercise_mod::weight::Kg;
+use crate::client::backend::exercise::exercise_stats::{ExerciseStat, generate_example_exercise};
+use crate::client::backend::exercise::general_exercise::GeneralExerciseInfo;
+use crate::client::backend::exercise::set::Reps;
+use crate::client::backend::exercise::weight::Kg;
 use crate::client::gui::bb_widget::activity_widget::activity::AmountOfSets;
 use chrono::NaiveDate;
 use iced::widget::combo_box;
 use std::collections::HashMap;
 
-pub mod exercise;
-pub mod set;
-pub mod weight;
-
 pub struct ExerciseManager {
-    pub exercises: Vec<Exercise>,
+    //TODO get general_exercise_info and exercise_stats from db
+    pub general_exercise_info: Vec<GeneralExerciseInfo>,
+    pub exercise_stats: Vec<ExerciseStat>,
 
     /// Not necessarily a valid exercise_mod name
     pub selected_exercise_name: String,
@@ -30,11 +29,12 @@ impl Default for ExerciseManager {
         let preacher_curl = generate_example_exercise("Preacher curl".to_string(), 50, 40.0);
         let bench_press = generate_example_exercise("Benchpress".to_string(), 200, 60.0);
         let barbell_row = generate_example_exercise("Barbell row".to_string(), 1, 80.0);
-        let lateral_pulldown = Exercise::new("Lateral pulldown".to_string());
+        let lateral_pulldown = ExerciseStat::new("Lateral pulldown".to_string());
 
         let selected_exercise_name = "Benchpress".to_string();
         let mut exercise_manager = ExerciseManager {
-            exercises: vec![preacher_curl, bench_press, barbell_row, lateral_pulldown],
+            general_exercise_info: vec![],
+            exercise_stats: vec![preacher_curl, bench_press, barbell_row, lateral_pulldown],
             selected_exercise_name: selected_exercise_name.clone(),
             owned_exercise_state: combo_box::State::new(vec![]),
             data_points: vec![],
@@ -47,7 +47,7 @@ impl Default for ExerciseManager {
 
         exercise_manager.owned_exercise_state = combo_box::State::new(
             exercise_manager
-                .exercises
+                .exercise_stats
                 .iter()
                 .map(|ex| ex.name.clone())
                 .collect(),
@@ -58,8 +58,8 @@ impl Default for ExerciseManager {
     }
 }
 impl ExerciseManager {
-    pub fn get_selected_exercise(&self) -> Option<&Exercise> {
-        self.exercises
+    pub fn get_selected_exercise(&self) -> Option<&ExerciseStat> {
+        self.exercise_stats
             .iter()
             .find(|ex| ex.name.eq_ignore_ascii_case(&self.selected_exercise_name))
     }
@@ -91,7 +91,9 @@ impl ExerciseManager {
     }
 }
 
-pub fn calculate_activity_data(exercise_data: &Vec<Exercise>) -> HashMap<NaiveDate, AmountOfSets> {
+pub fn calculate_activity_data(
+    exercise_data: &Vec<ExerciseStat>,
+) -> HashMap<NaiveDate, AmountOfSets> {
     let mut map: HashMap<NaiveDate, AmountOfSets> = HashMap::new();
 
     for exercise in exercise_data {

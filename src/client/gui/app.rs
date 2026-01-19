@@ -1,4 +1,6 @@
-use crate::client::backend::exercise_mod::{ExerciseManager, calculate_activity_data};
+use crate::client::backend::exercise::exercise_manager::{
+    ExerciseManager, calculate_activity_data,
+};
 use crate::client::backend::image::image_manager::ImageManager;
 use crate::client::backend::login_state::LoginState;
 use crate::client::backend::mascot_mod::mascot::Mascot;
@@ -30,9 +32,9 @@ impl Default for App {
             login_state: LoginState::default(),
             activity_widget: ActivityWidget::new(
                 default_mascot,
-                calculate_activity_data(&exercise_manager.exercises),
+                calculate_activity_data(&exercise_manager.exercise_stats),
             ),
-            user_manager: UserManager::new(&exercise_manager.exercises),
+            user_manager: UserManager::new(&exercise_manager.exercise_stats),
             mascot_manager: MascotManager::default(),
             exercise_manager,
             image_manager: ImageManager::default(),
