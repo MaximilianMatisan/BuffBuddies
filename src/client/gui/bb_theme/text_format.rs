@@ -1,4 +1,4 @@
-use crate::client::backend::exercise_mod::weight::Kg;
+use crate::client::backend::exercise::weight::Kg;
 use crate::client::gui::bb_theme::color;
 use iced::Renderer;
 use iced_core::font::Family::Name;

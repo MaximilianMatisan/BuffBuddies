@@ -1,4 +1,5 @@
-use crate::client::backend::exercise_mod::{ExerciseManager, exercise};
+use crate::client::backend::exercise::exercise_manager::ExerciseManager;
+use crate::client::backend::exercise::exercise_stats;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
@@ -288,7 +289,7 @@ where
                         );
                     }
                 }
-                let milestones = exercise::get_weight_milestones(
+                let milestones = exercise_stats::get_weight_milestones(
                     lightest_weight,
                     heaviest_weight,
                     FREQUENCY_OF_Y_AXIS_LABELS,

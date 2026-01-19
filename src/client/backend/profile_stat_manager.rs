@@ -1,6 +1,6 @@
-use crate::client::backend::exercise_mod::exercise::Exercise;
-use crate::client::backend::exercise_mod::set::Reps;
-use crate::client::backend::exercise_mod::weight::Kg;
+use crate::client::backend::exercise::exercise_stats::ExerciseStat;
+use crate::client::backend::exercise::set::Reps;
+use crate::client::backend::exercise::weight::Kg;
 
 /// The data included in this struct is only there for performance enhancement purposes
 /// so that these values don't have to be calculated with every frame inside the view function
@@ -13,7 +13,7 @@ pub struct ProfileStatManager {
 }
 
 impl ProfileStatManager {
-    pub fn new(exercise_data: &Vec<Exercise>) -> Self {
+    pub fn new(exercise_data: &Vec<ExerciseStat>) -> Self {
         ProfileStatManager {
             total_sets: total_sets(exercise_data),
             total_reps: total_reps(exercise_data),
@@ -22,28 +22,28 @@ impl ProfileStatManager {
         }
     }
 }
-pub fn total_lifted_weight(exercise_data: &Vec<Exercise>) -> Kg {
+pub fn total_lifted_weight(exercise_data: &Vec<ExerciseStat>) -> Kg {
     let mut result: Kg = 0.0;
     for exercise in exercise_data {
         result += exercise.all_time_lifted_weight();
     }
     result
 }
-pub fn total_sets(exercise_data: &Vec<Exercise>) -> u64 {
+pub fn total_sets(exercise_data: &Vec<ExerciseStat>) -> u64 {
     let mut result: u64 = 0;
     for exercise in exercise_data {
         result += exercise.all_time_sets();
     }
     result
 }
-pub fn total_reps(exercise_data: &Vec<Exercise>) -> Reps {
+pub fn total_reps(exercise_data: &Vec<ExerciseStat>) -> Reps {
     let mut result: Reps = 0;
     for exercise in exercise_data {
         result += exercise.all_time_reps();
     }
     result
 }
-pub fn highest_weight_pr(exercise_data: &Vec<Exercise>) -> (String, Kg) {
+pub fn highest_weight_pr(exercise_data: &Vec<ExerciseStat>) -> (String, Kg) {
     let mut result: (String, Kg) = ("None".to_string(), 0.0);
 
     for exercise in exercise_data {

@@ -1,4 +1,4 @@
-use crate::client::backend::exercise_mod::exercise::{Exercise, generate_example_exercise};
+use crate::client::backend::exercise::exercise_stats::{ExerciseStat, generate_example_exercise};
 use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
@@ -22,7 +22,7 @@ pub struct UserManager {
     pub gender_combo_box_state: combo_box::State<Gender>,
 }
 impl UserManager {
-    pub fn new(exercise_data: &Vec<Exercise>) -> Self {
+    pub fn new(exercise_data: &Vec<ExerciseStat>) -> Self {
         //TODO delete examples
         let user1_exercises = vec![generate_example_exercise(
             "Benchpress".to_string(),

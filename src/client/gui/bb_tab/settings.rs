@@ -1,4 +1,4 @@
-use crate::client::backend::exercise_mod::weight::Kg;
+use crate::client::backend::exercise::weight::Kg;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::user_mod::user::{
     Gender, MAX_DESCRIPTION_CHARACTERS, UserInformation, UserInformationStrings,

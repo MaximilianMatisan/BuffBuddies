@@ -1,5 +1,5 @@
-use crate::client::backend::exercise_mod::exercise::Exercise;
-use crate::client::backend::exercise_mod::weight::Kg;
+use crate::client::backend::exercise::exercise_stats::ExerciseStat;
+use crate::client::backend::exercise::weight::Kg;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use strum_macros::{Display, EnumIter};
@@ -31,7 +31,7 @@ pub struct UserInformation {
     pub profile_stat_manager: ProfileStatManager,
 }
 impl UserInformation {
-    pub fn default(exercise_data: &Vec<Exercise>) -> Self {
+    pub fn default(exercise_data: &Vec<ExerciseStat>) -> Self {
         UserInformation {
             username: "Default_user".to_string(),
             description: "".to_string(),
@@ -49,7 +49,7 @@ impl UserInformation {
 }
 pub struct ForeignUser {
     pub user_information: UserInformation,
-    pub exercise_stats: Vec<Exercise>,
+    pub exercise_stats: Vec<ExerciseStat>,
     pub selected_mascot: Mascot,
     pub owned_mascots: Vec<Mascot>,
     pub friends_with_active_user: bool,

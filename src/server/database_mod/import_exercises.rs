@@ -1,9 +1,8 @@
 use serde::Deserialize;
 use sqlx::{Sqlite, SqlitePool, Transaction};
 
-//TODO maybe use enums for force, level, equipment, primary_muscle, category
 #[derive(Deserialize)]
-pub struct ExerciseInfo {
+pub struct ExerciseJson {
     name: String,
     force: Option<String>,
     level: String,
@@ -12,74 +11,6 @@ pub struct ExerciseInfo {
     primary_muscle: Vec<String>,
     instructions: Vec<String>,
     category: String,
-}
-#[allow(dead_code)]
-pub enum Muscle {
-    Abdominals,
-    Hamstrings,
-    Calves,
-    Shoulders,
-    Adductors,
-    Glutes,
-    Quadriceps,
-    Biceps,
-    Forearms,
-    Abductors,
-    Triceps,
-    Chest,
-    LowerBack,
-    Traps,
-    MiddleBack,
-    Lats,
-    Neck,
-}
-
-#[allow(dead_code)]
-pub enum ExerciseForce {
-    Pull,
-    Push,
-}
-
-#[allow(dead_code)]
-pub enum ExerciseLevel {
-    Beginner,
-    Intermediate,
-    Expert,
-}
-
-#[allow(dead_code)]
-pub enum ExerciseMechanic {
-    Compound,
-    Isolation,
-}
-
-#[allow(dead_code)]
-pub enum ExerciseEquipment {
-    Body,
-    Machine,
-    Kettlebells,
-    Dumbbell,
-    Cable,
-    Barbell,
-    Bands,
-    MedicineBall,
-    ExerciseBall,
-    EzCurlBar,
-    FoamRoll,
-}
-
-#[allow(dead_code)]
-pub enum ExerciseCategory {
-    Strength,
-    Stretching,
-    Plyometrics,
-    Strongman,
-    Powerlifting,
-    Cardio,
-    OlympicWeightlifting,
-    Crossfit,
-    WeightedBodyweight,
-    AssistedBodyweight,
 }
 
 /// Only used for initial filling of the exercise table
@@ -103,7 +34,7 @@ pub async fn import_exercises(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         let exercise_json = tokio::fs::read_to_string(&exercise_json_path)
             .await
             .expect("json to string err");
-        let exercise_info: ExerciseInfo =
+        let exercise_info: ExerciseJson =
             serde_json::from_str(&exercise_json).expect("deserialize err");
 
         if exercise_info.category == "strength" {
@@ -120,7 +51,7 @@ pub async fn import_exercises(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 #[allow(dead_code)]
 async fn insert_exercise_in_db(
     transaction: &mut Transaction<'_, Sqlite>,
-    exercise_json: &ExerciseInfo,
+    exercise_json: &ExerciseJson,
 ) -> Result<(), sqlx::Error> {
     let instructions = exercise_json.instructions.join(" ");
     let muscle = exercise_json
