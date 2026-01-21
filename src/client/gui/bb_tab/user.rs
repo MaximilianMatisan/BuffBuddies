@@ -19,25 +19,25 @@ use iced_core::image::Handle;
 
 pub fn view_profile<'a>(
     app: &'a App,
-    user: &UserInformation,
+    user: &'a UserInformation,
     owned_mascots: &[Mascot],
     favorite_mascot: &Mascot,
 ) -> Element<'a, Message> {
     let profile_picture = container(
-        image(user.profile_picture_handle.clone())
+        image(&user.profile_picture_handle)
             .width(Length::Shrink)
             .height(Length::Fill),
     )
     .padding([0, 40]);
 
-    let username: Element<Message> = text(user.username.clone())
+    let username: Element<Message> = text(&user.username)
         .font(FIRA_SANS_EXTRABOLD)
         .color(TEXT_COLOR)
         .size(40)
         .into();
 
     let description_container: Container<Message> =
-        container(format_description_text(text(user.description.clone())))
+        container(format_description_text(text(&user.description)))
             .style(create_container_style(
                 ContainerStyle::Background,
                 None,
@@ -67,38 +67,38 @@ pub fn view_profile<'a>(
     let streak_stat = profile_stat_container(
         Handle::from_path("assets/images/stats/flame.png"),
         user.weekly_workout_streak.to_string(),
-        "week".to_string(),
-        "streak".to_string(),
+        "week",
+        "streak",
     );
     let total_mascots_stat = profile_stat_container(
         Handle::from_path("assets/images/stats/golden_dog.png"),
         owned_mascots.len().to_string(),
-        "mascots".to_string(),
-        "owned".to_string(),
+        "mascots",
+        "owned",
     );
     let total_sets_stat = profile_stat_container(
         Handle::from_path("assets/images/stats/golden_stats.png"),
         user.profile_stat_manager.total_sets.to_string(),
-        "sets".to_string(),
-        "done".to_string(),
+        "sets",
+        "done",
     );
     let best_pr_stat = profile_stat_container(
         Handle::from_path("assets/images/stats/golden_stats.png"),
         kg_to_string(user.profile_stat_manager.best_pr.1),
-        user.profile_stat_manager.best_pr.0.clone(),
-        "best pr".to_string(),
+        user.profile_stat_manager.best_pr.0.as_str(),
+        "best pr",
     );
     let total_reps_stat = profile_stat_container(
         Handle::from_path("assets/images/stats/golden_biceps.png"),
         user.profile_stat_manager.total_reps.to_string(),
-        "reps".to_string(),
-        "done".to_string(),
+        "reps",
+        "done",
     );
     let total_lifted_stat = profile_stat_container(
         Handle::from_path("assets/images/stats/golden_dumbbell.png"),
         user.profile_stat_manager.total_lifted_weight.to_string(),
-        "kilograms".to_string(),
-        "lifted".to_string(),
+        "kilograms",
+        "lifted",
     );
 
     let stat_row_one = Row::new()
