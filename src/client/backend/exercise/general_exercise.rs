@@ -1,13 +1,13 @@
 //Currently only as template for extracting exercise data from the db in future work
-#[allow(dead_code)]
 pub struct GeneralExerciseInfo {
-    name: String,
-    force: Option<ExerciseForce>,
-    level: ExerciseLevel,
-    equipment: Option<ExerciseEquipment>,
-    primary_muscle: Muscle,
-    instructions: String,
-    category: ExerciseCategory,
+    pub id: u32,
+    pub name: String,
+    pub force: Option<ExerciseForce>,
+    pub level: ExerciseLevel,
+    pub equipment: Option<ExerciseEquipment>,
+    pub primary_muscle: Muscle,
+    pub instructions: String,
+    pub category: ExerciseCategory,
 }
 #[allow(dead_code)]
 pub enum Muscle {

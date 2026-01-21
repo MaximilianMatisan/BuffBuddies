@@ -1,4 +1,5 @@
 pub mod activity_widget;
+pub mod general_exercise_info_elements;
 pub mod new_widget;
 pub mod pop_up;
 pub mod progress;
