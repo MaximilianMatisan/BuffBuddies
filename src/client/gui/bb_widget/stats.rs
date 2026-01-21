@@ -90,8 +90,8 @@ const PROFILE_STAT_CONTAINER_HEIGHT: f32 = 180.0;
 pub fn profile_stat_container<'a>(
     image_handle: Handle,
     value: String,
-    description_line_one: String,
-    description_line_two: String,
+    description_line_one: &'a str,
+    description_line_two: &'a str,
 ) -> Container<'a, Message> {
     let image = image(image_handle).height(PROFILE_STAT_CONTAINER_HEIGHT / 2.0);
 

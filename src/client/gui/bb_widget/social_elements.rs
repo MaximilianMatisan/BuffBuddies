@@ -20,7 +20,7 @@ const MAX_DISPLAYED_NAME_CHARS: usize = 8;
 
 pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
     let profile_picture: Element<Message> = image(Handle::from_path(
-        user.user_information.profile_picture_handle.clone(),
+        &user.user_information.profile_picture_handle
     ))
     .width(MEDIUM_PROFILE_PICTURE_DIMENSION)
     .height(MEDIUM_PROFILE_PICTURE_DIMENSION)
@@ -69,15 +69,15 @@ pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
 
     button
 }
-pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &ForeignUser) -> Button<'a, Message> {
+pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &'a ForeignUser) -> Button<'a, Message> {
     let profile_picture: Element<Message> = image(Handle::from_path(
-        user.user_information.profile_picture_handle.clone(),
+        &user.user_information.profile_picture_handle,
     ))
     .width(SMALL_PROFILE_PICTURE_DIMENSION)
     .height(SMALL_PROFILE_PICTURE_DIMENSION)
     .into();
 
-    let name = format_button_text(text(user.user_information.username.clone()));
+    let name = format_button_text(text(&user.user_information.username));
     let streak = format_description_text(text(format!(
         "{}-week-streak",
         user.user_information.weekly_workout_streak
@@ -122,7 +122,7 @@ pub fn profile_tab_button(app: &App) -> Button<Message> {
     let user: Element<Message> = Row::new()
         .push(
             iced::widget::image(Handle::from_path(
-                app.user_manager.user_info.profile_picture_handle.clone(),
+                &app.user_manager.user_info.profile_picture_handle,
             ))
             .width(100)
             .height(100),
@@ -130,7 +130,7 @@ pub fn profile_tab_button(app: &App) -> Button<Message> {
         .push(Space::with_width(Length::FillPortion(2)))
         .push(column![
             format_button_text(iced::widget::text(
-                app.user_manager.user_info.username.clone()
+                &app.user_manager.user_info.username
             ))
             .size(25),
             format_button_text(
