@@ -6,13 +6,14 @@ use crate::client::backend::user_mod::user::{
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
+use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style, DEFAULT_TEXT_CONTAINER_PADDING};
 use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, create_element_button, create_text_button,
 };
 use crate::client::gui::bb_theme::text_format::{
-    FIRA_SANS_EXTRABOLD, cm_to_string, format_button_text, format_description_text, kg_to_string,
+    FIRA_SANS_EXTRABOLD, cm_to_string, format_description_text, kg_to_string,
 };
+use crate::client::gui::bb_widget::widget_utils::{descriptor_space_fill_element_row, descriptor_space_fill_text_row};
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::size;
 use crate::client::gui::user_interface::{Message, UserInterface};
@@ -32,7 +33,7 @@ impl UserInterface {
 fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
     let user_info = &app.user_manager.user_info;
 
-    let profile_picture = image(Handle::from_path(user_info.profile_picture_handle.clone()))
+    let profile_picture = image(Handle::from_path(&user_info.profile_picture_handle))
         .width(size::LARGE_PROFILE_PICTURE_DIMENSION)
         .height(size::LARGE_PROFILE_PICTURE_DIMENSION);
 
@@ -69,7 +70,7 @@ fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
 }
 fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
     let user_info = &app.user_manager.user_info;
-    let username = text(user_info.username.clone())
+    let username = text(&user_info.username)
         .font(FIRA_SANS_EXTRABOLD)
         .color(TEXT_COLOR)
         .size(40);
@@ -89,7 +90,7 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
     let description_text = if user_info.description.is_empty() {
         format_description_text(text("Tell something about you!"))
     } else {
-        text(user_info.description.clone())
+        text(&user_info.description)
             .font(FIRA_SANS_EXTRABOLD)
             .color(TEXT_COLOR)
     };
@@ -100,7 +101,7 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
             None,
         ))
         .width(SETTINGS_TEXT_INPUT_WIDTH)
-        .padding([3.0, INDENT]); //[top/bottom, left/right]
+        .padding(DEFAULT_TEXT_CONTAINER_PADDING); //[top/bottom, left/right]
 
     let description = Row::new()
         .push(format_description_text(text("Description:")))
@@ -108,23 +109,23 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
         .push(description_text_container);
 
     let user_data_column = Column::new()
-        .push(create_user_data_preview(
+        .push(descriptor_space_fill_text_row(
             "Favorite Mascot:",
             app.user_manager.user_info.favorite_mascot.to_string(),
         ))
-        .push(create_user_data_preview(
+        .push(descriptor_space_fill_text_row(
             "Gender:",
             user_info.gender.to_string(),
         ))
-        .push(create_user_data_preview(
+        .push(descriptor_space_fill_text_row(
             "Weight:",
             kg_to_string(user_info.weight),
         ))
-        .push(create_user_data_preview(
+        .push(descriptor_space_fill_text_row(
             "Height:",
             cm_to_string(user_info.height),
         ))
-        .push(create_user_data_preview(
+        .push(descriptor_space_fill_text_row(
             "Weekly workout goal:",
             user_info.weekly_workout_goal.to_string(),
         ))
@@ -151,7 +152,7 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     };
 
     //Username should currently not be changeable
-    let username = text(pending_info.username.clone())
+    let username = text(&pending_info.username)
         .font(FIRA_SANS_EXTRABOLD)
         .color(TEXT_COLOR)
         .size(40);
@@ -204,8 +205,8 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
 
     let mut user_data_column = Column::new()
         .spacing(3)
-        .push(create_user_data_entry("Favorite Mascot:", mascot_combo_box))
-        .push(create_user_data_entry("Gender:", gender_combo_box.into()));
+        .push(descriptor_space_fill_element_row("Favorite Mascot:", mascot_combo_box))
+        .push(descriptor_space_fill_element_row("Gender:", gender_combo_box.into()));
 
     for (description_text, mut text_input) in text_input_data_fields {
         text_input = text_input
@@ -213,7 +214,7 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
             .font(FIRA_SANS_EXTRABOLD)
             .width(SETTINGS_TEXT_INPUT_WIDTH);
         user_data_column =
-            user_data_column.push(create_user_data_entry(description_text, text_input.into()));
+            user_data_column.push(descriptor_space_fill_element_row(description_text, text_input.into()));
     }
 
     let save_changes_button = create_text_button(
@@ -247,25 +248,6 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
         .width(Length::FillPortion(15));
 
     username_and_data_column
-}
-
-fn create_user_data_preview(
-    description_text: &str,
-    information_text: String,
-) -> Row<SettingsMessage> {
-    create_user_data_entry(
-        description_text,
-        format_button_text(text(information_text)).into(),
-    )
-}
-fn create_user_data_entry<'a>(
-    description_text: &'a str,
-    data_element: Element<'a, SettingsMessage>,
-) -> Row<'a, SettingsMessage> {
-    Row::new()
-        .push(format_description_text(text(description_text)))
-        .push(Space::with_width(Length::Fill))
-        .push(data_element)
 }
 
 #[derive(Debug, Clone)]
