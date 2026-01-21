@@ -1,7 +1,10 @@
+use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
+use crate::client::gui::bb_widget::general_exercise_info_elements::display_general_exercise_infos;
+use crate::client::gui::bb_widget::widget_utils::LARGE_INDENT;
 use crate::client::gui::bb_widget::{new_widget, workout};
 use crate::client::gui::user_interface::{Message, UserInterface};
 use iced::Element;
-use iced::widget::{column, row};
+use iced::widget::{column, container, row};
 
 impl UserInterface {
     pub fn workout_screen(&self) -> Element<Message> {
@@ -19,10 +22,22 @@ impl UserInterface {
         .spacing(30)
         .into();
 
-        let recent_workouts = column![recent_workout_row, workout_preset_row]
-            .padding(30)
-            .spacing(30);
+        let general_exercise_info_elements = display_general_exercise_infos(
+            &self.app.mascot_manager.selected_mascot,
+            &self.app.exercise_manager,
+        );
+        let exercise_info_container = container(general_exercise_info_elements)
+            .style(create_container_style(ContainerStyle::Default, None, None))
+            .padding(LARGE_INDENT);
 
-        recent_workouts.into()
+        let content = column![
+            recent_workout_row,
+            workout_preset_row,
+            exercise_info_container
+        ]
+        .padding(30)
+        .spacing(30);
+
+        content.into()
     }
 }

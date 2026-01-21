@@ -53,6 +53,7 @@ pub enum Message {
     ViewProfile(UserType),
     ResetPopUp,
     Settings(SettingsMessage),
+    ToggleGeneralExerciseInfo(u32),
 }
 
 impl UserInterface {
@@ -239,6 +240,15 @@ impl UserInterface {
                 Task::none()
             }
             Message::Settings(settings_msg) => settings_msg.update(self),
+            Message::ToggleGeneralExerciseInfo(id) => {
+                let extended_set = &mut self.app.exercise_manager.extended_general_exercise_infos;
+                if extended_set.contains(&id) {
+                    extended_set.remove(&id);
+                } else {
+                    extended_set.insert(id);
+                }
+                Task::none()
+            }
         }
     }
     fn view(&self) -> Element<'_, Message> {
