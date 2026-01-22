@@ -40,6 +40,8 @@ impl IntoResponse for ApiError {
 pub async fn server_main() {
     let pool = create_database().await.expect("DB init failed");
 
+    //test_database(&pool).await.expect("test_db_failed");
+
     println!("Launching Server!");
     let app = create_app(pool);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")

@@ -1,5 +1,13 @@
+use crate::client::backend::exercise::exercise_stats::ExerciseStat;
+use crate::client::backend::exercise::set::StrengthSet;
+use crate::client::backend::mascot_mod::mascot::Mascot;
+use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
+use crate::client::backend::profile_stat_manager::ProfileStatManager;
+use crate::client::backend::user_mod::user::{ForeignUser, Gender, UserInformation};
+use chrono::NaiveDate;
 use sqlx::Row;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions};
+use std::collections::BTreeMap;
 use std::str::FromStr;
 
 pub async fn init_pool() -> Result<SqlitePool, sqlx::Error> {
@@ -13,8 +21,7 @@ pub async fn init_pool() -> Result<SqlitePool, sqlx::Error> {
 pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
+    username TEXT PRIMARY KEY,
     user_password TEXT NOT NULL,
     weekly_workout_goal INTEGER NOT NULL,
     weekly_workout_streak INTEGER NOT NULL,
@@ -22,6 +29,8 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     weight FLOAT NOT NULL,
     height FLOAT NOT NULL,
     gender TEXT NOT NULL,
+    favorite_mascot TEXT NOT NULL,
+    selected_mascot TEXT NOT NULL,
     profile_picture TEXT,
     description TEXT
     );",
@@ -32,7 +41,7 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS mascot(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    mascot_name TEXT NOT NULL UNIQUE,
     description TEXT NULL
     );",
     )
@@ -41,13 +50,13 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_mascot(
-    user_id INTEGER NOT NULL,
-    mascot_id INTEGER NOT NULL,
+    username TEXT NOT NULL,
+    mascot_name TEXT NOT NULL,
     level INTEGER NOT NULL,
-    PRIMARY KEY (user_id, mascot_id),
+    PRIMARY KEY (username, mascot_name),
 
-    FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (mascot_id) REFERENCES mascot (id)
+    FOREIGN KEY (username) REFERENCES users (username),
+    FOREIGN KEY (mascot_name) REFERENCES mascot (mascot_name)
     );",
     )
     .execute(pool)
@@ -72,14 +81,12 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         " CREATE TABLE IF NOT EXISTS exerciseLog (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date TEXT NOT NULL,
-    user_id INTEGER NOT NULL,
     username TEXT NOT NULL,
     reps INTEGER NOT NULL,
     exercise_id INTEGER NOT NULL,
     weight_in_kg FLOAT NOT NULL,
-    FOREIGN KEY (username) REFERENCES users(username),
     FOREIGN KEY (exercise_id) REFERENCES exercise(id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (username) REFERENCES users(username)
     );",
     )
     .execute(pool)
@@ -99,12 +106,12 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_preset(
-    user_id INTEGER NOT NULL,
+    username TEXT NOT NULL,
     preset_id INTEGER NOT NULL,
     times_preset_trained INTEGER NOT NULL,
-    PRIMARY KEY (user_id, preset_id),
+    PRIMARY KEY (username, preset_id),
 
-    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (username) REFERENCES users (username),
     FOREIGN KEY (preset_id) REFERENCES preset (id)
     );",
     )
@@ -133,8 +140,8 @@ pub async fn add_user(
     username: &str,
     password: &str,
 ) -> Result<(), sqlx::Error> {
-    sqlx::query("INSERT INTO users (username, user_password, weekly_workout_goal, weekly_workout_streak, coin_balance, weight, height, gender, profile_picture)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    sqlx::query("INSERT INTO users (username, user_password, weekly_workout_goal, weekly_workout_streak, coin_balance, weight, height, gender, favorite_mascot, selected_mascot, profile_picture)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         .bind(username)
         .bind(password)
         .bind(0)
@@ -143,6 +150,8 @@ pub async fn add_user(
         .bind(0)
         .bind(0)
         .bind("Male")
+        .bind("Duck")
+        .bind("Duck")
         .bind("")
         .execute(pool)
         .await?;
@@ -177,13 +186,13 @@ pub async fn check_user(
     }
 }
 #[allow(dead_code)]
-pub async fn print_all_users(pool: &SqlitePool) -> Result<String, sqlx::Error> {
+pub async fn get_all_usernames(pool: &SqlitePool) -> Result<String, sqlx::Error> {
     let rows = sqlx::query("SELECT * from users").fetch_all(pool).await?;
     let mut namen: String = String::from("User: ");
     for row in rows {
         let user: String = row.get("username");
         namen.push_str(&user);
-        namen.push_str(", ");
+        namen.push(' ');
     }
     Ok(namen)
 }
@@ -191,7 +200,7 @@ pub async fn print_all_users(pool: &SqlitePool) -> Result<String, sqlx::Error> {
 pub async fn update_user_weight(
     pool: &SqlitePool,
     username: &str,
-    new_weight: f32,
+    new_weight: f64,
 ) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE users SET weight = ? WHERE username = ?")
         .bind(new_weight)
@@ -204,7 +213,7 @@ pub async fn update_user_weight(
 pub async fn update_user_height(
     pool: &SqlitePool,
     username: &str,
-    new_height: f32,
+    new_height: u32,
 ) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE users SET height = ? WHERE username = ?")
         .bind(new_height)
@@ -217,7 +226,7 @@ pub async fn update_user_height(
 pub async fn update_user_weekly_workout_goal(
     pool: &SqlitePool,
     username: &str,
-    new_goal: f32,
+    new_goal: u32,
 ) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE users SET weekly_workout_goal = ? WHERE username = ?")
         .bind(new_goal)
@@ -244,7 +253,7 @@ pub async fn update_user_gender(
 pub async fn update_user_weekly_workout_streak(
     pool: &SqlitePool,
     username: &str,
-    new_streak: i32,
+    new_streak: u32,
 ) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE users SET weekly_workout_streak = ? WHERE username = ?")
         .bind(new_streak)
@@ -257,7 +266,7 @@ pub async fn update_user_weekly_workout_streak(
 pub async fn update_user_coin_balance(
     pool: &SqlitePool,
     username: &str,
-    new_balance: i32,
+    new_balance: u32,
 ) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE users SET coin_balance = ? WHERE username = ?")
         .bind(new_balance)
@@ -295,6 +304,503 @@ pub async fn add_friend(
             .execute(pool)
             .await?;
     }
+
+    Ok(())
+}
+#[allow(dead_code)]
+pub async fn add_mascot_to_user(
+    pool: &SqlitePool,
+    username: &str,
+    mascot_name: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "INSERT INTO user_mascot (username, mascot_name, level)
+                VALUES (?, ?,?)",
+    )
+    .bind(username)
+    .bind(mascot_name)
+    .bind(1)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+#[allow(dead_code)]
+pub async fn get_mascots_from_user(
+    pool: &SqlitePool,
+    username: &str,
+) -> Result<Vec<String>, sqlx::Error> {
+    let mascot_reihen = sqlx::query("SELECT mascot_name FROM user_mascot WHERE username = ?")
+        .bind(username)
+        .fetch_all(pool)
+        .await?;
+    let mut mascots = Vec::new();
+
+    for mascotreihe in mascot_reihen {
+        let mascot_name = mascotreihe.get("mascot_name");
+        mascots.push(mascot_name);
+    }
+    Ok(mascots)
+}
+#[allow(dead_code)]
+pub async fn update_user_favorite_mascot(
+    pool: &SqlitePool,
+    username: &str,
+    new_favorite_mascot: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE users SET favorite_mascot = ? WHERE username = ?")
+        .bind(new_favorite_mascot)
+        .bind(username)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+#[allow(dead_code)]
+pub async fn get_user_favorite_mascot(
+    pool: &SqlitePool,
+    username: &str,
+) -> Result<String, sqlx::Error> {
+    let favorite_mascot_row = sqlx::query("SELECT favorite_mascot FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_optional(pool)
+        .await?;
+
+    let favorite_mascot = favorite_mascot_row.unwrap().get("favorite_mascot");
+
+    Ok(favorite_mascot)
+}
+#[allow(dead_code)]
+pub async fn update_user_selected_mascot(
+    pool: &SqlitePool,
+    username: &str,
+    new_selected_mascot: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE users SET selected_mascot = ? WHERE username = ?")
+        .bind(new_selected_mascot)
+        .bind(username)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+#[allow(dead_code)]
+pub async fn get_user_selected_mascot(
+    pool: &SqlitePool,
+    username: &str,
+) -> Result<String, sqlx::Error> {
+    let selected_mascot_row = sqlx::query("SELECT selected_mascot FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_optional(pool)
+        .await?;
+
+    let selected_mascot = selected_mascot_row.unwrap().get("selected_mascot");
+
+    Ok(selected_mascot)
+}
+#[allow(dead_code)]
+pub async fn reset_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    sqlx::query("DROP TABLE IF EXISTS friendship")
+        .execute(pool)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS user_preset")
+        .execute(pool)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS preset")
+        .execute(pool)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS exerciseLog")
+        .execute(pool)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS exercise")
+        .execute(pool)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS user_mascot")
+        .execute(pool)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS mascot")
+        .execute(pool)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS users")
+        .execute(pool)
+        .await?;
+
+    init_db(pool).await?;
+
+    Ok(())
+}
+#[allow(dead_code)]
+pub async fn get_user_weight(pool: &SqlitePool, username: &str) -> Result<f32, sqlx::Error> {
+    let row = sqlx::query("SELECT weight FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(row.get("weight"))
+}
+#[allow(dead_code)]
+pub async fn get_user_height(pool: &SqlitePool, username: &str) -> Result<u32, sqlx::Error> {
+    let row = sqlx::query("SELECT height FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(row.get("height"))
+}
+#[allow(dead_code)]
+pub async fn get_user_gender(pool: &SqlitePool, username: &str) -> Result<String, sqlx::Error> {
+    let row = sqlx::query("SELECT gender FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(row.get("gender"))
+}
+#[allow(dead_code)]
+pub async fn get_user_weekly_workout_goal(
+    pool: &SqlitePool,
+    username: &str,
+) -> Result<u32, sqlx::Error> {
+    let row = sqlx::query("SELECT weekly_workout_goal FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(row.get("weekly_workout_goal"))
+}
+#[allow(dead_code)]
+pub async fn get_user_weekly_workout_streak(
+    pool: &SqlitePool,
+    username: &str,
+) -> Result<u32, sqlx::Error> {
+    let row = sqlx::query("SELECT weekly_workout_streak FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(row.get("weekly_workout_streak"))
+}
+#[allow(dead_code)]
+pub async fn get_user_coin_balance(pool: &SqlitePool, username: &str) -> Result<u32, sqlx::Error> {
+    let row = sqlx::query("SELECT coin_balance FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(row.get("coin_balance"))
+}
+#[allow(dead_code)]
+pub async fn get_user_description(
+    pool: &SqlitePool,
+    username: &str,
+) -> Result<String, sqlx::Error> {
+    let row = sqlx::query("SELECT description FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(row.get("description"))
+}
+#[allow(dead_code)]
+pub async fn get_user_profile_picture(
+    pool: &SqlitePool,
+    username: &str,
+) -> Result<String, sqlx::Error> {
+    let row = sqlx::query("SELECT profile_picture FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(row.get("profile_picture"))
+}
+#[allow(dead_code)]
+pub async fn add_exercise(pool: &SqlitePool, name: &str) -> Result<(), sqlx::Error> {
+    sqlx::query("INSERT INTO exercise (exercise_name)VALUES (?)")
+        .bind(name)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+#[allow(dead_code)]
+pub async fn add_exercise_log(
+    pool: &SqlitePool,
+    username: &str,
+    exercise_name: &str,
+    reps: i64,
+    weight: f32,
+    date: &str,
+) -> Result<(), sqlx::Error> {
+    let row = sqlx::query("SELECT id from exercise WHERE exercise_name = ?")
+        .bind(exercise_name)
+        .fetch_one(pool)
+        .await?;
+
+    let id: i64 = row.get("id");
+
+    sqlx::query(
+        "INSERT INTO exerciseLog (date, username, reps, exercise_id, weight_in_kg)
+            VALUES (?, ?, ?, ?, ?)",
+    )
+    .bind(date)
+    .bind(username)
+    .bind(reps)
+    .bind(id)
+    .bind(weight)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+#[allow(dead_code)]
+pub async fn get_exercises_stats(
+    pool: &SqlitePool,
+    username: &str,
+) -> Result<Vec<ExerciseStat>, sqlx::Error> {
+    let exercise_row_for_user = sqlx::query(
+        "SELECT date,reps,weight_in_kg,exercise_id FROM exerciseLog WHERE username = ? ",
+    )
+    .bind(username)
+    .fetch_all(pool)
+    .await?;
+
+    let all_exercises = sqlx::query("SELECT id, exercise_name FROM exercise")
+        .fetch_all(pool)
+        .await?;
+
+    let mut exercises = Vec::new();
+    let mut exercise_ids: Vec<i64> = Vec::new();
+
+    for all_exercise_counter in all_exercises {
+        let name = all_exercise_counter.get("exercise_name");
+        exercises.push(ExerciseStat {
+            name,
+            sets: BTreeMap::new(),
+        });
+        let id = all_exercise_counter.get("id");
+        exercise_ids.push(id);
+    }
+
+    for exercise_log_counter in exercise_row_for_user {
+        let exercise_id: i64 = exercise_log_counter.get("exercise_id");
+        let reps: u32 = exercise_log_counter.get("reps");
+        let weight: f64 = exercise_log_counter.get("weight_in_kg");
+        let date: &str = exercise_log_counter.get("date");
+
+        let real_date = NaiveDate::parse_from_str(date, "%d.%m.%y").unwrap();
+
+        for i in 0..exercise_ids.len() {
+            if exercise_ids[i] == exercise_id {
+                let exercise = &mut exercises[i];
+                exercise.sets.entry(real_date).or_insert_with(Vec::new);
+                let set = StrengthSet { weight, reps };
+                //exercise.name = real_name;
+                exercise.sets.get_mut(&real_date).unwrap().push(set);
+            }
+        }
+    }
+    Ok(exercises)
+}
+#[allow(dead_code)]
+pub async fn get_single_foreign_user(
+    pool: &SqlitePool,
+    active_user: &str,
+    target_username: &str,
+) -> Result<ForeignUser, sqlx::Error> {
+    let row = sqlx::query("SELECT * FROM users WHERE username = ?")
+        .bind(target_username)
+        .fetch_one(pool)
+        .await?;
+
+    let exercise_stats = get_exercises_stats(pool, target_username).await?;
+
+    let friend = sqlx::query("SELECT 1 FROM friendship WHERE username = ? AND friendname = ?")
+        .bind(active_user)
+        .bind(target_username)
+        .fetch_optional(pool)
+        .await?;
+
+    let is_friend = friend.is_some();
+
+    let owned_mascot_rows = sqlx::query("SELECT mascot_name FROM user_mascot WHERE username = ?")
+        .bind(target_username)
+        .fetch_all(pool)
+        .await?;
+
+    let mut owned_mascots = Vec::new();
+    for mascot_row in owned_mascot_rows {
+        let mascot_name: String = mascot_row.get("mascot_name");
+        owned_mascots.push(mascot_from_string(&mascot_name));
+    }
+
+    Ok(ForeignUser {
+        user_information: UserInformation {
+            username: row.get("username"),
+            description: row.get("description"),
+            profile_picture_handle: row.get("profile_picture"),
+            weight: row.get::<f64, _>("weight"),
+            height: row.get::<f64, _>("height") as u32,
+            gender: match row.get("gender") {
+                "Female" => Gender::Female,
+                _ => Gender::Male,
+            },
+            weekly_workout_goal: row.get::<i64, _>("weekly_workout_goal") as u32,
+            weekly_workout_streak: row.get::<i64, _>("weekly_workout_streak") as u32,
+            coin_balance: row.get::<i64, _>("coin_balance") as u32,
+            favorite_mascot: mascot_from_string(row.get("favorite_mascot")),
+            profile_stat_manager: ProfileStatManager::new(&exercise_stats),
+        },
+        exercise_stats,
+        selected_mascot: mascot_from_string(row.get("selected_mascot")),
+        owned_mascots,
+        friends_with_active_user: is_friend,
+    })
+}
+#[allow(dead_code)]
+pub fn mascot_from_string(name: &str) -> Mascot {
+    for mascot in Mascot::iter() {
+        if mascot.get_name() == name {
+            return mascot;
+        }
+    }
+    Mascot::default()
+}
+#[allow(dead_code)]
+pub async fn get_all_friends(
+    pool: &SqlitePool,
+    active_user: &str,
+) -> Result<Vec<ForeignUser>, sqlx::Error> {
+    let mut friends = Vec::new();
+
+    let all_friend_rows = sqlx::query("SELECT friendname FROM friendship WHERE username = ?")
+        .bind(active_user)
+        .fetch_all(pool)
+        .await?;
+
+    for friend_row in all_friend_rows {
+        let name: String = friend_row.get("friendname");
+
+        if let Ok(user) = get_single_foreign_user(pool, active_user, &name).await {
+            friends.push(user);
+        }
+    }
+    Ok(friends)
+}
+#[allow(dead_code)]
+pub async fn get_discovery_users(
+    pool: &SqlitePool,
+    active_user: &str,
+    limit: i64,
+) -> Result<Vec<ForeignUser>, sqlx::Error> {
+    let discovered_users_rows = sqlx::query(
+        "SELECT username FROM users
+         WHERE username != ?
+         AND username NOT IN (SELECT friendname FROM friendship WHERE username = ?)
+         ORDER BY RANDOM()
+         LIMIT ?",
+    )
+    .bind(active_user)
+    .bind(active_user)
+    .bind(limit)
+    .fetch_all(pool)
+    .await?;
+
+    let mut discovery_users = Vec::new();
+
+    for row in discovered_users_rows {
+        let discovered_username: String = row.get("username");
+        if let Ok(user) = get_single_foreign_user(pool, active_user, &discovered_username).await {
+            discovery_users.push(user);
+        }
+    }
+
+    Ok(discovery_users)
+}
+#[allow(dead_code)]
+pub async fn test_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    reset_database(pool).await.expect("database reset failed");
+
+    println!("reseting database was sucecss");
+
+    add_user(pool, "robert", "123").await?;
+    add_user(pool, "felix", "456").await?;
+    add_user(pool, "maxi", "789").await?;
+    add_user(pool, "stefano", "abc").await?;
+    add_user(pool, "anna", "anna").await?;
+    add_user(pool, "banna", "banna").await?;
+    add_user(pool, "canna", "canna").await?;
+    add_user(pool, "danna", "danna").await?;
+    add_user(pool, "fanna", "fanna").await?;
+    add_user(pool, "ganna", "ganna").await?;
+    add_user(pool, "hanna", "hanna").await?;
+
+    println!("Adding users was success");
+
+    add_friend(pool, "robert", "felix").await?;
+    add_friend(pool, "robert", "maxi").await?;
+    add_friend(pool, "robert", "stefano").await?;
+
+    println!("adding friends was success");
+
+    add_exercise(pool, "Bankdrücken").await?;
+    add_exercise(pool, "Squat").await?;
+    add_exercise(pool, "lateral raises").await?;
+
+    add_exercise_log(pool, "felix", "Bankdrücken", 100, 60.0, "10.10.01").await?;
+
+    add_exercise_log(pool, "felix", "Squat", 100, 60.0, "10.10.01").await?;
+
+    add_exercise_log(pool, "felix", "Squat", 100, 100.0, "11.11.01").await?;
+
+    let felix_foreign_user = get_single_foreign_user(pool, "robert", "felix").await?;
+
+    let discovered_foreign_users = get_discovery_users(pool, "robert", 5).await?;
+
+    let mut discovered_user_list = String::new();
+
+    for discovered_user in discovered_foreign_users {
+        let discovered_username = discovered_user.user_information.username;
+        discovered_user_list.push_str(&discovered_username);
+        discovered_user_list.push_str(" , ");
+    }
+
+    println!("These are the discovered users: {}", discovered_user_list);
+
+    assert_eq!(felix_foreign_user.user_information.username, "felix");
+    assert!(felix_foreign_user.friends_with_active_user);
+
+    println!("get single_foreign_user was success");
+
+    let friends_robert = get_all_friends(pool, "robert").await?;
+
+    assert_eq!(friends_robert.len(), 3);
+    assert_eq!(friends_robert[0].user_information.username, "felix");
+
+    println!("get_all_friends was sccess");
+
+    let felix_exercises = get_exercises_stats(pool, "felix").await?;
+
+    assert_eq!(
+        felix_foreign_user.exercise_stats[0].name,
+        felix_exercises[0].name
+    );
+
+    let mut name_list = String::new();
+
+    for felix_exercise_iterator in felix_exercises.iter() {
+        let exercise_name = &felix_exercise_iterator.name;
+
+        let mut amount_sets = 0;
+
+        for sets_list in felix_exercise_iterator.sets.values() {
+            amount_sets += sets_list.len();
+        }
+        let entry = format!("{} ({}x), ", exercise_name, amount_sets);
+        name_list.push_str(&entry);
+    }
+
+    println!(
+        "Success: Felix hat folgende Übungen gemacht so oft gemacht: {}",
+        name_list
+    );
 
     Ok(())
 }
