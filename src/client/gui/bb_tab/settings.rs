@@ -6,15 +6,19 @@ use crate::client::backend::user_mod::user::{
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style, DEFAULT_TEXT_CONTAINER_PADDING};
+use crate::client::gui::bb_theme::container::{
+    ContainerStyle, DEFAULT_TEXT_CONTAINER_PADDING, create_container_style,
+};
 use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, create_element_button, create_text_button,
 };
 use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, cm_to_string, format_description_text, kg_to_string,
 };
-use crate::client::gui::bb_widget::widget_utils::{descriptor_space_fill_element_row, descriptor_space_fill_text_row};
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
+use crate::client::gui::bb_widget::widget_utils::{
+    descriptor_space_fill_element_row, descriptor_space_fill_text_row,
+};
 use crate::client::gui::size;
 use crate::client::gui::user_interface::{Message, UserInterface};
 use iced::widget::{
@@ -205,16 +209,24 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
 
     let mut user_data_column = Column::new()
         .spacing(3)
-        .push(descriptor_space_fill_element_row("Favorite Mascot:", mascot_combo_box))
-        .push(descriptor_space_fill_element_row("Gender:", gender_combo_box.into()));
+        .push(descriptor_space_fill_element_row(
+            "Favorite Mascot:",
+            mascot_combo_box,
+        ))
+        .push(descriptor_space_fill_element_row(
+            "Gender:",
+            gender_combo_box.into(),
+        ));
 
     for (description_text, mut text_input) in text_input_data_fields {
         text_input = text_input
             .style(create_text_input_style(&app.mascot_manager.selected_mascot))
             .font(FIRA_SANS_EXTRABOLD)
             .width(SETTINGS_TEXT_INPUT_WIDTH);
-        user_data_column =
-            user_data_column.push(descriptor_space_fill_element_row(description_text, text_input.into()));
+        user_data_column = user_data_column.push(descriptor_space_fill_element_row(
+            description_text,
+            text_input.into(),
+        ));
     }
 
     let save_changes_button = create_text_button(

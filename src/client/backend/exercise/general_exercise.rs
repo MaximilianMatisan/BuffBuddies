@@ -1,4 +1,5 @@
-//Currently only as template for extracting exercise data from the db in future work
+use strum_macros::Display;
+
 pub struct GeneralExerciseInfo {
     pub id: u32,
     pub name: String,
@@ -9,7 +10,7 @@ pub struct GeneralExerciseInfo {
     pub instructions: String,
     pub category: ExerciseCategory,
 }
-#[allow(dead_code)]
+#[derive(Display)]
 pub enum Muscle {
     Abdominals,
     Hamstrings,
@@ -30,26 +31,20 @@ pub enum Muscle {
     Neck,
 }
 
-#[allow(dead_code)]
+#[derive(Display)]
 pub enum ExerciseForce {
     Pull,
     Push,
 }
 
-#[allow(dead_code)]
+#[derive(Display)]
 pub enum ExerciseLevel {
     Beginner,
     Intermediate,
     Expert,
 }
 
-#[allow(dead_code)]
-pub enum ExerciseMechanic {
-    Compound,
-    Isolation,
-}
-
-#[allow(dead_code)]
+#[derive(Display)]
 pub enum ExerciseEquipment {
     Body,
     Machine,
@@ -64,7 +59,7 @@ pub enum ExerciseEquipment {
     FoamRoll,
 }
 
-#[allow(dead_code)]
+#[derive(Display)]
 pub enum ExerciseCategory {
     Strength,
     Stretching,

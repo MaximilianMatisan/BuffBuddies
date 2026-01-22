@@ -18,9 +18,9 @@ const FRIEND_BUTTON_HEIGHT: f32 = 300.0;
 const USER_BUTTON_WIDTH: f32 = 700.0;
 const MAX_DISPLAYED_NAME_CHARS: usize = 8;
 
-pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
+pub fn friend_user_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
     let profile_picture: Element<Message> = image(Handle::from_path(
-        &user.user_information.profile_picture_handle
+        &user.user_information.profile_picture_handle,
     ))
     .width(MEDIUM_PROFILE_PICTURE_DIMENSION)
     .height(MEDIUM_PROFILE_PICTURE_DIMENSION)
@@ -69,7 +69,10 @@ pub fn friend_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
 
     button
 }
-pub fn user_profile_button<'a>(active_mascot: &Mascot, user: &'a ForeignUser) -> Button<'a, Message> {
+pub fn user_profile_button<'a>(
+    active_mascot: &Mascot,
+    user: &'a ForeignUser,
+) -> Button<'a, Message> {
     let profile_picture: Element<Message> = image(Handle::from_path(
         &user.user_information.profile_picture_handle,
     ))
@@ -129,10 +132,7 @@ pub fn profile_tab_button(app: &App) -> Button<Message> {
         )
         .push(Space::with_width(Length::FillPortion(2)))
         .push(column![
-            format_button_text(iced::widget::text(
-                &app.user_manager.user_info.username
-            ))
-            .size(25),
+            format_button_text(iced::widget::text(&app.user_manager.user_info.username)).size(25),
             format_button_text(
                 iced::widget::text(format!(
                     "{} week streak",
