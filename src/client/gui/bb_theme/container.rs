@@ -1,8 +1,8 @@
 use crate::client::gui::bb_theme;
+use crate::client::gui::bb_widget::widget_utils::INDENT;
 use iced::widget::container::Style;
 use iced_core::border::Radius;
 use iced_core::{Border, Color, Theme};
-use crate::client::gui::bb_widget::widget_utils::INDENT;
 
 pub const DEFAULT_CONTAINER_RADIUS: f32 = 15.0;
 pub const DEFAULT_TEXT_CONTAINER_PADDING: [f32; 2] = [3.0, INDENT];

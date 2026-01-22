@@ -1,11 +1,13 @@
+use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
+use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use crate::client::gui::bb_widget::general_exercise_info_elements::display_general_exercise_infos;
-use crate::client::gui::bb_widget::widget_utils::LARGE_INDENT;
+use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::bb_widget::{new_widget, workout};
 use crate::client::gui::user_interface::{Message, UserInterface};
 use iced::Element;
-use iced::widget::{column, container, row, scrollable, Scrollable};
 use iced::widget::scrollable::{Direction, Scrollbar};
+use iced::widget::{Column, Scrollable, column, container, row, text};
 
 impl UserInterface {
     pub fn workout_screen(&self) -> Element<Message> {
@@ -13,21 +15,31 @@ impl UserInterface {
             new_widget::new_workout_widget_button(),
             workout::WorkoutWidget::default_recent_workout_widget()
         ]
-        .spacing(30)
+        .spacing(LARGE_INDENT)
         .into();
 
         let workout_preset_row: Element<Message> = row![
             new_widget::new_preset_widget_button(),
             workout::WorkoutWidget::default_workout_preset_widget()
         ]
-        .spacing(30)
+        .spacing(LARGE_INDENT)
         .into();
 
         let general_exercise_info_elements = display_general_exercise_infos(
             &self.app.mascot_manager.selected_mascot,
             &self.app.exercise_manager,
         );
-        let exercise_info_container = container(general_exercise_info_elements)
+        let browse_exercises_title = text("Browse exercises")
+            .size(30)
+            .font(FIRA_SANS_EXTRABOLD)
+            .color(TEXT_COLOR);
+
+        let exercise_browser = Column::new()
+            .push(browse_exercises_title)
+            .push(general_exercise_info_elements)
+            .spacing(INDENT);
+
+        let exercise_info_container = container(exercise_browser)
             .style(create_container_style(ContainerStyle::Default, None, None))
             .padding(LARGE_INDENT);
 
@@ -36,8 +48,8 @@ impl UserInterface {
             workout_preset_row,
             exercise_info_container,
         ]
-        .padding(30)
-        .spacing(30);
+        .padding(LARGE_INDENT)
+        .spacing(LARGE_INDENT);
 
         Scrollable::new(content)
             .direction(Direction::Vertical(Scrollbar::new()))

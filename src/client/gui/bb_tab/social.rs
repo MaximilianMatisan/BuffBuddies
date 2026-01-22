@@ -1,7 +1,7 @@
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
-use crate::client::gui::bb_widget::social_elements::{friend_button, user_profile_button};
+use crate::client::gui::bb_widget::social_elements::{friend_user_button, user_profile_button};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::{Message, UserInterface};
 use iced::Element;
@@ -18,7 +18,7 @@ impl UserInterface {
         let mut friend_buttons = Row::new().spacing(INDENT).padding(INDENT);
 
         for friend in &friends {
-            friend_buttons = friend_buttons.push(friend_button(&self.app, friend))
+            friend_buttons = friend_buttons.push(friend_user_button(&self.app, friend))
         }
         let scrollable_friends =
             Scrollable::new(friend_buttons).direction(Direction::Horizontal(Scrollbar::new()));
