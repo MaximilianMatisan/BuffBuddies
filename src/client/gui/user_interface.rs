@@ -10,6 +10,7 @@ use crate::client::gui::bb_tab::login::view_login;
 use crate::client::gui::bb_tab::settings::SettingsMessage;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_tab::user::view_profile;
+use crate::client::gui::bb_tab::workout_creation::WorkoutCreationMessage;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_theme::custom_button::{
@@ -57,6 +58,7 @@ pub enum Message {
     ResetPopUp,
     Settings(SettingsMessage),
     ToggleGeneralExerciseInfo(u32),
+    WorkoutCreation(WorkoutCreationMessage),
 }
 
 impl UserInterface {
@@ -68,6 +70,10 @@ impl UserInterface {
                     self.app.mascot_manager.selected_mascot,
                     calculate_activity_data(&self.app.exercise_manager.exercise_stats),
                 );
+
+                if let Tab::CreateWorkout = tab {
+                    self.app.exercise_manager.start_workout();
+                }
 
                 self.app.screen = tab;
                 Task::none()
@@ -287,6 +293,7 @@ impl UserInterface {
                 }
                 Task::none()
             }
+            Message::WorkoutCreation(workout_creation_msg) => workout_creation_msg.update(self),
         }
     }
     fn view(&self) -> Element<'_, Message> {
@@ -359,6 +366,7 @@ impl UserInterface {
             Tab::Mascot => Some(self.mascot_screen()),
             Tab::Settings => Some(self.settings_screen()),
             Tab::Exit => None,
+            Tab::CreateWorkout => Some(self.workout_creation_screen()),
             Tab::ViewProfile => {
                 let user_type = &self.app.user_manager.most_recently_viewed_user;
 

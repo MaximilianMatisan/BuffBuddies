@@ -59,7 +59,7 @@ pub fn new_workout_widget_button<'a>() -> Button<'a, Message, Theme, Renderer> {
     })
     .width(BUTTONS_WIDTH)
     .height(NEW_WORKOUT_BUTTON_HEIGHT)
-    .on_press(Message::Select(Tab::Home))
+    .on_press(Message::Select(Tab::CreateWorkout))
 }
 
 pub fn new_preset_widget_button<'a>() -> Button<'a, Message, Theme, Renderer> {

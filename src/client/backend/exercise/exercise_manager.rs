@@ -1,3 +1,4 @@
+use crate::client::backend::exercise::exercise_create::{ExerciseCreate, ExerciseCreateString};
 use crate::client::backend::exercise::exercise_stats::{
     ExerciseDataPoints, ExerciseStat, generate_example_exercise,
 };
@@ -5,10 +6,11 @@ use crate::client::backend::exercise::general_exercise::GeneralExerciseInfo;
 use crate::client::backend::exercise::general_exercise::{
     ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, Muscle,
 };
-use crate::client::backend::exercise::set::Reps;
+use crate::client::backend::exercise::set::{Reps, StrengthSet};
 use crate::client::backend::exercise::weight::Kg;
+use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
 use crate::client::gui::bb_widget::activity_widget::activity::AmountOfSets;
-use chrono::NaiveDate;
+use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::{HashMap, HashSet};
 
@@ -31,6 +33,10 @@ pub struct ExerciseManager {
     pub all_time_sets: u64,
     pub weight_personal_record: Kg,
     pub set_with_most_total_lifted_weight: (NaiveDate, Kg),
+    // Needed for exercise creation menu
+    pub workout_in_creation: Option<Vec<ExerciseCreate>>,
+    pub exercise_in_edit_number: Option<ExerciseNumber>,
+    pub exercise_in_edit_strings: Option<ExerciseCreateString>,
 }
 impl Default for ExerciseManager {
     fn default() -> Self {
@@ -80,6 +86,9 @@ When you are done, place the bar back in the rack.".to_string(),
             all_time_sets: 0,
             weight_personal_record: 0.0,
             set_with_most_total_lifted_weight: (Default::default(), 0.0),
+            workout_in_creation: None,
+            exercise_in_edit_number: None,
+            exercise_in_edit_strings: None,
         };
 
         exercise_manager.owned_exercise_state = combo_box::State::new(
@@ -125,6 +134,54 @@ impl ExerciseManager {
             self.weight_personal_record = 0.0;
             self.set_with_most_total_lifted_weight = (NaiveDate::default(), 0.0);
         }
+    }
+
+    pub fn save_workout(&mut self, workout: &Vec<ExerciseCreate>) -> Result<(), ()> {
+        let local_time = Local::now().date_naive();
+        for exercise_stat in &mut self.exercise_stats {
+            for exercise in workout {
+                if exercise.name == exercise_stat.name && !exercise.sets.is_empty() {
+                    match exercise_stat.sets.get(&local_time) {
+                        None => {
+                            exercise_stat.sets.insert(local_time, exercise.sets.clone());
+                        }
+                        Some(old_sets_same_day) => {
+                            let mut new_vec = old_sets_same_day.clone();
+                            for set in &exercise.sets {
+                                new_vec.push(set.clone());
+                            }
+                            exercise_stat.sets.remove(&local_time);
+                            exercise_stat.sets.insert(local_time, new_vec);
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn clear_workout(&mut self) {
+        self.workout_in_creation = None;
+        self.exercise_in_edit_strings = None;
+        self.exercise_in_edit_number = None;
+    }
+
+    pub fn start_workout(&mut self) {
+        self.workout_in_creation = Some(Vec::new());
+    }
+
+    pub fn get_last_done_set(&self, exercise: &String) -> Option<StrengthSet> {
+        let mut set = None;
+        for exercise_stat in &self.exercise_stats {
+            if exercise_stat.name == *exercise {
+                if let Some((_date, sets)) = exercise_stat.sets.iter().next_back() {
+                    if !sets.is_empty() {
+                        set = Some(sets[0].clone())
+                    }
+                }
+            }
+        }
+        set
     }
 }
 
