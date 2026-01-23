@@ -1,5 +1,6 @@
-use crate::client::backend::exercise::set::{Reps, StrengthSet};
-use crate::client::backend::exercise::weight::{ExerciseWeight, Kg};
+use crate::client::backend::exercise_mod::general_exercise::GeneralExerciseInfo;
+use crate::client::backend::exercise_mod::set::{Reps, StrengthSet};
+use crate::client::backend::exercise_mod::weight::{ExerciseWeight, Kg};
 use chrono::{Duration, Local, NaiveDate};
 use rand::Rng;
 use std::collections::BTreeMap;
@@ -7,21 +8,20 @@ use std::fmt::{Display, Formatter};
 
 pub type ExerciseDataPoints = Vec<(NaiveDate, Kg)>;
 
-#[derive(Debug, Clone)]
-pub struct ExerciseStat {
-    pub name: String,
+pub struct Exercise {
+    pub general_exercise_info: GeneralExerciseInfo,
     pub sets: BTreeMap<NaiveDate, Vec<StrengthSet>>,
 }
 
-impl Display for ExerciseStat {
+impl Display for Exercise {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.name)
+        write!(f, "{}", self.general_exercise_info.name)
     }
 }
-impl ExerciseStat {
-    pub fn new(name: String) -> Self {
+impl Exercise {
+    pub fn new(general_exercise_info: GeneralExerciseInfo) -> Self {
         Self {
-            name,
+            general_exercise_info,
             sets: Default::default(),
         }
     }
@@ -113,11 +113,11 @@ pub fn get_weight_milestones(start_number: u32, end_number: u32, steps: u32) -> 
 }
 
 pub fn generate_example_exercise(
-    name: String,
+    name: GeneralExerciseInfo,
     sets_on_different_days: usize,
     base_weight: Kg,
-) -> ExerciseStat {
-    let mut exercise = ExerciseStat::new(name);
+) -> Exercise {
+    let mut exercise = Exercise::new(name);
 
     let mut cur_day = NaiveDate::from_ymd_opt(2025, 1, 1).unwrap();
     let mut weight = base_weight;
@@ -153,7 +153,7 @@ pub fn get_maximum_weight(datapoints: &[(NaiveDate, Kg)]) -> Option<f32> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::client::backend::exercise::set::Reps;
+    use crate::client::backend::exercise_mod::set::Reps;
 
     const CUSTOM_TRACKED_DAYS: u32 = 45;
     const CUSTOM_SETS_PER_DAY: u32 = 10;
@@ -165,8 +165,8 @@ mod tests {
         sets_per_day: u32,
         weight_per_set: Kg,
         reps_per_set: Reps,
-    ) -> ExerciseStat {
-        let mut exercise = ExerciseStat::new("Custom Exercise".to_string());
+    ) -> Exercise {
+        let mut exercise = Exercise::new(GeneralExerciseInfo::test_obj());
         let mut date = first_tracked_day;
         for _ in 0..tracked_days {
             for _ in 0..sets_per_day {
@@ -183,7 +183,7 @@ mod tests {
         }
         exercise
     }
-    fn custom_exercise_preset() -> ExerciseStat {
+    fn custom_exercise_preset() -> Exercise {
         create_custom_exercise(
             Local::now().date_naive(),
             CUSTOM_TRACKED_DAYS,
@@ -206,8 +206,8 @@ mod tests {
         [55.0, MOCK_BEST_WEIGHT_DAY_TWO, 57.5],
     ];
     const MOCK_REPS: [[Reps; MOCK_SETS_PER_DAY]; MOCK_DAYS] = [[13, 12, 10], [15, 15, 11]];
-    fn mock_exercise() -> ExerciseStat {
-        let mut exercise = ExerciseStat::new("Custom Exercise".to_string());
+    fn mock_exercise() -> Exercise {
+        let mut exercise = Exercise::new(GeneralExerciseInfo::test_obj());
 
         for day in 0..MOCK_DAYS {
             for set in 0..MOCK_SETS_PER_DAY {
@@ -237,7 +237,7 @@ mod tests {
     }
     #[test]
     fn test_calculate_max_weight_per_day() {
-        let empty_exercise = ExerciseStat::new("Empty Exercise".to_string());
+        let empty_exercise = Exercise::new(GeneralExerciseInfo::test_obj());
         assert_eq!(empty_exercise.calculate_max_weight_per_day(), vec![]);
 
         let custom_exercise = custom_exercise_preset();
@@ -261,7 +261,7 @@ mod tests {
     }
     #[test]
     fn test_all_time_lifted_weight() {
-        let empty_exercise = ExerciseStat::new("Empty Exercise".to_string());
+        let empty_exercise = Exercise::new(GeneralExerciseInfo::test_obj());
         assert_eq!(empty_exercise.all_time_lifted_weight(), 0.0);
 
         let custom_exercise = custom_exercise_preset();
@@ -289,7 +289,7 @@ mod tests {
     }
     #[test]
     fn test_all_time_reps() {
-        let empty_exercise = ExerciseStat::new("Empty Exercise".to_string());
+        let empty_exercise = Exercise::new(GeneralExerciseInfo::test_obj());
         assert_eq!(empty_exercise.all_time_reps(), 0);
 
         let custom_exercise = custom_exercise_preset();
@@ -306,7 +306,7 @@ mod tests {
     }
     #[test]
     fn test_all_time_sets() {
-        let empty_exercise = ExerciseStat::new("Empty Exercise".to_string());
+        let empty_exercise = Exercise::new(GeneralExerciseInfo::test_obj());
         assert_eq!(empty_exercise.all_time_sets(), 0);
 
         let custom_exercise = custom_exercise_preset();
@@ -322,7 +322,7 @@ mod tests {
     }
     #[test]
     fn test_weight_personal_record() {
-        let empty_exercise = ExerciseStat::new("Empty Exercise".to_string());
+        let empty_exercise = Exercise::new(GeneralExerciseInfo::test_obj());
         assert_eq!(empty_exercise.weight_personal_record(), 0.0);
 
         let custom_exercise = custom_exercise_preset();
@@ -341,7 +341,7 @@ mod tests {
     }
     #[test]
     fn test_set_with_most_total_lifted_weight() {
-        let empty_exercise = ExerciseStat::new("Empty Exercise".to_string());
+        let empty_exercise = Exercise::new(GeneralExerciseInfo::test_obj());
         assert_eq!(
             empty_exercise.set_with_most_total_lifted_weight(),
             (Local::now().date_naive(), 0.0)

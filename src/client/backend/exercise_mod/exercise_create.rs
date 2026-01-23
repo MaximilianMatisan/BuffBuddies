@@ -1,5 +1,5 @@
-use crate::client::backend::exercise::set::StrengthSet;
-use crate::client::backend::exercise::weight::{ExerciseWeight, Kg};
+use crate::client::backend::exercise_mod::set::StrengthSet;
+use crate::client::backend::exercise_mod::weight::{ExerciseWeight, Kg};
 
 #[derive(Clone)]
 pub struct ExerciseCreate {

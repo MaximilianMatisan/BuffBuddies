@@ -1,4 +1,4 @@
-use crate::client::backend::exercise::exercise_manager::calculate_activity_data;
+use crate::client::backend::exercise_mod::exercise_manager::calculate_activity_data;
 use crate::client::backend::login_state::LoginStateError;
 use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::{Mascot, MascotRarity};
@@ -69,7 +69,7 @@ impl UserInterface {
             Message::Select(tab) => {
                 self.app.activity_widget.update_data(
                     self.app.mascot_manager.selected_mascot,
-                    calculate_activity_data(&self.app.exercise_manager.exercise_stats),
+                    calculate_activity_data(&self.app.exercise_manager.exercises),
                 );
 
                 if let Tab::CreateWorkout = tab {
@@ -262,7 +262,7 @@ impl UserInterface {
                     UserType::Own => {
                         self.app.activity_widget.update_data(
                             self.app.user_manager.user_info.favorite_mascot,
-                            calculate_activity_data(&self.app.exercise_manager.exercise_stats),
+                            calculate_activity_data(&self.app.exercise_manager.exercises),
                         );
                         self.app.user_manager.most_recently_viewed_user = UserType::Own
                     }
