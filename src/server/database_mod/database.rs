@@ -167,7 +167,7 @@ pub enum ValidUser {
 pub async fn check_user(
     pool: &SqlitePool,
     username: &str,
-    passwort: &str,
+    password: &str,
 ) -> Result<ValidUser, sqlx::Error> {
     let user = sqlx::query("SELECT user_password FROM users WHERE username == ? ")
         .bind(username)
@@ -176,8 +176,8 @@ pub async fn check_user(
     match user {
         None => Ok(ValidUser::UserNotFound),
         Some(row) => {
-            let saved_passwort: String = row.get("user_password");
-            if saved_passwort == passwort {
+            let saved_password: String = row.get("user_password");
+            if saved_password == password {
                 Ok(ValidUser::Valid)
             } else {
                 Ok(ValidUser::WrongPassword)
@@ -188,13 +188,13 @@ pub async fn check_user(
 #[allow(dead_code)]
 pub async fn get_all_usernames(pool: &SqlitePool) -> Result<String, sqlx::Error> {
     let rows = sqlx::query("SELECT * from users").fetch_all(pool).await?;
-    let mut namen: String = String::from("User: ");
+    let mut names: String = String::from("User: ");
     for row in rows {
         let user: String = row.get("username");
-        namen.push_str(&user);
-        namen.push(' ');
+        names.push_str(&user);
+        names.push(' ');
     }
-    Ok(namen)
+    Ok(names)
 }
 #[allow(dead_code)]
 pub async fn update_user_weight(
@@ -330,14 +330,14 @@ pub async fn get_mascots_from_user(
     pool: &SqlitePool,
     username: &str,
 ) -> Result<Vec<String>, sqlx::Error> {
-    let mascot_reihen = sqlx::query("SELECT mascot_name FROM user_mascot WHERE username = ?")
+    let mascot_rows = sqlx::query("SELECT mascot_name FROM user_mascot WHERE username = ?")
         .bind(username)
         .fetch_all(pool)
         .await?;
     let mut mascots = Vec::new();
 
-    for mascotreihe in mascot_reihen {
-        let mascot_name = mascotreihe.get("mascot_name");
+    for mascot_row in mascot_rows {
+        let mascot_name = mascot_row.get("mascot_name");
         mascots.push(mascot_name);
     }
     Ok(mascots)
@@ -410,9 +410,9 @@ pub async fn reset_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("DROP TABLE IF EXISTS exerciseLog")
         .execute(pool)
         .await?;
-    sqlx::query("DROP TABLE IF EXISTS exercise")
-        .execute(pool)
-        .await?;
+    //sqlx::query("DROP TABLE IF EXISTS exercise")
+    //.execute(pool)
+    //.await?;
     sqlx::query("DROP TABLE IF EXISTS user_mascot")
         .execute(pool)
         .await?;

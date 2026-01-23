@@ -78,9 +78,7 @@ fn general_exercise_info_element<'a>(
 }
 fn create_extended_infos(general_exercise_info: &GeneralExerciseInfo) -> Row<Message> {
     let content = Row::new()
-        .push(instruction_container(
-            &general_exercise_info.instructions,
-        ))
+        .push(instruction_container(&general_exercise_info.instructions))
         .push(detail_column(general_exercise_info))
         .spacing(INDENT)
         .padding(Padding {
