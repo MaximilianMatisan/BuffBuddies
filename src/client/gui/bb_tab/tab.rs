@@ -11,6 +11,7 @@ pub enum Tab {
     Exit,
     //Further frames
     ViewProfile,
+    CreateWorkout,
 }
 
 impl Tab {

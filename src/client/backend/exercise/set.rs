@@ -15,3 +15,12 @@ impl StrengthSet {
         self.weight * self.reps as Kg
     }
 }
+
+impl Default for StrengthSet {
+    fn default() -> Self {
+        StrengthSet {
+            weight: 0.0,
+            reps: 0,
+        }
+    }
+}
