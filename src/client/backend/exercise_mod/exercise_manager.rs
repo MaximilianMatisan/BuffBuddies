@@ -9,7 +9,7 @@ use crate::client::backend::exercise_mod::set::{Reps, StrengthSet};
 use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::user_mod::user::UserInformation;
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
-use crate::client::gui::bb_widget::activity_widget::activity::AmountOfSets;
+use crate::client::gui::bb_widget::activity_widget::activity::{ActivityData, AmountOfSets};
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::{HashMap, HashSet};
@@ -212,8 +212,8 @@ impl ExerciseManager {
     }
 }
 
-pub fn calculate_activity_data(exercise_data: &Vec<Exercise>) -> HashMap<NaiveDate, AmountOfSets> {
-    let mut map: HashMap<NaiveDate, AmountOfSets> = HashMap::new();
+pub fn calculate_activity_data(exercise_data: &Vec<Exercise>) -> ActivityData {
+    let mut map: ActivityData = HashMap::new();
 
     for exercise in exercise_data {
         for (date, set) in &exercise.sets {
