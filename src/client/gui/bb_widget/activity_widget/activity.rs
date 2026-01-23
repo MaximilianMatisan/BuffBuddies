@@ -30,6 +30,7 @@ const DEFAULT_NAVIGATION_BUTTON_WIDTH: f32 = 130.0;
 const DEFAULT_NAVIGATION_BUTTON_HEIGHT: f32 = 40.0;
 pub const ACTIVITY_SQUARE_BORDER_RADIUS: f32 = 3.0;
 const TIME_TEXT_HEIGHT: f32 = 12.0;
+pub type ActivityData = HashMap<NaiveDate, AmountOfSets>;
 
 #[derive(Debug, Clone)]
 pub struct SquareDimensions {
@@ -45,7 +46,7 @@ pub struct ActivityWidget {
     height: f32,
     current_scope: DateScope,
     current_offset: Offset,
-    activity: HashMap<NaiveDate, AmountOfSets>,
+    activity: ActivityData,
     active_mascot: Mascot,
     today: NaiveDate,
 }
@@ -57,7 +58,7 @@ pub enum ActivityMessage {
 }
 
 impl ActivityWidget {
-    pub fn new(active_mascot: Mascot, activity: HashMap<NaiveDate, AmountOfSets>) -> Self {
+    pub fn new(active_mascot: Mascot, activity: ActivityData) -> Self {
         let mut activity_widget = ActivityWidget {
             width: 0.0,
             height: 0.0,
@@ -75,7 +76,7 @@ impl ActivityWidget {
     pub fn update_active_mascot(&mut self, mascot: Mascot) {
         self.active_mascot = mascot
     }
-    pub fn update_data(&mut self, mascot: Mascot, activity_data: HashMap<NaiveDate, AmountOfSets>) {
+    pub fn update_data(&mut self, mascot: Mascot, activity_data: ActivityData) {
         self.active_mascot = mascot;
         self.activity = activity_data;
     }

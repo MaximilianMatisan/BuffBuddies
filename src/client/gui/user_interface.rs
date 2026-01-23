@@ -271,7 +271,10 @@ impl UserInterface {
                         if let Some(user) = opt_user {
                             self.app.activity_widget.update_data(
                                 user.user_information.favorite_mascot,
-                                calculate_activity_data(&user.exercise_stats),
+                                user.user_information
+                                    .profile_stat_manager
+                                    .activity_data
+                                    .clone(), //TODO maybe without clone possible?
                             );
                         }
                         self.app.user_manager.most_recently_viewed_user = UserType::Other(username);
