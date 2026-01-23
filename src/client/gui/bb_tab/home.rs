@@ -5,6 +5,7 @@ use iced::Element;
 use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{Column, Row, Scrollable, Space};
 use iced_core::Length;
+use crate::client::gui::bb_widget::graph:: GraphWidget;
 
 impl UserInterface {
     pub fn homescreen(&self) -> Element<Message> {
@@ -18,6 +19,7 @@ impl UserInterface {
         let contents = Column::new()
             .push(activity_widget)
             .push(progress_widget)
+            .push(GraphWidget::new(&self.app).view())
             .spacing(INDENT)
             .padding(INDENT);
 
