@@ -1,13 +1,12 @@
-use crate::client::backend::exercise::exercise_create::{ExerciseCreate, ExerciseCreateString};
-use crate::client::backend::exercise::exercise_stats::{
-    ExerciseDataPoints, ExerciseStat, generate_example_exercise,
+use crate::client::backend::exercise_mod::exercise::{
+    Exercise, ExerciseDataPoints, generate_example_exercise,
 };
-use crate::client::backend::exercise::general_exercise::GeneralExerciseInfo;
-use crate::client::backend::exercise::general_exercise::{
-    ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, Muscle,
+use crate::client::backend::exercise_mod::exercise_create::{ExerciseCreate, ExerciseCreateString};
+use crate::client::backend::exercise_mod::general_exercise::{
+    ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Muscle,
 };
-use crate::client::backend::exercise::set::{Reps, StrengthSet};
-use crate::client::backend::exercise::weight::Kg;
+use crate::client::backend::exercise_mod::set::{Reps, StrengthSet};
+use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::user_mod::user::UserInformation;
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
 use crate::client::gui::bb_widget::activity_widget::activity::AmountOfSets;
@@ -16,12 +15,11 @@ use iced::widget::combo_box;
 use std::collections::{HashMap, HashSet};
 
 pub struct ExerciseManager {
-    //TODO get general_exercise_info and exercise_stats from db
-    pub general_exercise_info: Vec<GeneralExerciseInfo>,
+    //TODO get exercises from db
+    pub exercises: Vec<Exercise>,
+
     ///Show further general infos for these exercise_ids in the gui
     pub extended_general_exercise_infos: HashSet<u32>,
-
-    pub exercise_stats: Vec<ExerciseStat>,
 
     /// Not necessarily a valid exercise_mod name
     pub selected_exercise_name: String,
@@ -41,13 +39,7 @@ pub struct ExerciseManager {
 }
 impl Default for ExerciseManager {
     fn default() -> Self {
-        let preacher_curl = generate_example_exercise("Preacher curl".to_string(), 50, 40.0);
-        let bench_press = generate_example_exercise("Bench press".to_string(), 200, 60.0);
-        let barbell_row = generate_example_exercise("Barbell row".to_string(), 1, 80.0);
-        let lateral_pulldown = ExerciseStat::new("Lateral pulldown".to_string());
-
-        let selected_exercise_name = "Bench press".to_string();
-        let test_exercise_info_0 = GeneralExerciseInfo {
+        let general_info_preacher_curl = GeneralExerciseInfo {
             id: 0,
             name: "Preacher Curl".to_string(),
             force: ExerciseForce::Pull,
@@ -61,7 +53,7 @@ As you exhale, use the biceps to curl the weight up until your biceps is fully c
 Repeat for the recommended amount of repetitions.".to_string(),
             category: ExerciseCategory::Strength,
         };
-        let test_exercise_info_1 = GeneralExerciseInfo {
+        let general_info_bench_press = GeneralExerciseInfo {
             id: 1,
             name: "Bench press".to_string(),
             force: ExerciseForce::Push,
@@ -75,10 +67,28 @@ Repeat the movement for the prescribed amount of repetitions.
 When you are done, place the bar back in the rack.".to_string(),
             category: ExerciseCategory::Strength,
         };
+        let general_info_barbell_row = GeneralExerciseInfo {
+            id: 2,
+            name: "Bent over barbell row".to_string(),
+            force: ExerciseForce::Pull,
+            level: ExerciseLevel::Beginner,
+            equipment: ExerciseEquipment::Barbell,
+            primary_muscle: Muscle::MiddleBack,
+            instructions: "Holding a barbell with a pronated grip (palms facing down), bend your knees slightly and bring your torso forward, by bending at the waist, while keeping the back straight until it is almost parallel to the floor. Tip: Make sure that you keep the head up. The barbell should hang directly in front of you as your arms hang perpendicular to the floor and your torso. This is your starting position.
+Now, while keeping the torso stationary, breathe out and lift the barbell to you. Keep the elbows close to the body and only use the forearms to hold the weight. At the top contracted position, squeeze the back muscles and hold for a brief pause.
+Then inhale and slowly lower the barbell back to the starting position.
+Repeat for the recommended amount of repetitions.".to_string(),
+            category: ExerciseCategory::Strength
+        };
+
+        let preacher_curl = generate_example_exercise(general_info_preacher_curl, 50, 40.0);
+        let bench_press = generate_example_exercise(general_info_bench_press, 200, 60.0);
+        let barbell_row = generate_example_exercise(general_info_barbell_row, 1, 80.0);
+
+        let selected_exercise_name = "Bench press".to_string();
         let mut exercise_manager = ExerciseManager {
-            general_exercise_info: vec![test_exercise_info_0, test_exercise_info_1],
             extended_general_exercise_infos: HashSet::new(),
-            exercise_stats: vec![preacher_curl, bench_press, barbell_row, lateral_pulldown],
+            exercises: vec![preacher_curl, bench_press, barbell_row],
             selected_exercise_name: selected_exercise_name.clone(),
             owned_exercise_state: combo_box::State::new(vec![]),
             data_points: vec![],
@@ -94,9 +104,9 @@ When you are done, place the bar back in the rack.".to_string(),
 
         exercise_manager.owned_exercise_state = combo_box::State::new(
             exercise_manager
-                .exercise_stats
+                .exercises
                 .iter()
-                .map(|ex| ex.name.clone())
+                .map(|ex| ex.general_exercise_info.name.clone())
                 .collect(),
         );
         exercise_manager.update_selected_exercise(selected_exercise_name);
@@ -105,10 +115,12 @@ When you are done, place the bar back in the rack.".to_string(),
     }
 }
 impl ExerciseManager {
-    pub fn get_selected_exercise(&self) -> Option<&ExerciseStat> {
-        self.exercise_stats
-            .iter()
-            .find(|ex| ex.name.eq_ignore_ascii_case(&self.selected_exercise_name))
+    pub fn get_selected_exercise(&self) -> Option<&Exercise> {
+        self.exercises.iter().find(|ex| {
+            ex.general_exercise_info
+                .name
+                .eq_ignore_ascii_case(&self.selected_exercise_name)
+        })
     }
     pub fn update_selected_exercise(&mut self, new_exercise_name: String) {
         self.selected_exercise_name = new_exercise_name;
@@ -144,23 +156,25 @@ impl ExerciseManager {
     ) -> Result<(), ()> {
         let mut first_workout_today: bool = true;
         let local_time = Local::now().date_naive();
-        for exercise_stat in &mut self.exercise_stats {
-            if exercise_stat.sets.contains_key(&local_time) {
+        for exercise_data in &mut self.exercises {
+            if exercise_data.sets.contains_key(&local_time) {
                 first_workout_today = false;
             }
             for exercise in workout {
-                if exercise.name == exercise_stat.name && !exercise.sets.is_empty() {
-                    match exercise_stat.sets.get(&local_time) {
+                if exercise.name == exercise_data.general_exercise_info.name
+                    && !exercise.sets.is_empty()
+                {
+                    match exercise_data.sets.get(&local_time) {
                         None => {
-                            exercise_stat.sets.insert(local_time, exercise.sets.clone());
+                            exercise_data.sets.insert(local_time, exercise.sets.clone());
                         }
                         Some(old_sets_same_day) => {
                             let mut new_vec = old_sets_same_day.clone();
                             for set in &exercise.sets {
                                 new_vec.push(set.clone());
                             }
-                            exercise_stat.sets.remove(&local_time);
-                            exercise_stat.sets.insert(local_time, new_vec);
+                            exercise_data.sets.remove(&local_time);
+                            exercise_data.sets.insert(local_time, new_vec);
                         }
                     }
                 }
@@ -185,9 +199,9 @@ impl ExerciseManager {
 
     pub fn get_last_done_set(&self, exercise: &String) -> Option<StrengthSet> {
         let mut set = None;
-        for exercise_stat in &self.exercise_stats {
-            if exercise_stat.name == *exercise {
-                if let Some((_date, sets)) = exercise_stat.sets.iter().next_back() {
+        for exercise_data in &self.exercises {
+            if exercise_data.general_exercise_info.name == *exercise {
+                if let Some((_date, sets)) = exercise_data.sets.iter().next_back() {
                     if !sets.is_empty() {
                         set = Some(sets[0].clone())
                     }
@@ -198,9 +212,7 @@ impl ExerciseManager {
     }
 }
 
-pub fn calculate_activity_data(
-    exercise_data: &Vec<ExerciseStat>,
-) -> HashMap<NaiveDate, AmountOfSets> {
+pub fn calculate_activity_data(exercise_data: &Vec<Exercise>) -> HashMap<NaiveDate, AmountOfSets> {
     let mut map: HashMap<NaiveDate, AmountOfSets> = HashMap::new();
 
     for exercise in exercise_data {

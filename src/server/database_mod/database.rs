@@ -1,17 +1,10 @@
-use crate::client::backend::exercise::exercise_stats::ExerciseStat;
-use crate::client::backend::exercise::general_exercise::{
+use crate::client::backend::exercise_mod::general_exercise::{
     ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Muscle,
 };
-use crate::client::backend::exercise::set::StrengthSet;
-use crate::client::backend::exercise::weight::Kg;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
-use crate::client::backend::profile_stat_manager::ProfileStatManager;
-use crate::client::backend::user_mod::user::{ForeignUser, Gender, UserInformation};
-use chrono::NaiveDate;
 use sqlx::Row;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions};
-use std::collections::BTreeMap;
 use std::str::FromStr;
 
 pub async fn init_pool() -> Result<SqlitePool, sqlx::Error> {
@@ -546,11 +539,12 @@ pub async fn add_exercise_log(
     Ok(())
 }
 
+/* TODO replace field name with GeneralExerciseInfo
 #[allow(dead_code)]
 pub async fn get_exercises_stats(
     pool: &SqlitePool,
     username: &str,
-) -> Result<Vec<ExerciseStat>, sqlx::Error> {
+) -> Result<Vec<Exercise>, sqlx::Error> {
     let exercise_row_for_user = sqlx::query(
         "SELECT date,reps,weight_in_kg,exercise_id FROM exerciseLog WHERE username = ? ",
     )
@@ -567,8 +561,8 @@ pub async fn get_exercises_stats(
 
     for all_exercise_counter in all_exercises {
         let name = all_exercise_counter.get("name");
-        exercises.push(ExerciseStat {
-            name,
+        exercises.push(Exercise {
+            general_exercise_info: ,//TODO ADD
             sets: BTreeMap::new(),
         });
         let id = all_exercise_counter.get("id");
@@ -650,6 +644,7 @@ pub async fn get_single_foreign_user(
         friends_with_active_user: is_friend,
     })
 }
+*/
 #[allow(dead_code)]
 pub fn mascot_from_string(name: &str) -> Mascot {
     for mascot in Mascot::iter() {
@@ -659,6 +654,7 @@ pub fn mascot_from_string(name: &str) -> Mascot {
     }
     Mascot::default()
 }
+/* TODO uncomment if get_exercises_stats works on the new Exercise struct
 #[allow(dead_code)]
 pub async fn get_all_friends(
     pool: &SqlitePool,
@@ -680,6 +676,7 @@ pub async fn get_all_friends(
     }
     Ok(friends)
 }
+
 #[allow(dead_code)]
 pub async fn get_discovery_users(
     pool: &SqlitePool,
@@ -779,14 +776,14 @@ pub async fn test_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     let felix_exercises = get_exercises_stats(pool, "felix").await?;
 
     assert_eq!(
-        felix_foreign_user.exercise_stats[0].name,
-        felix_exercises[0].name
+        felix_foreign_user.exercise_stats[0].general_exercise_info.name,
+        felix_exercises[0].general_exercise_info.name,
     );
 
     let mut name_list = String::new();
 
     for felix_exercise_iterator in felix_exercises.iter() {
-        let exercise_name = &felix_exercise_iterator.name;
+        let exercise_name = &felix_exercise_iterator.general_exercise_info.name;
 
         let mut amount_sets = 0;
 
@@ -817,7 +814,8 @@ pub async fn test_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
     Ok(())
 }
-
+*/
+#[allow(dead_code)]
 pub async fn get_general_exercise_info(
     pool: &SqlitePool,
     exercise_id: i64,

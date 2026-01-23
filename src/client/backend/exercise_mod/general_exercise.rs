@@ -10,6 +10,20 @@ pub struct GeneralExerciseInfo {
     pub instructions: String,
     pub category: ExerciseCategory,
 }
+impl GeneralExerciseInfo {
+    pub fn test_obj() -> Self {
+        GeneralExerciseInfo {
+            id: 0,
+            name: "Test exercise".to_string(),
+            force: ExerciseForce::Push,
+            level: ExerciseLevel::Beginner,
+            equipment: ExerciseEquipment::Body,
+            primary_muscle: Muscle::Abdominals,
+            instructions: "This is a test exercise!".to_string(),
+            category: ExerciseCategory::Strength,
+        }
+    }
+}
 #[derive(Display, EnumString, Eq, PartialEq, Debug)]
 #[strum(ascii_case_insensitive)]
 pub enum Muscle {

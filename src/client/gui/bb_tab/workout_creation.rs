@@ -1,6 +1,6 @@
-use crate::client::backend::exercise::exercise_create::ExerciseCreate;
-use crate::client::backend::exercise::set::StrengthSet;
-use crate::client::backend::exercise::weight::Kg;
+use crate::client::backend::exercise_mod::exercise_create::ExerciseCreate;
+use crate::client::backend::exercise_mod::set::StrengthSet;
+use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};

@@ -13,9 +13,9 @@ use iced::widget::canvas::{
 };
 use iced_core::{Color, color};
 
-use crate::client::backend::exercise::exercise_manager::ExerciseManager;
-use crate::client::backend::exercise::exercise_stats::ExerciseDataPoints;
-use crate::client::backend::exercise::weight::Kg;
+use crate::client::backend::exercise_mod::exercise::ExerciseDataPoints;
+use crate::client::backend::exercise_mod::exercise_manager::ExerciseManager;
+use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;

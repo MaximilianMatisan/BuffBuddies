@@ -1,5 +1,5 @@
-use crate::client::backend::exercise::exercise_manager::ExerciseManager;
-use crate::client::backend::exercise::general_exercise::GeneralExerciseInfo;
+use crate::client::backend::exercise_mod::exercise_manager::ExerciseManager;
+use crate::client::backend::exercise_mod::general_exercise::GeneralExerciseInfo;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::container::{
@@ -20,13 +20,13 @@ pub fn display_general_exercise_infos<'a>(
     exercise_manager: &'a ExerciseManager,
 ) -> Column<'a, Message> {
     let mut content = Column::new().spacing(5);
-    for exercise_info in &exercise_manager.general_exercise_info {
+    for exercise in &exercise_manager.exercises {
         let show_extended_info = exercise_manager
             .extended_general_exercise_infos
-            .contains(&exercise_info.id);
+            .contains(&exercise.general_exercise_info.id);
         content = content.push(general_exercise_info_element(
             active_mascot,
-            exercise_info,
+            &exercise.general_exercise_info,
             show_extended_info,
         ));
     }
