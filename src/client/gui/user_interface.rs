@@ -214,7 +214,22 @@ impl UserInterface {
             Message::Graph(graph_message) => {
                 match graph_message {
                     GraphMessage::GraphCursorMoved(point) => {
+                    },
+
+                    GraphMessage::GraphKeyPressed(Key::Character(char)) => {
+                        match char.as_str() {
+                            "h" => {self.app.graph_widget_state.invert_visible_points()}
+                            "c" => {self.app.graph_widget_state.invert_visible_cursor_information()}
+                            _ => {}
+                        }
+                    },
+                    GraphMessage::IncrementCounter => {
+                        self.app.graph_widget_state.increment_counter();
+                    },
+                    GraphMessage::DecrementCounter => {
+                        self.app.graph_widget_state.decrement_counter();
                     }
+                    other_key_enums=> {}
                 };
                 Task::none()
             }

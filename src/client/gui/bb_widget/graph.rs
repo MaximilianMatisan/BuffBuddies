@@ -59,6 +59,46 @@ const AMOUNT_DASHED_LINES: u32 = 12;
 #[derive(Clone, Debug)]
 pub enum GraphMessage{
     GraphCursorMoved(Point),
+    GraphKeyPressed(Key),
+    IncrementCounter,
+    DecrementCounter
+}
+
+#[derive(Default,Clone)]
+pub struct GraphWidgetState {
+    visible_points: bool,
+    visible_cursor_information: bool,
+    points_to_draw: u8
+}
+
+
+impl GraphWidgetState {
+    pub fn new() -> Self {
+
+        let options: Vec<u8> = (1..=20).collect();
+        let combo_box_state = combo_box::State::new(options);
+
+        GraphWidgetState {
+            visible_points: true,
+            visible_cursor_information: true,
+            points_to_draw: 9
+        }
+
+    }
+    pub fn invert_visible_points(&mut self) {
+        self.visible_points = !self.visible_points
+    }
+    pub fn invert_visible_cursor_information(&mut self) {
+        self.visible_cursor_information = !self.visible_cursor_information
+    }
+
+    pub(crate) fn increment_counter(&mut self)  {
+        self.points_to_draw += 1 ;
+    }
+
+    pub(crate) fn decrement_counter(&mut self)  {
+        self.points_to_draw -= 1 ;
+    }
 }
 pub struct GraphWidget<'a>
 {
@@ -66,6 +106,7 @@ pub struct GraphWidget<'a>
     height: f32,
     active_mascot: Mascot,
     exercise_manager: &'a ExerciseManager,
+    graph_state: GraphWidgetState,
     graph: Cache
 }
 
@@ -76,6 +117,7 @@ impl<'a> GraphWidget<'a> {
             height: GRAPH_WIDGET_HEIGHT,
             active_mascot: app.mascot_manager.selected_mascot,
             exercise_manager: &app.exercise_manager,
+            graph_state: app.graph_widget_state.clone(),
             graph: Cache::default()
         }
     }
@@ -418,6 +460,11 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
             canvas::Event::Mouse(mouse::Event::CursorMoved { position }) => {
                 (iced::widget::canvas::event::Status::Captured, Some(Message::Graph(GraphMessage::GraphCursorMoved(position))))
             },
+            canvas::Event::Keyboard(iced::keyboard::Event::KeyPressed {key, .. }) => {
+                println!("Key pressed,from graph.rs!");
+                println!("{}",self.graph_state.visible_points);
+                (iced::widget::canvas::event::Status::Captured, Some(Message::Graph(GraphMessage::GraphKeyPressed(key))))},
+
             _ => (iced::widget::canvas::event::Status::Ignored, None)
         }
     }
@@ -442,6 +489,7 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
                 height: frame.height(),
             });
 
+            println!("{}",self.graph_state.points_to_draw);
             match self.exercise_manager.data_points.len() {
                 0 => {
                     frame.fill_text(canvas::Text{
@@ -471,10 +519,14 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
                     draw_axis(&self.active_mascot, frame);
 
                     //POINTS
+                    if self.graph_state.visible_points {
                         draw_points(frame, calculate_points(), &self.active_mascot);
+                    }
 
                     //CURSOR
+                    if self.graph_state.visible_cursor_information {
                         draw_cursor_information(bounds, cursor, frame);
+                    }
                 }
             }
 
@@ -505,6 +557,26 @@ pub fn graph_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .padding([8, 16])
         .into();
 
+    let counter = text!("{}", app.graph_widget_state.points_to_draw);
+    let increment_button =
+        create_text_button(&app.mascot_manager.selected_mascot,
+                           "+".to_string(),
+                           ButtonStyle::Active,
+                           Some(10.0.into())
+        ).on_press(Message::Graph(GraphMessage::IncrementCounter));
+    let decrement_button =
+        create_text_button(&app.mascot_manager.selected_mascot,
+                           "-".to_string(),
+                           ButtonStyle::Active,
+                           Some(10.0.into())
+        ).on_press(Message::Graph(GraphMessage::DecrementCounter)) ;
+
+    let counter_with_buttons = row![
+        decrement_button,
+        counter,
+        increment_button
+    ];
+
     let graph_widget =
         GraphWidget::new(app);
 
@@ -522,6 +594,8 @@ pub fn graph_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .width(Length::Fixed(graph_widget.get_width()))
         .push(Space::with_width(Length::FillPortion(1)))
         .push(title)
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(counter_with_buttons)
         .push(Space::with_width(Length::FillPortion(3)))
         .push(search_bar)
         .push(Space::with_width(Length::FillPortion(1)))
