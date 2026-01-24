@@ -1,4 +1,3 @@
-use crate::client::backend::exercise_mod::exercise_manager::calculate_activity_data;
 use crate::client::backend::login_state::LoginStateError;
 use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
 use crate::client::backend::mascot_mod::mascot::{Mascot, MascotRarity};
@@ -17,7 +16,9 @@ use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_element_button, create_text_button,
 };
 use crate::client::gui::bb_theme::text_format::format_button_text;
-use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
+use crate::client::gui::bb_widget::activity_widget::activity::{
+    ActivityMessage, calculate_activity_data,
+};
 use crate::client::gui::bb_widget::graph::{GraphMessage, MAX_AMOUNT_POINTS};
 use crate::client::gui::bb_widget::pop_up::view_pop_up;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
@@ -271,10 +272,7 @@ impl UserInterface {
                         if let Some(user) = opt_user {
                             self.app.activity_widget.update_data(
                                 user.user_information.favorite_mascot,
-                                user.user_information
-                                    .profile_stat_manager
-                                    .activity_data
-                                    .clone(), //TODO maybe without clone possible?
+                                user.activity_data.clone(), //TODO maybe without clone possible?
                             );
                         }
                         self.app.user_manager.most_recently_viewed_user = UserType::Other(username);
