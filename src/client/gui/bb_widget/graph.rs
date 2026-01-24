@@ -1,32 +1,48 @@
-use crate::client::gui::bb_theme::color::CONTAINER_COLOR;
-use iced::advanced::graphics::geometry::Frame;
-use iced::advanced::graphics::gradient::Linear;
-use iced::advanced::graphics::Gradient;
+use iced::{alignment, Task};
 use iced::mouse;
-use iced::widget::canvas::{stroke, Cache, Geometry, LineCap, LineDash, LineJoin, Path, Stroke};
-use iced::Renderer;
-use iced_core::{color, Color};
+use iced::widget::canvas::{Cache, Geometry, LineCap, Path, Stroke, stroke, LineJoin, LineDash, Event, event};
+use iced::{
+    Degrees, Fill, Font, Radians, Renderer, Subscription,
+    Vector,
+};
+use iced::advanced::graphics::geometry::Frame;
+use iced::advanced::graphics::Gradient;
+use iced::advanced::graphics::gradient::Linear;
+use iced::advanced::graphics::text::cosmic_text::Shaping;
+use iced::widget::canvas::path::Arc;
+use iced_core::{color, keyboard, Color};
+use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, HIGHLIGHTED_CONTAINER_COLOR};
+use crate::client::gui::bb_theme::text_format::{kg_to_string, FIRA_SANS_EXTRABOLD};
+use crate::client::gui::bb_widget::progress::ProgressWidget;
 
 use crate::client::backend::exercise::exercise_manager::ExerciseManager;
+use crate::client::backend::exercise::exercise_stats;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
-use crate::client::gui::bb_theme::container::ContainerStyle;
-use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle};
+use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
 use crate::client::gui::bb_theme::text_format::format_button_text;
-use crate::client::gui::bb_theme::text_format;
-use crate::client::gui::bb_widget::stats::exercise_stat_column;
+use crate::client::gui::bb_theme::{color, text_format};
+use crate::client::gui::bb_widget::stats::{exercise_stat_column, profile_stat_container};
+use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
-use iced::widget::{canvas, combo_box, row, text};
-use iced::widget::{container, Column, Row, Space};
 use iced::Element;
+use iced::widget::{canvas, combo_box, row, text};
+use iced::widget::{Column, Row, Space, container};
 use iced_core::alignment::{Horizontal, Vertical};
-use iced_core::gradient::ColorStop;
+use iced_core::border::{rounded, Radius};
+use iced_core::layout::{Limits, Node};
+use iced_core::mouse::Cursor;
+use iced_core::renderer::{Quad, Style};
+use iced_core::widget::Tree;
 use iced_core::{
-    Length, Padding, Point, Rectangle, Size, Theme, Widget,
+    Border, Layout, Length, Padding, Point, Rectangle, Size, Text, Theme, Widget, renderer,
 };
-
+use iced_core::gradient::ColorStop;
+use iced_core::image::Handle;
+use iced_core::keyboard::Key;
+use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle};
 
 const GRAPH_WIDGET_WIDTH: f32 = 700.0;
 const GRAPH_WIDGET_HEIGHT: f32 = 500.0;
@@ -40,6 +56,10 @@ const FREQUENCY_OF_X_AXIS_LABELS: usize = 6;
 const FREQUENCY_OF_Y_AXIS_LABELS: u32 = 10;
 const AMOUNT_DASHED_LINES: u32 = 12;
 
+#[derive(Clone, Debug)]
+pub enum GraphMessage{
+    GraphCursorMoved(Point),
+}
 pub struct GraphWidget<'a>
 {
     width: f32,
@@ -329,6 +349,39 @@ fn draw_connections (frame: &mut Frame<Renderer>, points: Vec<Point>, mascot: &M
     }
 }
 
+fn draw_cursor_information(bounds: Rectangle,cursor: Cursor, frame: &mut Frame<Renderer>) {
+    if bounds.contains(cursor.position().unwrap_or_default()) {
+
+        let cursor_information_position =
+            if let Some(mut position) = cursor.position_from(Point::ORIGIN) {
+                position.x -= 361.0 - 70.0;
+                position.y -= 1114.0 + 30.0;
+                position
+            } else {
+                Point{ x: 0.0, y: 0.0 }
+            };
+
+
+        frame.fill(
+            &Path::rounded_rectangle(
+                Point{
+                    x: cursor_information_position.x - 62.0,
+                    y: cursor_information_position.y - 30.0
+                }, Size { width: 120.0, height: 60.0 },10.0.into()),HIGHLIGHTED_CONTAINER_COLOR);
+        frame.fill_text(canvas::Text {
+            content: format!("Date: {}\nKg: {}", cursor_information_position.x.round(), cursor_information_position.y.round()), //TODO:HANDLE UNWRAP
+            size: 15.0.into(),
+            position: cursor_information_position,
+            color: color!(255,255,255),
+            font: FIRA_SANS_EXTRABOLD,
+            horizontal_alignment: Horizontal::Center,
+            vertical_alignment: Vertical::Center,
+            line_height: Default::default(),
+            shaping: iced_core::text::Shaping::Advanced,
+        });
+    }
+}
+
 
 //LOGIC
 
@@ -353,6 +406,23 @@ fn calculate_points() -> Vec<Point> {
 
 impl<'a> canvas::Program<Message> for GraphWidget<'a> {
     type State = ();
+
+    fn update(
+        &self,
+        _state: &mut Self::State,
+        event: Event,
+        _bounds: Rectangle,
+        cursor: iced_core::mouse::Cursor,
+    ) -> (event::Status, Option<Message>) {
+        match event {
+            canvas::Event::Mouse(mouse::Event::CursorMoved { position }) => {
+                (iced::widget::canvas::event::Status::Captured, Some(Message::Graph(GraphMessage::GraphCursorMoved(position))))
+            },
+            _ => (iced::widget::canvas::event::Status::Ignored, None)
+        }
+    }
+
+
     fn draw(
         &self,
         _state: &Self::State,
@@ -372,21 +442,44 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
                 height: frame.height(),
             });
 
-            frame.fill(&background, CONTAINER_COLOR);
+            match self.exercise_manager.data_points.len() {
+                0 => {
+                    frame.fill_text(canvas::Text{
+                        content: "NO DATA".to_string(),
+                        position: center,
+                        color: self.active_mascot.get_primary_color(),
+                        size: 40.into(),
+                        line_height: Default::default(),
+                        font: FIRA_SANS_EXTRABOLD,
+                        horizontal_alignment: Horizontal::Left,
+                        vertical_alignment: Vertical::Top,
+                        shaping: Default::default(),
+                    }
+                    )
 
-            //DASHED LINES
-            draw_dashed_lines(frame);
+                }
+                data_points_amount => {
+                    frame.fill(&background, CONTAINER_COLOR);
 
-            //CONNECTIONS BETWEEN POINTS
-            draw_connections(frame, calculate_points(), &self.active_mascot);
+                    //DASHED LINES
+                    draw_dashed_lines(frame);
 
-            //AXIS
-            draw_axis(&self.active_mascot, frame);
+                    //CONNECTIONS BETWEEN POINTS
+                    draw_connections(frame,calculate_points(),&self.active_mascot);
 
-            //POINTS
-            draw_points(frame, calculate_points(), &self.active_mascot)
+                    //AXIS
+                    draw_axis(&self.active_mascot, frame);
+
+                    //POINTS
+                        draw_points(frame, calculate_points(), &self.active_mascot);
+
+                    //CURSOR
+                        draw_cursor_information(bounds, cursor, frame);
+                }
+            }
 
         });
+
         vec![graph_widget]
     }
 }
