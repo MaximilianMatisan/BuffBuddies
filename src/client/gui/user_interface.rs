@@ -31,7 +31,7 @@ use iced_core::image::Handle;
 use iced_core::window::{Position, Settings};
 use iced_core::{keyboard, Length, Point, Size, Theme};
 use iced_core::keyboard::Key;
-use crate::client::gui::bb_widget::graph::GraphMessage;
+use crate::client::gui::bb_widget::graph::{GraphMessage, MAX_AMOUNT_POINTS};
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -214,6 +214,7 @@ impl UserInterface {
             Message::Graph(graph_message) => {
                 match graph_message {
                     GraphMessage::GraphCursorMoved(point) => {
+                        println!("TRUE: {}",point)
                     },
 
                     GraphMessage::GraphKeyPressed(Key::Character(char)) => {
@@ -224,12 +225,22 @@ impl UserInterface {
                         }
                     },
                     GraphMessage::IncrementCounter => {
-                        self.app.graph_widget_state.increment_counter();
+                        if self.app.graph_widget_state.get_counter() < MAX_AMOUNT_POINTS {
+                            self.app.graph_widget_state.increment_counter();
+                        } else {
+                            self.app.pop_up_manager.new_pop_up(
+                                PopUpType::Minor,
+                                "Limit reached ".to_string(),
+                                format!("The graph can’t display more than {MAX_AMOUNT_POINTS} points")
+                            );
+                        }
                     },
                     GraphMessage::DecrementCounter => {
-                        self.app.graph_widget_state.decrement_counter();
+                        if self.app.graph_widget_state.get_counter() > 1 {
+                            self.app.graph_widget_state.decrement_counter();
+                        }
                     }
-                    other_key_enums=> {}
+                    _other_key_enums => {}
                 };
                 Task::none()
             }

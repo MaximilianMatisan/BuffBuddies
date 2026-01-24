@@ -16,10 +16,13 @@ impl UserInterface {
             .push(progress_environment_widget(&self.app))
             .push(Space::with_width(Length::Fill));
 
+        let debug_test = GraphWidget::new(&self.app).view();
+        let actual_version = graph_environment_widget(&self.app);
+
         let contents = Column::new()
             .push(activity_widget)
             .push(progress_widget)
-            .push(graph_environment_widget(&self.app))
+            .push(actual_version)
             .spacing(INDENT)
             .padding(INDENT);
 

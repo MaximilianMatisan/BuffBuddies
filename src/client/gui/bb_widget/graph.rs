@@ -1,60 +1,45 @@
-use iced::{alignment, Task};
-use iced::mouse;
-use iced::widget::canvas::{Cache, Geometry, LineCap, Path, Stroke, stroke, LineJoin, LineDash, Event, event};
-use iced::{
-    Degrees, Fill, Font, Radians, Renderer, Subscription,
-    Vector,
-};
+use chrono::NaiveDate;
+use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, DASHED_LINES_COLOR, HIGHLIGHTED_CONTAINER_COLOR};
+use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use iced::advanced::graphics::geometry::Frame;
-use iced::advanced::graphics::Gradient;
 use iced::advanced::graphics::gradient::Linear;
-use iced::advanced::graphics::text::cosmic_text::Shaping;
-use iced::widget::canvas::path::Arc;
-use iced_core::{color, keyboard, Color};
-use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, HIGHLIGHTED_CONTAINER_COLOR};
-use crate::client::gui::bb_theme::text_format::{kg_to_string, FIRA_SANS_EXTRABOLD};
-use crate::client::gui::bb_widget::progress::ProgressWidget;
+use iced::advanced::graphics::Gradient;
+use iced::mouse;
+use iced::widget::canvas::{event, stroke, Cache, Event, Geometry, LineCap, LineDash, LineJoin, Path, Stroke};
+use iced::Renderer;
+use iced_core::{color, Color};
 
 use crate::client::backend::exercise::exercise_manager::ExerciseManager;
-use crate::client::backend::exercise::exercise_stats;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
-use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
-use crate::client::gui::bb_theme::text_format::format_button_text;
-use crate::client::gui::bb_theme::{color, text_format};
-use crate::client::gui::bb_widget::stats::{exercise_stat_column, profile_stat_container};
-use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::client::gui::user_interface::Message;
-use iced::Element;
-use iced::widget::{canvas, combo_box, row, text};
-use iced::widget::{Column, Row, Space, container};
-use iced_core::alignment::{Horizontal, Vertical};
-use iced_core::border::{rounded, Radius};
-use iced_core::layout::{Limits, Node};
-use iced_core::mouse::Cursor;
-use iced_core::renderer::{Quad, Style};
-use iced_core::widget::Tree;
-use iced_core::{
-    Border, Layout, Length, Padding, Point, Rectangle, Size, Text, Theme, Widget, renderer,
-};
-use iced_core::gradient::ColorStop;
-use iced_core::image::Handle;
-use iced_core::keyboard::Key;
+use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle};
 use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle};
+use crate::client::gui::bb_theme::text_format::format_button_text;
+use crate::client::gui::bb_theme::text_format;
+use crate::client::gui::bb_widget::stats::exercise_stat_column;
+use crate::client::gui::user_interface::Message;
+use iced::widget::{canvas, combo_box, row, text};
+use iced::widget::{container, Column, Row, Space};
+use iced::Element;
+use iced_core::alignment::{Horizontal, Vertical};
+use iced_core::gradient::ColorStop;
+use iced_core::keyboard::Key;
+use iced_core::mouse::Cursor;
+use iced_core::{
+    Length, Padding, Point, Rectangle, Size, Theme, Widget,
+};
+use crate::client::backend::exercise::weight::Kg;
 
 const GRAPH_WIDGET_WIDTH: f32 = 700.0;
 const GRAPH_WIDGET_HEIGHT: f32 = 500.0;
+const GRAPH_PADDING: f32 = 50.0;
 const LINE_THICKNESS: f32 = 3.0;
-const MOUSE_HIGHLIGHT_LINE_THICKNESS: f32 = 3.0;
+const MOUSE_INFORMATION_SIZE: f32 = 3.0;
 const AXIS_FONT_SIZE: f32 = 12.0;
-const PERCENTAGE_PLACEHOLDER: f32 = 0.05;
-const PERCENTAGE_SPACING_WIDGET_AXIS: f32 = 0.1;
-const BASE_SPACING_BETWEEN_COLUMNS: f32 = 150.0;
-const FREQUENCY_OF_X_AXIS_LABELS: usize = 6;
-const FREQUENCY_OF_Y_AXIS_LABELS: u32 = 10;
-const AMOUNT_DASHED_LINES: u32 = 12;
+const FREQUENCY_OF_Y_AXIS_LABELS: u32 = 9;
+pub const MAX_AMOUNT_POINTS: u8 = 16;
 
 #[derive(Clone, Debug)]
 pub enum GraphMessage{
@@ -68,20 +53,17 @@ pub enum GraphMessage{
 pub struct GraphWidgetState {
     visible_points: bool,
     visible_cursor_information: bool,
-    points_to_draw: u8
+    points_to_draw: u8,
 }
 
 
 impl GraphWidgetState {
     pub fn new() -> Self {
 
-        let options: Vec<u8> = (1..=20).collect();
-        let combo_box_state = combo_box::State::new(options);
-
         GraphWidgetState {
             visible_points: true,
             visible_cursor_information: true,
-            points_to_draw: 9
+            points_to_draw: 9,
         }
 
     }
@@ -99,6 +81,7 @@ impl GraphWidgetState {
     pub(crate) fn decrement_counter(&mut self)  {
         self.points_to_draw -= 1 ;
     }
+    pub (crate) fn get_counter(&self) -> u8 {self.points_to_draw}
 }
 pub struct GraphWidget<'a>
 {
@@ -129,46 +112,48 @@ impl<'a> GraphWidget<'a> {
     pub(crate) fn view(self) -> Element<'a, Message> {
         let canvas = canvas(self).width(GRAPH_WIDGET_WIDTH).height(GRAPH_WIDGET_HEIGHT);
 
-        container(canvas).padding(20).into()
+        container(canvas).into()
     }
 }
 
-fn draw_dashed_lines (frame: &mut Frame<Renderer>) {
+fn draw_dashed_lines (graph_widget_state: &GraphWidgetState ,frame: &mut Frame<Renderer>) {
 
-    let line_color = color!(120,120,122);
+    let dashed_lines_gradient_padding = GRAPH_PADDING + 10.0;
 
     let gradient = Gradient::Linear(
         Linear::new(
             Point {
                 x: frame.width() / 2.0,
-                y: 10.0,
+                y: dashed_lines_gradient_padding
             },
             Point {
-                x: frame.width() / 2.0,
-                y: frame.height() - 10.0,
+                x: frame.width() / 2.0 ,
+                y: frame.height() - dashed_lines_gradient_padding
             },
         )
             .add_stops([
-                // fade in
+                // FADE IN
                 ColorStop {
                     offset: 0.0,
-                    color: Color { a: 0.0, ..line_color},
+                    color: Color { a: 0.0, ..DASHED_LINES_COLOR},
                 },
+
+                //ACTUAL COLOR
                 ColorStop {
                     offset: 0.1,
-                    color: line_color,
+                    color: DASHED_LINES_COLOR,
                 },
 
-                // solid middle
+
                 ColorStop {
                     offset: 0.9,
-                    color: line_color,
+                    color: DASHED_LINES_COLOR,
                 },
 
-                // fade out
+                // FADE OUT
                 ColorStop {
                     offset: 1.0,
-                    color: Color { a: 0.0, ..line_color },
+                    color: Color { a: 0.0, ..DASHED_LINES_COLOR },
                 },
             ])
     );
@@ -179,48 +164,57 @@ fn draw_dashed_lines (frame: &mut Frame<Renderer>) {
         line_join: LineJoin::Round,
         style: stroke::Style::Gradient(gradient),
         line_dash: LineDash {
-            segments: &[2.0, 6.0], // line, gap
+            segments: &[2.0, 6.0], // LINE LENGTH , GAP LENGTH
             offset: 0,
         },
     };
+    //PADDING LEFT AND RIGHT: LEFT FOR Y_LABELS, RIGHT FOR FREE SPACE
+    let block_width = (GRAPH_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / graph_widget_state.points_to_draw as f32 ;//division with 0 is not possible since limit is 1
+    //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
+    let block_height = (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0)  / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 
-    let block_width = GRAPH_WIDGET_WIDTH / 10.0;
-    let block_height = GRAPH_WIDGET_WIDTH / 12.0;
-    let mut current_x =  Point::ORIGIN.x;
-    let mut current_y = Point::ORIGIN.y;
+    let mut current_x =  GRAPH_WIDGET_WIDTH - GRAPH_PADDING; //START OF GRAPH
+    let mut current_y = Point::ORIGIN.y + GRAPH_PADDING;
+
+    let mut draw_stroke = |start: Point, end: Point, stroke: Stroke| {
+        frame.stroke(
+                &Path::line(start,end)
+                ,stroke
+            );
+        };
 
     //VERTICAL LINES
-    for line in  1..AMOUNT_DASHED_LINES {
-        frame.stroke(
-            &Path::line(
-                Point{
-                    x:  Point::ORIGIN.x + current_x,
-                    y:  Point::ORIGIN.y
-                },
-                Point{
-                    x:  Point::ORIGIN.x + current_x,
-                    y:  frame.height()
-                }
-            )
-            ,dashed_stroke);
-        current_x += block_width;
+    for line in  1..= graph_widget_state.points_to_draw {
+
+        let point_up = Point{
+            x:  Point::ORIGIN.x + current_x,
+            y:  Point::ORIGIN.y + GRAPH_PADDING
+        };
+
+        let point_bottom = Point{
+            x:  Point::ORIGIN.x + current_x,
+            y:  GRAPH_WIDGET_HEIGHT - GRAPH_PADDING
+        };
+
+        draw_stroke(point_up,point_bottom,dashed_stroke);
+        current_x -= block_width;
     }
 
     //HORIZONTAL LINES
 
-    for line in  1..AMOUNT_DASHED_LINES {
-        frame.stroke(
-            &Path::line(
-                Point{
-                    x:  Point::ORIGIN.x ,
-                    y:  Point::ORIGIN.y + current_y
-                },
-                Point{
-                    x:  frame.width(),
-                    y:  Point::ORIGIN.y + current_y
-                }
-            )
-            ,dashed_stroke);
+    for line in  1..=FREQUENCY_OF_Y_AXIS_LABELS {
+
+        let point_left = Point{
+            x:  Point::ORIGIN.x + GRAPH_PADDING,
+            y:  Point::ORIGIN.y + current_y
+        };
+
+        let point_right = Point{
+            x:  GRAPH_WIDGET_WIDTH - GRAPH_PADDING,
+            y:  Point::ORIGIN.y + current_y
+        };
+
+        draw_stroke(point_left,point_right,dashed_stroke);
         current_y += block_height;
     }
 
@@ -237,107 +231,88 @@ fn draw_axis (active_mascot: &Mascot, frame: &mut Frame<Renderer>) { //LATER CRE
         line_dash: Default::default()
     };
 
+    //Y-AXIS
+    frame.stroke(
+        &Path::line(
+            //TOP
+            Point {
+                x: Point::ORIGIN.x + GRAPH_PADDING,
+                y: Point::ORIGIN.y + GRAPH_PADDING
+            },
+            //BOTTOM
+            Point {
+                x: Point::ORIGIN.x + GRAPH_PADDING,
+                y: frame.height()  - GRAPH_PADDING,
+            }
+        )
+        , solid_mascot_colored_stroke);
+
     //X-AXIS
     frame.stroke(
         &Path::line(
-            //TOP
+            //LEFT
             Point {
-                x: Point::ORIGIN.x,
-                y: Point::ORIGIN.y
+                x: Point::ORIGIN.x + GRAPH_PADDING,
+                y: frame.height() - GRAPH_PADDING
             },
-            //BOTTOM
+            //RIGHT
             Point {
-                x: Point::ORIGIN.x,
-                y: frame.height()
+                x: frame.width() - GRAPH_PADDING,
+                y: frame.height() - GRAPH_PADDING
             }
         )
         , solid_mascot_colored_stroke);
 
-    frame.stroke(
-        &Path::line(
-            //TOP
-            Point {
-                x: Point::ORIGIN.x,
-                y: frame.height()
-            },
-            //BOTTOM
-            Point {
-                x: frame.width(),
-                y: frame.height()
-            }
-        )
-        , solid_mascot_colored_stroke);
+    //ARROW - Y
+    let distance_from_tip = 10.0;
+
+    let y_tip = Point {x: Point::ORIGIN.x + GRAPH_PADDING ,y: Point::ORIGIN.y + GRAPH_PADDING };
+    let y_left = Point { x: y_tip.x - distance_from_tip, y: y_tip.y + distance_from_tip };
+    let y_right = Point { x: y_tip.x + distance_from_tip, y: y_tip.y + distance_from_tip };
 
     //ARROW - X
 
-    let x_tip = Point::ORIGIN;
-    let x_left = Point { x: Point::ORIGIN.x - 10.0, y: Point::ORIGIN.y };
-    let x_right = Point { x: Point::ORIGIN.x + 10.0, y: Point::ORIGIN.y };
+    let x_tip = Point{x: frame.width() - GRAPH_PADDING, y: frame.height() - GRAPH_PADDING};
+    let x_up = Point { x:x_tip.x - distance_from_tip, y: x_tip.y - distance_from_tip };
+    let x_bottom = Point { x: x_tip.x - distance_from_tip, y:  x_tip.y + distance_from_tip};
 
-    frame.stroke(
-        &Path::new(|builder| {
-            builder.move_to(x_left);
-            builder.line_to(x_tip);
-            builder.line_to(x_right);
-        }), solid_mascot_colored_stroke);
+    let mut draw_arrow = |point_1: Point, tip: Point, point_2: Point| {
+        frame.stroke(
+            &Path::new(|builder| {
+                builder.move_to(point_1);
+                builder.line_to(tip);
+                builder.line_to(point_2);
+            }), solid_mascot_colored_stroke);
+    };
 
+    draw_arrow(y_left,y_tip,y_right);
+    draw_arrow(x_up, x_tip, x_bottom);
 
-    //ARROW - Y
-
-    let y_tip = Point{x: frame.width(), y: frame.height()};
-    let y_up = Point { x: frame.width() - 10.0, y: frame.height() - 10.0 };
-    let y_bottom = Point { x: frame.width() - 10.0, y: frame.height() + 10.0};
-
-    frame.stroke(
-        &Path::new(|builder| {
-            builder.move_to(y_up);
-            builder.line_to(y_tip);
-            builder.line_to(y_bottom);
-        }), solid_mascot_colored_stroke);
 }
 
-fn draw_points (frame: &mut Frame<Renderer>, points: Vec<Point>, mascot: &Mascot,) {
+fn draw_points (graph_widget_state: &GraphWidgetState, frame: &mut Frame<Renderer>, y_values: Vec<Kg>, mascot: &Mascot,) {
 
-    let radius = 7.0;
+    //!You should pass a list with the y-values,which are things such as weight lifted,kms run,etc.
+    //! The list has to be sorted!
 
-    let block_width = GRAPH_WIDGET_WIDTH / 10.0;
-    let mut y_values = vec![
-        frame.height() - 20.0,   // STEIGT
-        frame.height() - 80.0,
-        frame.height() - 120.0,
-        frame.height() - 180.0,
-        frame.height() - 150.0,  // SENKT
-        frame.height() - 220.0,  // STEIGT
-        frame.height() - 250.0,
-        frame.height() - 210.0,  // SENKT
-        frame.height() - 270.0,  // STEIGT
-        frame.height() - 330.0,  // STEIGT
-    ];
+    let points = calculate_points(graph_widget_state,y_values);
+    let base_size_point = 4.0;
+    let max_size_point = 8.7;
+    let range_size_point = max_size_point -  base_size_point;
+    let percentage = points.len() as f32 / MAX_AMOUNT_POINTS as f32;
 
-    let mut current_x = block_width;
-    y_values = y_values.into_iter().map(|y| y - 30.0).collect::<Vec<f32>>();;
+    //CALCULATE POINTS RADIUS
+    let point_size = max_size_point - percentage * range_size_point;
 
-    for y_value in y_values //CHOPPED THE START OF THE LIST (WILL CHANGE LOGIC LATER)
-    {
-        frame.fill(&Path::circle(Point{x: current_x , y: y_value}, radius),mascot.get_primary_color());
-        current_x += block_width;
+    //DRAW POINTS
+    for point in points.iter() {
+        frame.fill(&Path::circle(*point, point_size), mascot.get_primary_color());
     }
 }
 
-fn draw_connections (frame: &mut Frame<Renderer>, points: Vec<Point>, mascot: &Mascot,) {
+fn draw_connections (graph_widget_state: &GraphWidgetState, frame: &mut Frame<Renderer>, y_values: Vec<f32>, mascot: &Mascot,) {
 
-    let mut y_values = vec![
-        frame.height() - 20.0,   // STEIGT
-        frame.height() - 80.0,
-        frame.height() - 120.0,
-        frame.height() - 180.0,
-        frame.height() - 150.0,  // SENKT
-        frame.height() - 220.0,  // STEIGT
-        frame.height() - 250.0,
-        frame.height() - 210.0,  // SENKT
-        frame.height() - 270.0,  // STEIGT
-        frame.height() - 330.0,  // STEIGT
-    ];
+    let points = calculate_points(graph_widget_state,y_values);
 
     let connection_stroke = Stroke {
         width: 1.5,
@@ -348,44 +323,34 @@ fn draw_connections (frame: &mut Frame<Renderer>, points: Vec<Point>, mascot: &M
     };
 
 
-    let block_width = GRAPH_WIDGET_WIDTH / 10.0;
-    let mut current_x = block_width;
+    let point_tuples =
+        points.iter().enumerate().map(|(index,y)| {
 
-    let point_tuples = y_values.iter().enumerate().map(|(index,y)| {
-        let start = Point{
-            x: current_x,
-            y: y - 30.0,
-        };
+            let last_element = points.len() - 1;
+            let path_start = y;
+            let mut path_end = path_start ;
 
-        let mut end_y = y - 30.0;
-        let mut end_x = current_x;
 
-        if index < y_values.len() - 1 {
-            end_y = y_values[index + 1];
-            end_x = current_x + block_width;
-        } else {                //letztes Element
-            end_y = *y
-        }
+            if index != last_element {
+                path_end = &points[index + 1];
+            }
 
-        let end =
-            Point{
-                x: end_x,
-                y: end_y - 30.0,
-            };
-
-        current_x += block_width;
-
-        (start,end)
+            (*path_start,*path_end)
 
     }).collect::<Vec<(Point,Point)>>();
 
+    let graph_origin = Point {
+        x: Point::ORIGIN.x + GRAPH_PADDING,
+        y: frame.height()  - GRAPH_PADDING,
+    };
+
     //draw start line from origin
     frame.stroke(
-        &Path::line(Point{x:Point::ORIGIN.x , y:frame.height()},Point{x: block_width,y: y_values[0]- 30.0}),
+        &Path::line(graph_origin,points[0]), //it is sure that there is at least one point since the function doesn't get called if length() < 1
         connection_stroke
     );
 
-    for (start,end) in point_tuples //CHOPPED THE START OF THE LIST (WILL CHANGE LOGIC LATER)
+    for (start,end) in point_tuples
     {
         frame.stroke(&Path::line(start,end),connection_stroke);
     }
@@ -424,27 +389,67 @@ fn draw_cursor_information(bounds: Rectangle,cursor: Cursor, frame: &mut Frame<R
     }
 }
 
-
 //LOGIC
 
-fn calculate_points() -> Vec<Point> {
-    let mut vec = vec![
-        Point { x: 40.0, y: 40.0 },
-        Point { x: 100.0, y: 60.0 },
-        Point { x: 160.0, y: 80.0 },
-        Point { x: 220.0, y: 100.0 },
-        Point { x: 280.0, y: 120.0 },
-        Point { x: 340.0, y: 140.0 },
-        Point { x: 400.0, y: 160.0 },
-        Point { x: 460.0, y: 180.0 },
-        Point { x: 520.0, y: 200.0 },
-        Point { x: 580.0, y: 220.0 },
-        Point { x: 640.0, y: 240.0 },
-        Point { x: 700.0, y: 260.0 },
-    ];
+fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) -> Vec<Point> {
+    let chopped_y_values = &y_values[y_values.len() - graph_widget_state.points_to_draw as usize..];
 
-    vec
+    //PADDING LEFT AND RIGHT: LEFT FOR Y_LABELS, RIGHT FOR FREE SPACE
+    let block_width = (GRAPH_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / graph_widget_state.points_to_draw as f32 ; //division with 0 is not possible since limit is 1
+    //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
+    let block_height = (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0)  / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+    let mut current_x = GRAPH_WIDGET_WIDTH - GRAPH_PADDING;
+
+    //I can unwrap() since the function is not going to get called if exercises.len() = 0
+    let min_y: Kg = (chopped_y_values.iter().map(|value| (*value * 10.0) as usize).min().unwrap_or(0)) as f32 / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let max_y: Kg = (chopped_y_values.iter().map(|value| (*value * 10.0) as usize).max().unwrap_or(0)) as f32 / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let delta = max_y - min_y;
+    let percentage = |current_y: Kg| {
+        if delta == 0.0 {
+            1.0
+        } else {
+            (current_y - min_y) / delta
+        }
+    };
+
+    let height_padding_for_arrow = block_height;
+    let x_axis_padding = block_height;
+    let height_graph: f32 = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
+    let lowest_point_graph: f32 = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING - x_axis_padding;
+
+    let calculate_graph_value=  |y: &Kg| -> f32 {
+        (lowest_point_graph - (percentage(*y) * height_graph))
+    };
+
+    let mut new_y_values = vec![];
+
+    let mut x_values = vec![];
+
+    let mut points = vec![];
+
+    //CALCULATE Y-VALUES
+    for y_value in chopped_y_values
+    {
+        new_y_values.push(calculate_graph_value(y_value));
+    }
+
+    //CALCULATE X-VALUES
+    for x_value in (1..=graph_widget_state.points_to_draw) {
+        x_values.push(current_x);
+        current_x -= block_width
+    }
+    x_values.reverse();
+
+    //ZIP X- AND Y-VALUES
+    for i  in 0.. graph_widget_state.points_to_draw {
+        points.push(Point{x: x_values[i as usize],y: new_y_values[i as usize]})
+    }
+
+    points
+
 }
+
+
 
 impl<'a> canvas::Program<Message> for GraphWidget<'a> {
     type State = ();
@@ -461,8 +466,6 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
                 (iced::widget::canvas::event::Status::Captured, Some(Message::Graph(GraphMessage::GraphCursorMoved(position))))
             },
             canvas::Event::Keyboard(iced::keyboard::Event::KeyPressed {key, .. }) => {
-                println!("Key pressed,from graph.rs!");
-                println!("{}",self.graph_state.visible_points);
                 (iced::widget::canvas::event::Status::Captured, Some(Message::Graph(GraphMessage::GraphKeyPressed(key))))},
 
             _ => (iced::widget::canvas::event::Status::Ignored, None)
@@ -480,6 +483,8 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
     ) -> Vec<Geometry> {
         let graph_widget = self.graph.draw(renderer, bounds.size(), |frame| {
 
+            println!("ORIGIN: {}", Point::ORIGIN);
+
             //FRAME CENTER
             let mut center = frame.center();
 
@@ -489,7 +494,8 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
                 height: frame.height(),
             });
 
-            println!("{}",self.graph_state.points_to_draw);
+            println!("Cursor Position from {}: {:?}",Point::ORIGIN,cursor.position_from(Point::ORIGIN));
+
             match self.exercise_manager.data_points.len() {
                 0 => {
                     frame.fill_text(canvas::Text{
@@ -507,20 +513,40 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
 
                 }
                 data_points_amount => {
+
+                    let mut y_values = vec![
+                        30.0,
+                        35.0,
+                        40.0,
+                        45.0,
+                        50.0,
+                        55.0,
+                        60.0,
+                        65.0,
+                        70.0,
+                        70.0,
+                        75.0,
+                        80.0,
+                        80.0,
+                        85.0,
+                        90.0,
+                        100.0,
+                    ];
+
                     frame.fill(&background, CONTAINER_COLOR);
 
                     //DASHED LINES
-                    draw_dashed_lines(frame);
+                    draw_dashed_lines(&self.graph_state , frame);
 
                     //CONNECTIONS BETWEEN POINTS
-                    draw_connections(frame,calculate_points(),&self.active_mascot);
+                    draw_connections(&self.graph_state, frame, y_values.clone(), &self.active_mascot);
 
                     //AXIS
                     draw_axis(&self.active_mascot, frame);
 
                     //POINTS
                     if self.graph_state.visible_points {
-                        draw_points(frame, calculate_points(), &self.active_mascot);
+                        draw_points(&self.graph_state,frame, y_values, &self.active_mascot);
                     }
 
                     //CURSOR
@@ -557,25 +583,33 @@ pub fn graph_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .padding([8, 16])
         .into();
 
-    let counter = text!("{}", app.graph_widget_state.points_to_draw);
+    let mut counter = format_button_text(text!("{}", app.graph_widget_state.points_to_draw));
+        counter = counter.size(19);
     let increment_button =
         create_text_button(&app.mascot_manager.selected_mascot,
                            "+".to_string(),
                            ButtonStyle::Active,
-                           Some(10.0.into())
+                           Some(100.0.into())
         ).on_press(Message::Graph(GraphMessage::IncrementCounter));
     let decrement_button =
         create_text_button(&app.mascot_manager.selected_mascot,
                            "-".to_string(),
                            ButtonStyle::Active,
-                           Some(10.0.into())
+                           Some(100.0.into())
         ).on_press(Message::Graph(GraphMessage::DecrementCounter)) ;
 
-    let counter_with_buttons = row![
+    let row_counter_with_buttons = row![
         decrement_button,
+        Space::with_width(Length::FillPortion(1)),
         counter,
-        increment_button
-    ];
+        Space::with_width(Length::FillPortion(1)),
+        increment_button,
+    ].align_y(Vertical::Center);
+
+    let counter_with_buttons =
+        container(row_counter_with_buttons)
+            .style(create_container_style(ContainerStyle::Highlighted,Some(10.into()),None))
+            .width(Length::Fixed(100.0));
 
     let graph_widget =
         GraphWidget::new(app);

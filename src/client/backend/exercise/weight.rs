@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-pub type Kg = f64;
+pub type Kg = f32;
 pub enum ExerciseWeight {
     BodyweightPlusKg(Kg),
     Kg(Kg),
