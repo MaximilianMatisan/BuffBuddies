@@ -5,6 +5,8 @@ use rand::Rng;
 use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
 
+pub type ExerciseDataPoints = Vec<(NaiveDate, Kg)>;
+
 #[derive(Debug, Clone)]
 pub struct ExerciseStat {
     pub name: String,
@@ -23,8 +25,8 @@ impl ExerciseStat {
             sets: Default::default(),
         }
     }
-    pub fn calculate_max_weight_per_day(&self) -> Vec<(NaiveDate, Kg)> {
-        let mut results: Vec<(NaiveDate, Kg)> = vec![];
+    pub fn calculate_max_weight_per_day(&self) -> ExerciseDataPoints {
+        let mut results: ExerciseDataPoints = vec![];
         for (date, sets) in &self.sets {
             let mut current_best_weight = 0.0;
             for set in sets {
@@ -136,29 +138,21 @@ pub fn generate_example_exercise(
     }
     exercise
 }
-pub fn get_minimum_weight(datapoints: Vec<(NaiveDate,Kg)>) -> Option<f32> {
-
-    let temp_min = datapoints
-        .iter()
-        .map(|(_, kg)| (*kg * 10.0) as u32)
-        .min();
+pub fn get_minimum_weight(datapoints: Vec<(NaiveDate, Kg)>) -> Option<f32> {
+    let temp_min = datapoints.iter().map(|(_, kg)| (*kg * 10.0) as u32).min();
 
     if let Some(value) = temp_min {
-        return Some(value as f32 / 10.0)
+        return Some(value as f32 / 10.0);
     } else {
         None
     }
 }
 
-pub fn get_maximum_weight(datapoints: Vec<(NaiveDate,Kg)>) -> Option<f32> {
-
-    let temp_min = datapoints
-        .iter()
-        .map(|(_, kg)| (*kg * 10.0) as u32)
-        .max();
+pub fn get_maximum_weight(datapoints: Vec<(NaiveDate, Kg)>) -> Option<f32> {
+    let temp_min = datapoints.iter().map(|(_, kg)| (*kg * 10.0) as u32).max();
 
     if let Some(value) = temp_min {
-        return Some(value as f32 / 10.0)
+        return Some(value as f32 / 10.0);
     } else {
         None
     }

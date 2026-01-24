@@ -17,6 +17,7 @@ use crate::client::gui::bb_theme::custom_button::{
 };
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
+use crate::client::gui::bb_widget::graph::{GraphMessage, MAX_AMOUNT_POINTS};
 use crate::client::gui::bb_widget::pop_up::view_pop_up;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
@@ -28,10 +29,9 @@ use iced::widget::{Column, Space, Stack, container, row};
 use iced::{Element, Task};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
-use iced_core::window::{Position, Settings};
-use iced_core::{keyboard, Length, Point, Size, Theme};
 use iced_core::keyboard::Key;
-use crate::client::gui::bb_widget::graph::{GraphMessage, MAX_AMOUNT_POINTS};
+use iced_core::window::{Position, Settings};
+use iced_core::{Length, Point, Size, Theme, keyboard};
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -213,16 +213,15 @@ impl UserInterface {
             }
             Message::Graph(graph_message) => {
                 match graph_message {
-                    GraphMessage::GraphCursorMoved(point) => {
-                        println!("TRUE: {}",point)
-                    },
+                    GraphMessage::GraphCursorMoved(_point) => {}
 
-                    GraphMessage::GraphKeyPressed(Key::Character(char)) => {
-                        match char.as_str() {
-                            "h" => {self.app.graph_widget_state.invert_visible_points()}
-                            "c" => {self.app.graph_widget_state.invert_visible_cursor_information()}
-                            _ => {}
-                        }
+                    GraphMessage::GraphKeyPressed(Key::Character(char)) => match char.as_str() {
+                        "h" => self.app.graph_widget_state.invert_visible_points(),
+                        "c" => self
+                            .app
+                            .graph_widget_state
+                            .invert_visible_cursor_information(),
+                        _ => {}
                     },
                     GraphMessage::IncrementCounter => {
                         if self.app.graph_widget_state.get_counter() < MAX_AMOUNT_POINTS {
@@ -231,10 +230,12 @@ impl UserInterface {
                             self.app.pop_up_manager.new_pop_up(
                                 PopUpType::Minor,
                                 "Limit reached ".to_string(),
-                                format!("The graph can’t display more than {MAX_AMOUNT_POINTS} points")
+                                format!(
+                                    "The graph can’t display more than {MAX_AMOUNT_POINTS} points"
+                                ),
                             );
                         }
-                    },
+                    }
                     GraphMessage::DecrementCounter => {
                         if self.app.graph_widget_state.get_counter() > 1 {
                             self.app.graph_widget_state.decrement_counter();
@@ -310,9 +311,9 @@ impl UserInterface {
                     },
                     None,
                 )
-                    .width(TAB_BUTTON_WIDTH)
-                    .height(TAB_BUTTON_HEIGHT)
-                    .on_press(Message::Select(tab)),
+                .width(TAB_BUTTON_WIDTH)
+                .height(TAB_BUTTON_HEIGHT)
+                .on_press(Message::Select(tab)),
             );
         }
         let money_button: iced::widget::Button<'_, Message, Theme, iced::Renderer> =
@@ -327,14 +328,14 @@ impl UserInterface {
                         self.app.user_manager.user_info.coin_balance
                     ))
                 ]
-                    .align_y(Vertical::Center)
-                    .into(),
+                .align_y(Vertical::Center)
+                .into(),
                 ButtonStyle::InactiveTab,
                 None,
             )
-                .on_press(Message::Select(Tab::Mascot))
-                .width(Length::Fill)
-                .height(Length::Shrink);
+            .on_press(Message::Select(Tab::Mascot))
+            .width(Length::Fill)
+            .height(Length::Shrink);
 
         let lower_tab_container_buttons =
             row![Space::with_width(Length::Fill), money_button].width(310);

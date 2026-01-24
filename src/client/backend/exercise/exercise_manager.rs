@@ -1,6 +1,9 @@
-use crate::client::backend::exercise::exercise_stats::{ExerciseStat, generate_example_exercise};
+use crate::client::backend::exercise::exercise_stats::{
+    ExerciseDataPoints, ExerciseStat, generate_example_exercise,
+};
+use crate::client::backend::exercise::general_exercise::GeneralExerciseInfo;
 use crate::client::backend::exercise::general_exercise::{
-    ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Muscle,
+    ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, Muscle,
 };
 use crate::client::backend::exercise::set::Reps;
 use crate::client::backend::exercise::weight::Kg;
@@ -22,7 +25,7 @@ pub struct ExerciseManager {
     pub owned_exercise_state: combo_box::State<String>,
     //STATS OF SELECTED EXERCISE
     ///representing the heaviest weight used in a set per tracked day
-    pub data_points: Vec<(NaiveDate, Kg)>,
+    pub data_points: ExerciseDataPoints,
     pub all_time_lifted_weight: Kg,
     pub all_time_reps: Reps,
     pub all_time_sets: u64,

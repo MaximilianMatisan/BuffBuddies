@@ -9,6 +9,7 @@ use sqlx::Row;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions};
 use std::collections::BTreeMap;
 use std::str::FromStr;
+use crate::client::backend::exercise::weight::Kg;
 
 pub async fn init_pool() -> Result<SqlitePool, sqlx::Error> {
     let options =
@@ -582,7 +583,7 @@ pub async fn get_exercises_stats(
     for exercise_log_counter in exercise_row_for_user {
         let exercise_id: i64 = exercise_log_counter.get("exercise_id");
         let reps: u32 = exercise_log_counter.get("reps");
-        let weight: f64 = exercise_log_counter.get("weight_in_kg");
+        let weight: Kg = exercise_log_counter.get("weight_in_kg");
         let date: &str = exercise_log_counter.get("date");
 
         let real_date = NaiveDate::parse_from_str(date, "%d.%m.%y").unwrap();
@@ -636,7 +637,7 @@ pub async fn get_single_foreign_user(
             username: row.get("username"),
             description: row.get("description"),
             profile_picture_handle: row.get("profile_picture"),
-            weight: row.get::<f64, _>("weight"),
+            weight: row.get::<Kg, _>("weight"),
             height: row.get::<f64, _>("height") as u32,
             gender: match row.get("gender") {
                 "Female" => Gender::Female,
