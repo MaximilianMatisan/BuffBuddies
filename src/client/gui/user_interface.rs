@@ -29,7 +29,9 @@ use iced::{Element, Task};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
 use iced_core::window::{Position, Settings};
-use iced_core::{Length, Size, Theme};
+use iced_core::{keyboard, Length, Point, Size, Theme};
+use iced_core::keyboard::Key;
+use crate::client::gui::bb_widget::graph::GraphMessage;
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -49,6 +51,7 @@ pub enum Message {
     UsernameEntered(String),
     PasswordEntered(String),
     SelectExercise(String),
+    Graph(GraphMessage),
     AddUserAsFriend(String),
     ViewProfile(UserType),
     ResetPopUp,
@@ -208,6 +211,14 @@ impl UserInterface {
                 self.app.exercise_manager.update_selected_exercise(exercise);
                 Task::none()
             }
+            Message::Graph(graph_message) => {
+                match graph_message {
+                    GraphMessage::GraphCursorMoved(point) => {
+                    }
+                };
+                Task::none()
+            }
+
             Message::AddUserAsFriend(username) => {
                 self.app.user_manager.add_user_as_friend(&username);
                 Task::none()
@@ -273,9 +284,9 @@ impl UserInterface {
                     },
                     None,
                 )
-                .width(TAB_BUTTON_WIDTH)
-                .height(TAB_BUTTON_HEIGHT)
-                .on_press(Message::Select(tab)),
+                    .width(TAB_BUTTON_WIDTH)
+                    .height(TAB_BUTTON_HEIGHT)
+                    .on_press(Message::Select(tab)),
             );
         }
         let money_button: iced::widget::Button<'_, Message, Theme, iced::Renderer> =
@@ -290,14 +301,14 @@ impl UserInterface {
                         self.app.user_manager.user_info.coin_balance
                     ))
                 ]
-                .align_y(Vertical::Center)
-                .into(),
+                    .align_y(Vertical::Center)
+                    .into(),
                 ButtonStyle::InactiveTab,
                 None,
             )
-            .on_press(Message::Select(Tab::Mascot))
-            .width(Length::Fill)
-            .height(Length::Shrink);
+                .on_press(Message::Select(Tab::Mascot))
+                .width(Length::Fill)
+                .height(Length::Shrink);
 
         let lower_tab_container_buttons =
             row![Space::with_width(Length::Fill), money_button].width(310);
