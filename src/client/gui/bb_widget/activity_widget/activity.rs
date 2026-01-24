@@ -1,3 +1,4 @@
+use crate::client::backend::exercise_mod::exercise::Exercise;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
@@ -339,4 +340,17 @@ where
     fn from(activity_widget: ActivityWidget) -> Self {
         Self::new(activity_widget)
     }
+}
+
+pub fn calculate_activity_data(exercise_data: &Vec<Exercise>) -> ActivityData {
+    let mut map: ActivityData = HashMap::new();
+
+    for exercise in exercise_data {
+        for (date, set) in &exercise.sets {
+            map.entry(*date)
+                .and_modify(|entry| *entry += set.len() as AmountOfSets)
+                .or_insert(set.len() as AmountOfSets);
+        }
+    }
+    map
 }

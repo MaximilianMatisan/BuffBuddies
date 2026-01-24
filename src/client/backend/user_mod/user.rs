@@ -2,6 +2,7 @@ use crate::client::backend::exercise_mod::exercise::Exercise;
 use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
+use crate::client::gui::bb_widget::activity_widget::activity::ActivityData;
 use strum_macros::{Display, EnumIter};
 
 pub const MAX_DESCRIPTION_CHARACTERS: usize = 300;
@@ -49,6 +50,7 @@ impl UserInformation {
 }
 pub struct ForeignUser {
     pub user_information: UserInformation,
+    pub activity_data: ActivityData,
     pub selected_mascot: Mascot,
     pub owned_mascots: Vec<Mascot>,
     pub friends_with_active_user: bool,
@@ -59,6 +61,7 @@ impl Default for ForeignUser {
         ForeignUser {
             user_information: UserInformation::default(&exercise_data),
 
+            activity_data: ActivityData::default(),
             selected_mascot: Default::default(),
             owned_mascots: vec![Mascot::default()],
             friends_with_active_user: false,

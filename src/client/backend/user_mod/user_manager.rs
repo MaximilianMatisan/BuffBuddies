@@ -7,6 +7,7 @@ use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::client::backend::user_mod::user::{
     ForeignUser, Gender, UserInformation, UserInformationStrings, UserType,
 };
+use crate::client::gui::bb_widget::activity_widget::activity::ActivityData;
 use iced::widget::combo_box;
 use strum::IntoEnumIterator;
 
@@ -45,6 +46,7 @@ impl UserManager {
                 favorite_mascot: Mascot::Rare(RareMascot::Chameleon),
                 profile_stat_manager: ProfileStatManager::new(&user1_exercises),
             },
+            activity_data: ActivityData::default(),
             selected_mascot: Mascot::Rare(RareMascot::Chameleon),
             owned_mascots: user1_mascots,
             friends_with_active_user: false,
@@ -72,6 +74,7 @@ impl UserManager {
                 favorite_mascot: Mascot::Rare(RareMascot::Whale),
                 profile_stat_manager: ProfileStatManager::new(&user2_exercises),
             },
+            activity_data: ActivityData::default(),
             selected_mascot: Mascot::Rare(RareMascot::Duck),
             owned_mascots: user2_mascots,
             friends_with_active_user: false,
@@ -95,6 +98,7 @@ impl UserManager {
                 favorite_mascot: Mascot::Epic(EpicMascot::Capybara),
                 profile_stat_manager: ProfileStatManager::new(&user3_exercises),
             },
+            activity_data: ActivityData::default(),
             selected_mascot: Mascot::Rare(RareMascot::Dog),
             owned_mascots: user3_mascots,
             friends_with_active_user: false,
@@ -118,6 +122,7 @@ impl UserManager {
                 favorite_mascot: Mascot::Epic(EpicMascot::Shark),
                 profile_stat_manager: ProfileStatManager::new(&user4_exercises),
             },
+            activity_data: ActivityData::default(),
             selected_mascot: Mascot::Rare(RareMascot::Duck),
             owned_mascots: user4_mascots,
             friends_with_active_user: false,

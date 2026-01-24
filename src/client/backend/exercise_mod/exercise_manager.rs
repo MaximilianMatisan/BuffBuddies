@@ -9,10 +9,9 @@ use crate::client::backend::exercise_mod::set::{Reps, StrengthSet};
 use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::user_mod::user::UserInformation;
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
-use crate::client::gui::bb_widget::activity_widget::activity::{ActivityData, AmountOfSets};
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 pub struct ExerciseManager {
     //TODO get exercises from db
@@ -87,8 +86,8 @@ Repeat for the recommended amount of repetitions.".to_string(),
 
         let selected_exercise_name = "Bench press".to_string();
         let mut exercise_manager = ExerciseManager {
-            extended_general_exercise_infos: HashSet::new(),
             exercises: vec![preacher_curl, bench_press, barbell_row],
+            extended_general_exercise_infos: HashSet::new(),
             selected_exercise_name: selected_exercise_name.clone(),
             owned_exercise_state: combo_box::State::new(vec![]),
             data_points: vec![],
@@ -210,17 +209,4 @@ impl ExerciseManager {
         }
         set
     }
-}
-
-pub fn calculate_activity_data(exercise_data: &Vec<Exercise>) -> ActivityData {
-    let mut map: ActivityData = HashMap::new();
-
-    for exercise in exercise_data {
-        for (date, set) in &exercise.sets {
-            map.entry(*date)
-                .and_modify(|entry| *entry += set.len() as AmountOfSets)
-                .or_insert(set.len() as AmountOfSets);
-        }
-    }
-    map
 }
