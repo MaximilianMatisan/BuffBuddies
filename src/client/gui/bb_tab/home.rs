@@ -1,3 +1,4 @@
+use crate::client::gui::bb_widget::graph::{GraphWidget, graph_environment_widget};
 use crate::client::gui::bb_widget::progress::progress_environment_widget;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::{Message, UserInterface};
@@ -5,7 +6,6 @@ use iced::Element;
 use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{Column, Row, Scrollable, Space};
 use iced_core::Length;
-use crate::client::gui::bb_widget::graph::{graph_environment_widget, GraphWidget};
 
 impl UserInterface {
     pub fn homescreen(&self) -> Element<Message> {
