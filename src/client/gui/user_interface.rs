@@ -24,7 +24,7 @@ use crate::client::gui::bb_widget::social_elements::profile_tab_button;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::{bb_theme, size};
 use crate::client::server_communication::server_communicator::{
-    RequestValidUserError, SaveMascotError, save_mascot, valid_login,
+    RequestValidUserError, SaveMascotError, SaveWorkoutError, save_mascot, valid_login,
 };
 use iced::widget::{Column, Space, Stack, container, row};
 use iced::{Element, Task};
@@ -59,6 +59,7 @@ pub enum Message {
     Settings(SettingsMessage),
     ToggleGeneralExerciseInfo(u32),
     WorkoutCreation(WorkoutCreationMessage),
+    SaveWorkout(Result<(), SaveWorkoutError>),
 }
 
 impl UserInterface {
@@ -294,6 +295,17 @@ impl UserInterface {
                 Task::none()
             }
             Message::WorkoutCreation(workout_creation_msg) => workout_creation_msg.update(self),
+            Message::SaveWorkout(Err(err)) => {
+                match err {
+                    SaveWorkoutError::ServerError => self.app.pop_up_manager.new_pop_up(
+                        PopUpType::Minor,
+                        "Error while sending workout to server!".to_string(),
+                        "Server offline or had internal error \nTry again later".to_string(),
+                    ),
+                }
+                Task::none()
+            }
+            Message::SaveWorkout(Ok(())) => Task::none(),
         }
     }
     fn view(&self) -> Element<'_, Message> {

@@ -10,6 +10,7 @@ use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, format_button_text, format_description_text,
 };
 use crate::client::gui::user_interface::{Message, UserInterface};
+use crate::client::server_communication::server_communicator::save_workout;
 use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{
     Column, Row, Scrollable, Space, combo_box, container, image, row, stack, text, text_input,
@@ -173,12 +174,15 @@ impl WorkoutCreationMessage {
                 Task::none()
             }
             WorkoutCreationMessage::FinishWorkoutCreation => {
+                let mut err: bool = false;
+                let mut workout_clone: Option<Vec<ExerciseCreate>> = None;
                 if let Some(workout) = &user_interface.app.exercise_manager.workout_in_creation {
-                    if let Err(()) = user_interface
-                        .app
-                        .exercise_manager
-                        .save_workout(&workout.clone())
-                    {
+                    workout_clone = Some(workout.clone());
+                    if let Err(()) = user_interface.app.exercise_manager.save_workout(
+                        &workout.clone(),
+                        &mut user_interface.app.user_manager.user_info,
+                    ) {
+                        err = true;
                         user_interface.app.pop_up_manager.new_pop_up(
                             PopUpType::Minor,
                             "Failed Saving Workout".to_string(),
@@ -189,6 +193,22 @@ impl WorkoutCreationMessage {
                 }
                 user_interface.app.exercise_manager.clear_workout();
                 user_interface.app.screen = Tab::Workout;
+                if let Some(workout) = workout_clone {
+                    if !err {
+                        let name_clone = user_interface
+                            .app
+                            .user_manager
+                            .user_info
+                            .username
+                            .clone()
+                            .to_string();
+                        let workout_clone = workout.clone();
+                        return Task::perform(
+                            async move { save_workout(name_clone, workout_clone) },
+                            Message::SaveWorkout,
+                        );
+                    }
+                }
                 Task::none()
             }
         }
