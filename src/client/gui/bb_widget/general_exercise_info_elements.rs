@@ -6,9 +6,7 @@ use crate::client::gui::bb_theme::container::{
     ContainerStyle, DEFAULT_TEXT_CONTAINER_PADDING, create_container_style,
 };
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
-use crate::client::gui::bb_theme::text_format::{
-    FIRA_SANS_EXTRABOLD, format_description_text, option_to_content_or_none_string,
-};
+use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text};
 use crate::client::gui::bb_widget::widget_utils::{
     INDENT, LARGE_INDENT, descriptor_space_fill_text_row,
 };
@@ -110,15 +108,9 @@ fn detail_column(general_exercise_info: &GeneralExerciseInfo) -> Column<Message>
     let mut content = Column::new().width(Length::FillPortion(5));
 
     let fields = [
-        descriptor_space_fill_text_row(
-            "Force:",
-            option_to_content_or_none_string(&general_exercise_info.force),
-        ),
+        descriptor_space_fill_text_row("Force:", general_exercise_info.force.to_string()),
         descriptor_space_fill_text_row("Level:", general_exercise_info.level.to_string()),
-        descriptor_space_fill_text_row(
-            "Equipment:",
-            option_to_content_or_none_string(&general_exercise_info.equipment),
-        ),
+        descriptor_space_fill_text_row("Equipment:", general_exercise_info.equipment.to_string()),
         descriptor_space_fill_text_row(
             "Primary muscle:",
             general_exercise_info.primary_muscle.to_string(),

@@ -7,7 +7,6 @@ use iced_core::font::Style;
 use iced_core::font::Weight::ExtraBold;
 use iced_core::widget::Text;
 use iced_core::{Font, Theme};
-use std::fmt::Display;
 
 pub const FIRA_SANS_EXTRABOLD: Font = Font {
     family: Name("Fira Sans"),
@@ -33,7 +32,8 @@ pub fn kg_to_string(kg: Kg) -> String {
 pub fn cm_to_string(cm: u32) -> String {
     format!("{} cm", cm)
 }
-pub fn option_to_content_or_none_string<X>(option: &Option<X>) -> String
+
+/*pub fn option_to_content_or_none_string<X>(option: &Option<X>) -> String
 where
     X: Display,
 {
@@ -42,3 +42,4 @@ where
         .map(|content| content.to_string())
         .unwrap_or("None".to_string())
 }
+*/
