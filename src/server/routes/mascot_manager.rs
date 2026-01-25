@@ -1,9 +1,9 @@
 use axum::Json;
 
 #[derive(serde::Deserialize, serde::Serialize)]
-pub struct Mascot {
+pub struct MascotJson {
     name: String,
 }
-pub async fn save_mascot(Json(mascot): Json<Mascot>) {
+pub async fn save_mascot(Json(mascot): Json<MascotJson>) {
     println!("User purchased {}", mascot.name)
 }

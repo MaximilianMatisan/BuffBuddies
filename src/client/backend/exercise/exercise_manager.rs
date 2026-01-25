@@ -8,6 +8,7 @@ use crate::client::backend::exercise::general_exercise::{
 };
 use crate::client::backend::exercise::set::{Reps, StrengthSet};
 use crate::client::backend::exercise::weight::Kg;
+use crate::client::backend::user_mod::user::UserInformation;
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
 use crate::client::gui::bb_widget::activity_widget::activity::AmountOfSets;
 use chrono::{Local, NaiveDate};
@@ -136,9 +137,17 @@ impl ExerciseManager {
         }
     }
 
-    pub fn save_workout(&mut self, workout: &Vec<ExerciseCreate>) -> Result<(), ()> {
+    pub fn save_workout(
+        &mut self,
+        workout: &Vec<ExerciseCreate>,
+        user_info: &mut UserInformation,
+    ) -> Result<(), ()> {
+        let mut first_workout_today: bool = true;
         let local_time = Local::now().date_naive();
         for exercise_stat in &mut self.exercise_stats {
+            if exercise_stat.sets.contains_key(&local_time) {
+                first_workout_today = false;
+            }
             for exercise in workout {
                 if exercise.name == exercise_stat.name && !exercise.sets.is_empty() {
                     match exercise_stat.sets.get(&local_time) {
@@ -157,6 +166,10 @@ impl ExerciseManager {
                 }
             }
         }
+        if first_workout_today {
+            user_info.coin_balance += 5;
+        }
+        self.update_selected_exercise(self.selected_exercise_name.clone());
         Ok(())
     }
 

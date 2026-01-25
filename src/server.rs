@@ -1,4 +1,3 @@
 mod database_mod;
-mod login;
-mod mascot_manager;
+mod routes;
 pub mod server_main;

@@ -1,7 +1,8 @@
 use crate::server::database_mod::database;
 use crate::server::database_mod::database::init_db;
-use crate::server::login::check_login;
-use crate::server::mascot_manager::save_mascot;
+use crate::server::routes::login::check_login;
+use crate::server::routes::mascot_manager::save_mascot;
+use crate::server::routes::workout::save_workout;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
@@ -59,6 +60,7 @@ fn create_app(pool: SqlitePool) -> Router {
         .route("/server", get(health_check))
         .route("/user/login", get(check_login))
         .route("/mascot/save", post(save_mascot))
+        .route("/workout/save", post(save_workout))
         .with_state(pool)
 }
 
