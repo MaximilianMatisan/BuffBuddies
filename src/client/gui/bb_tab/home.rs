@@ -1,4 +1,4 @@
-use crate::client::gui::bb_widget::graph::{GraphWidget, graph_environment_widget};
+use crate::client::gui::bb_widget::graph::graph_environment_widget;
 use crate::client::gui::bb_widget::progress::progress_environment_widget;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::{Message, UserInterface};
@@ -16,7 +16,6 @@ impl UserInterface {
             .push(progress_environment_widget(&self.app))
             .push(Space::with_width(Length::Fill));
 
-        let debug_test = GraphWidget::new(&self.app).view();
         let actual_version = graph_environment_widget(&self.app);
 
         let contents = Column::new()

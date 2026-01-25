@@ -1,5 +1,6 @@
 use crate::client::backend::exercise::exercise_stats::ExerciseStat;
 use crate::client::backend::exercise::set::StrengthSet;
+use crate::client::backend::exercise::weight::Kg;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
@@ -9,7 +10,6 @@ use sqlx::Row;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions};
 use std::collections::BTreeMap;
 use std::str::FromStr;
-use crate::client::backend::exercise::weight::Kg;
 
 pub async fn init_pool() -> Result<SqlitePool, sqlx::Error> {
     let options =

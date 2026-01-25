@@ -9,7 +9,7 @@ use crate::client::backend::pop_up_manager::PopUpManager;
 use crate::client::backend::user_mod::user_manager::UserManager;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityWidget;
-use crate::client::gui::bb_widget::graph::{GraphWidget, GraphWidgetState};
+use crate::client::gui::bb_widget::graph::GraphWidgetState;
 
 pub struct App {
     pub loading: bool,
