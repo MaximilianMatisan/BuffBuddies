@@ -50,9 +50,9 @@ impl Default for ExerciseManager {
         let test_exercise_info_0 = GeneralExerciseInfo {
             id: 0,
             name: "Preacher Curl".to_string(),
-            force: Some(ExerciseForce::Pull),
+            force: ExerciseForce::Pull,
             level: ExerciseLevel::Beginner,
-            equipment: Some(ExerciseEquipment::Barbell),
+            equipment: ExerciseEquipment::Barbell,
             primary_muscle: Muscle::Biceps,
             instructions: "To perform this movement you will need a preacher bench and an E-Z bar. Grab the E-Z curl bar at the close inner handle (either have someone hand you the bar which is preferable or grab the bar from the front bar rest provided by most preacher benches). The palm of your hands should be facing forward and they should be slightly tilted inwards due to the shape of the bar.
 With the upper arms positioned against the preacher bench pad and the chest against it, hold the E-Z Curl Bar at shoulder length. This will be your starting position.
@@ -64,9 +64,9 @@ Repeat for the recommended amount of repetitions.".to_string(),
         let test_exercise_info_1 = GeneralExerciseInfo {
             id: 1,
             name: "Bench press".to_string(),
-            force: Some(ExerciseForce::Push),
+            force: ExerciseForce::Push,
             level: ExerciseLevel::Beginner,
-            equipment: Some(ExerciseEquipment::Barbell),
+            equipment: ExerciseEquipment::Barbell,
             primary_muscle: Muscle::Chest,
             instructions: "Lie back on a flat bench. Using a medium width grip (a grip that creates a 90-degree angle in the middle of the movement between the forearms and the upper arms), lift the bar from the rack and hold it straight over you with your arms locked. This will be your starting position.
 From the starting position, breathe in and begin coming down slowly until the bar touches your middle chest.
