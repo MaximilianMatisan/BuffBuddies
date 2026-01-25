@@ -7,7 +7,7 @@ use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_s
 use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, format_description_text, kg_to_string,
 };
-use crate::client::gui::bb_widget::stats::profile_stat_container;
+use crate::client::gui::bb_widget::stats::{PROFILE_STAT_CONTAINER_HEIGHT, profile_stat_container};
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::size::LARGE_PROFILE_PICTURE_DIMENSION;
 use crate::client::gui::user_interface::Message;
@@ -124,20 +124,22 @@ pub fn view_profile<'a>(
         .push(stat_row_two)
         .spacing(INDENT);
 
-    let favorite_mascot = Column::new()
+    let favorite_mascot_image =
+        image(favorite_mascot.get_file_path()).height(PROFILE_STAT_CONTAINER_HEIGHT * 2.0 + INDENT);
+    let favorite_mascot_component = Column::new()
         .push(
             text("Favorite Mascot")
                 .font(FIRA_SANS_EXTRABOLD)
                 .color(TEXT_COLOR)
                 .size(25),
         )
-        .push(image(favorite_mascot.get_file_path()))
+        .push(favorite_mascot_image)
         .spacing(INDENT)
         .align_x(Horizontal::Center);
 
     let stat_mascot_row = Row::new()
         .push(stats)
-        .push(favorite_mascot)
+        .push(favorite_mascot_component)
         .spacing(LARGE_INDENT);
 
     let content = column![header, activity_widget, stat_mascot_row]
