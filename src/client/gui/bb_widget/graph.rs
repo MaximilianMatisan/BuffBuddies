@@ -339,13 +339,12 @@ fn draw_points(
     }
 }
 
-fn draw_connections(
-    graph_widget_state: &GraphWidgetState,
-    frame: &mut Frame<Renderer>,
-    y_values: Vec<f32>,
-    mascot: &Mascot,
-) {
-    let points = calculate_points(graph_widget_state, y_values);
+fn draw_connections (graph_widget_state: &GraphWidgetState, frame: &mut Frame<Renderer>, y_values: Vec<f32>, mascot: &Mascot,) {
+
+
+    //TODO: Make connections thicker when less points_to_draw
+
+    let points = calculate_points(graph_widget_state,y_values);
 
     let connection_stroke = Stroke {
         width: 1.5,
@@ -371,15 +370,16 @@ fn draw_connections(
         })
         .collect::<Vec<(Point, Point)>>();
 
-    let graph_origin = Point {
+
+    //draw start line (line should be at the same height of first point)
+    let point_on_y_axis = Point {
         x: Point::ORIGIN.x + GRAPH_PADDING,
-        y: frame.height() - GRAPH_PADDING,
+        y: points[0].y, //it is sure that there is at least one point since the function doesn't get called if length() < 1
     };
 
-    //draw start line from origin
     frame.stroke(
-        &Path::line(graph_origin, points[0]), //it is sure that there is at least one point since the function doesn't get called if length() < 1
-        connection_stroke,
+        &Path::line(point_on_y_axis, points[0]), //it is sure that there is at least one point since the function doesn't get called if length() < 1
+        connection_stroke
     );
 
     for (start, end) in point_tuples {
@@ -387,61 +387,109 @@ fn draw_connections(
     }
 }
 
-fn draw_cursor_information(bounds: Rectangle, cursor: Cursor, frame: &mut Frame<Renderer>) {
-    if bounds.contains(cursor.position().unwrap_or_default()) {
+
+fn draw_cursor_information(y_values: Vec<Kg>,graph_widget_state: &GraphWidgetState, bounds: Rectangle, cursor: Cursor, frame: &mut Frame<Renderer>) { //max_point is needed for scaling
+
+    //SETUP GRAPH BOUNDS
+    let mut graph_bounds = bounds;
+    graph_bounds.x += GRAPH_PADDING;
+    graph_bounds.y += GRAPH_PADDING;
+    graph_bounds.height -= GRAPH_PADDING * 2.0;
+    graph_bounds.width -= GRAPH_PADDING * 2.0;
+
+    let graph_origin = Point{x:graph_bounds.x, y:graph_bounds.y + graph_bounds.height};
+
+    //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
+    let block_height = (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0)  / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+    let chopped_y_values = chop_points(graph_widget_state,y_values);
+
+    let min_y: Kg = (chopped_y_values.iter().map(|value| (*value * 10.0) as usize).min().unwrap_or(0)) as f32 / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let max_y: Kg = (chopped_y_values.iter().map(|value| (*value * 10.0) as usize).max().unwrap_or(0)) as f32 / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let min_to_max_distance = max_y - min_y;
+
+        let height_padding_for_arrow = block_height;
+        let x_axis_padding = block_height;
+
+    let height_graph_from_min_to_max: f32 = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
+
+    if graph_bounds.contains(cursor.position().unwrap_or_default()) {
+
+        let cursor_position_in_graph =
+            if let Some(mut position) = cursor.position_from(graph_origin) {
+                position.y = - position.y;                      //invert y-coordinate since everything above position_from(graph_origin) is negative
+                position.y -= x_axis_padding;                   //shifting everything one block above x-axis,first point starts after first block
+                let position_percentage = position.y / height_graph_from_min_to_max; //percentage of the current position divided by the max_position possible
+                let kg_position_y = min_y + position_percentage * min_to_max_distance; //weight_calculation: min_weight + percentage * delta(max_weight,min_weight)
+                Point{x:position.x,y:kg_position_y}
+            } else {
+                Point{ x: 0.0, y: 0.0 }
+            };
+
+        let information_offset_from_cursor_x = - 70.0;
+        let information_offset_from_cursor_y = 50.0;
+
         let cursor_information_position =
-            if let Some(mut position) = cursor.position_from(Point::ORIGIN) {
-                position.x -= 361.0 - 70.0;
-                position.y -= 1114.0 + 30.0;
+            if let Some(mut position) = cursor.position_from(graph_origin) {
+                position.y = position.y + (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) + information_offset_from_cursor_y;
+                position.x = position.x + information_offset_from_cursor_x;
                 position
             } else {
                 Point { x: 0.0, y: 0.0 }
             };
 
+        let cursor_information_box_size = Size { width: 120.0, height: 60.0 };
+
         frame.fill(
-            &Path::rounded_rectangle(
-                Point {
-                    x: cursor_information_position.x - 62.0,
-                    y: cursor_information_position.y - 30.0,
-                },
-                Size {
-                    width: 120.0,
-                    height: 60.0,
-                },
-                10.0.into(),
-            ),
-            HIGHLIGHTED_CONTAINER_COLOR,
-        );
+                &Path::rounded_rectangle(
+                cursor_information_position,
+                cursor_information_box_size
+                ,10.0.into())
+            ,HIGHLIGHTED_CONTAINER_COLOR);
+
+        let mut cursor_information_text = cursor_information_position;
+        //ADD PADDING
+        cursor_information_text.x += cursor_information_box_size.width / 5.0;
+        cursor_information_text.y += cursor_information_box_size.height / 5.0;
+
+
         frame.fill_text(canvas::Text {
-            content: format!(
-                "Date: {}\nKg: {}",
-                cursor_information_position.x.round(),
-                cursor_information_position.y.round()
-            ), //TODO:HANDLE UNWRAP
-            size: 15.0.into(),
-            position: cursor_information_position,
-            color: color!(255, 255, 255),
+            content: format!("{} Kg", cursor_position_in_graph.y.round()),
+            size: 25.0.into(),
+            position: cursor_information_text,
+            color: color!(255,255,255),
+
             font: FIRA_SANS_EXTRABOLD,
-            horizontal_alignment: Horizontal::Center,
-            vertical_alignment: Vertical::Center,
+            horizontal_alignment: Horizontal::Left,
+            vertical_alignment: Vertical::Top,
             line_height: Default::default(),
             shaping: iced_core::text::Shaping::Advanced,
         });
     }
 }
 
+fn draw_axis_lables(){
+    //TODO: Implement this
+}
+
 //LOGIC
 
-fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) -> Vec<Point> {
-    let chop_start_index: isize =
-        y_values.len() as isize - graph_widget_state.points_to_draw as isize;
+
+fn chop_points (graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) -> Vec<Kg> {
+    let chop_start_index: isize = y_values.len() as isize - graph_widget_state.points_to_draw as isize;
 
     let safe_chop_start_index = match chop_start_index {
         ..=0 => 0,
-        _ => chop_start_index,
+        _ => chop_start_index
     };
 
-    let chopped_y_values = &y_values[(safe_chop_start_index) as usize..];
+    let chopped_y_values = y_values[(safe_chop_start_index) as usize..].to_vec();
+    chopped_y_values
+}
+
+fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) -> Vec<Point> {
+
+    let chopped_y_values = &chop_points(graph_widget_state,y_values.clone());
+
 
     //PADDING LEFT AND RIGHT: LEFT FOR Y_LABELS, RIGHT FOR FREE SPACE
     let block_width =
@@ -479,8 +527,10 @@ fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) ->
         GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
     let lowest_point_graph: f32 = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING - x_axis_padding;
 
-    let calculate_graph_value =
-        |y: &Kg| -> f32 { (lowest_point_graph - (percentage(*y) * height_graph)) };
+    //FORMULA: lowest_point-(y_min - current_y)/(max_y - min_y) * height_graph
+    let calculate_graph_value=  |y: &Kg| -> f32 {
+        (lowest_point_graph - (percentage(*y) * height_graph))
+    };
 
     let mut new_y_values = vec![];
 
@@ -547,7 +597,7 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
         &self,
         _state: &Self::State,
         renderer: &Renderer,
-        theme: &Theme,
+        _theme: &Theme,
         bounds: Rectangle,
         cursor: mouse::Cursor,
     ) -> Vec<Geometry> {
@@ -578,10 +628,6 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
                 }),
                 data_points_amount => {
                     let weights = extract_weights(&self.exercise_manager.data_points);
-                    let mut y_values = vec![
-                        30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 100.0, 65.0, 70.0, 230.0, 75.0, 80.0,
-                        0.0, 85.0, 90.0, 100.0,
-                    ];
 
                     frame.fill(&background, CONTAINER_COLOR);
 
@@ -601,12 +647,13 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
 
                     //POINTS
                     if self.graph_state.visible_points {
-                        draw_points(&self.graph_state, frame, weights, &self.active_mascot);
+                        draw_points(&self.graph_state, frame, weights.clone(), &self.active_mascot);
                     }
 
+                    println!("{:?}",weights);
                     //CURSOR
                     if self.graph_state.visible_cursor_information {
-                        draw_cursor_information(bounds, cursor, frame);
+                        draw_cursor_information(weights,&self.graph_state,bounds,cursor, frame); //unwrap() can't fail since the list can't be empty
                     }
                 }
             }
