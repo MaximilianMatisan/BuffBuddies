@@ -25,6 +25,7 @@ use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_butto
 use crate::client::gui::bb_theme::text_format;
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::stats::exercise_stat_column;
+use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use iced::Element;
 use iced::widget::{Column, Row, Space, container};
@@ -33,17 +34,16 @@ use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::gradient::ColorStop;
 use iced_core::keyboard::Key;
 use iced_core::mouse::Cursor;
-use iced_core::{Length, Padding, Point, Rectangle, Size, Theme, Widget};
+use iced_core::{Length, Padding, Point, Rectangle, Size, Theme};
 
 const GRAPH_WIDGET_WIDTH: f32 = 700.0;
 const GRAPH_WIDGET_HEIGHT: f32 = 500.0;
 const GRAPH_PADDING: f32 = 50.0;
-const LINE_THICKNESS: f32 = 3.0;
-const MOUSE_INFORMATION_SIZE: f32 = 3.0;
 const AXIS_FONT_SIZE: f32 = 12.0;
-const FREQUENCY_OF_Y_AXIS_LABELS: u32 = 9;
+const FREQUENCY_OF_Y_AXIS_LABELS: u32 = 12;
 const AXIS_THICKNESS: f32 = 5.0;
-pub const MAX_AMOUNT_POINTS: u8 = 16;
+pub const MAX_AMOUNT_POINTS: u8 = 40;
+pub const MAX_X_LABELS: u8 = 11;
 
 #[derive(Clone, Debug)]
 pub enum GraphMessage {
@@ -87,8 +87,6 @@ impl GraphWidgetState {
     }
 }
 pub struct GraphWidget<'a> {
-    width: f32,
-    height: f32,
     active_mascot: Mascot,
     exercise_manager: &'a ExerciseManager,
     graph_state: GraphWidgetState,
@@ -98,17 +96,11 @@ pub struct GraphWidget<'a> {
 impl<'a> GraphWidget<'a> {
     pub(crate) fn new(app: &'a App) -> Self {
         GraphWidget {
-            width: GRAPH_WIDGET_WIDTH,
-            height: GRAPH_WIDGET_HEIGHT,
             active_mascot: app.mascot_manager.selected_mascot,
             exercise_manager: &app.exercise_manager,
             graph_state: app.graph_widget_state.clone(),
             graph: Cache::default(),
         }
-    }
-
-    pub(crate) fn get_width(&self) -> f32 {
-        self.width
     }
 
     pub(crate) fn view(self) -> Element<'a, Message> {
@@ -120,18 +112,18 @@ impl<'a> GraphWidget<'a> {
     }
 }
 
-fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Renderer>) {
-    let dashed_lines_gradient_padding = GRAPH_PADDING + 10.0;
+fn draw_dashed_lines(frame: &mut Frame<Renderer>) {
+    let gradient_padding = GRAPH_PADDING + 6.0;
 
     let gradient = Gradient::Linear(
         Linear::new(
             Point {
-                x: frame.width() / 2.0,
-                y: dashed_lines_gradient_padding,
+                x: gradient_padding,
+                y: frame.height() / 2.0,
             },
             Point {
-                x: frame.width() / 2.0,
-                y: frame.height() - dashed_lines_gradient_padding,
+                x: frame.width(),
+                y: frame.height() / 2.0,
             },
         )
         .add_stops([
@@ -173,39 +165,34 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
             offset: 0,
         },
     };
-    //PADDING LEFT AND RIGHT: LEFT FOR Y_LABELS, RIGHT FOR FREE SPACE
-    let block_width =
-        (GRAPH_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / graph_widget_state.points_to_draw as f32; //division with 0 is not possible since limit is 1
+
     //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
     let block_height =
         (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 
-    let mut current_x = GRAPH_WIDGET_WIDTH - GRAPH_PADDING; //START OF GRAPH
+    let current_x = GRAPH_WIDGET_WIDTH - GRAPH_PADDING; //START OF GRAPH
     let mut current_y = Point::ORIGIN.y + GRAPH_PADDING;
 
     let mut draw_stroke = |start: Point, end: Point, stroke: Stroke| {
         frame.stroke(&Path::line(start, end), stroke);
     };
 
-    //VERTICAL LINES
-    for line in 1..=graph_widget_state.points_to_draw {
-        let point_up = Point {
-            x: Point::ORIGIN.x + current_x,
-            y: Point::ORIGIN.y + GRAPH_PADDING,
-        };
+    //VERTICAL LINE
+    let point_up = Point {
+        x: Point::ORIGIN.x + current_x,
+        y: Point::ORIGIN.y + GRAPH_PADDING,
+    };
 
-        let point_bottom = Point {
-            x: Point::ORIGIN.x + current_x,
-            y: GRAPH_WIDGET_HEIGHT - GRAPH_PADDING,
-        };
+    let point_bottom = Point {
+        x: Point::ORIGIN.x + current_x,
+        y: GRAPH_WIDGET_HEIGHT - GRAPH_PADDING,
+    };
 
-        draw_stroke(point_up, point_bottom, dashed_stroke);
-        current_x -= block_width;
-    }
+    draw_stroke(point_up, point_bottom, dashed_stroke);
 
     //HORIZONTAL LINES
 
-    for line in 1..=FREQUENCY_OF_Y_AXIS_LABELS {
+    for _line in 1..=FREQUENCY_OF_Y_AXIS_LABELS {
         let point_left = Point {
             x: Point::ORIGIN.x + GRAPH_PADDING,
             y: Point::ORIGIN.y + current_y,
@@ -322,8 +309,8 @@ fn draw_points(
     //!You should pass a list with the y-values,which are things such as weight lifted,kms run,etc.
 
     let points = calculate_points(graph_widget_state, y_values);
-    let base_size_point = 4.0;
-    let max_size_point = 8.7;
+    let base_size_point = 3.0;
+    let max_size_point = 7.0;
     let range_size_point = max_size_point - base_size_point;
     let percentage = points.len() as f32 / MAX_AMOUNT_POINTS as f32;
 
@@ -339,15 +326,25 @@ fn draw_points(
     }
 }
 
-fn draw_connections (graph_widget_state: &GraphWidgetState, frame: &mut Frame<Renderer>, y_values: Vec<f32>, mascot: &Mascot,) {
-
-
+fn draw_connections(
+    graph_widget_state: &GraphWidgetState,
+    frame: &mut Frame<Renderer>,
+    y_values: Vec<f32>,
+    mascot: &Mascot,
+) {
     //TODO: Make connections thicker when less points_to_draw
 
-    let points = calculate_points(graph_widget_state,y_values);
+    let points = calculate_points(graph_widget_state, y_values);
+    let base_size_stroke = 1.5;
+    let max_size_stroke = 4.2;
+    let range_size_stroke = max_size_stroke - base_size_stroke;
+    let percentage = points.len() as f32 / MAX_AMOUNT_POINTS as f32;
+
+    //CALCULATE POINTS RADIUS
+    let stroke_size = max_size_stroke - percentage * range_size_stroke;
 
     let connection_stroke = Stroke {
-        width: 1.5,
+        width: stroke_size,
         line_cap: LineCap::Round,
         line_join: LineJoin::Round,
         style: stroke::Style::Solid(mascot.get_secondary_color()),
@@ -370,7 +367,6 @@ fn draw_connections (graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
         })
         .collect::<Vec<(Point, Point)>>();
 
-
     //draw start line (line should be at the same height of first point)
     let point_on_y_axis = Point {
         x: Point::ORIGIN.x + GRAPH_PADDING,
@@ -379,7 +375,7 @@ fn draw_connections (graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
 
     frame.stroke(
         &Path::line(point_on_y_axis, points[0]), //it is sure that there is at least one point since the function doesn't get called if length() < 1
-        connection_stroke
+        connection_stroke,
     );
 
     for (start, end) in point_tuples {
@@ -387,8 +383,14 @@ fn draw_connections (graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
     }
 }
 
-
-fn draw_cursor_information(y_values: Vec<Kg>,graph_widget_state: &GraphWidgetState, bounds: Rectangle, cursor: Cursor, frame: &mut Frame<Renderer>) { //max_point is needed for scaling
+fn draw_cursor_information(
+    y_values: Vec<Kg>,
+    graph_widget_state: &GraphWidgetState,
+    bounds: Rectangle,
+    cursor: Cursor,
+    frame: &mut Frame<Renderer>,
+) {
+    //max_point is needed for scaling
 
     //SETUP GRAPH BOUNDS
     let mut graph_bounds = bounds;
@@ -397,67 +399,91 @@ fn draw_cursor_information(y_values: Vec<Kg>,graph_widget_state: &GraphWidgetSta
     graph_bounds.height -= GRAPH_PADDING * 2.0;
     graph_bounds.width -= GRAPH_PADDING * 2.0;
 
-    let graph_origin = Point{x:graph_bounds.x, y:graph_bounds.y + graph_bounds.height};
+    let graph_origin = Point {
+        x: graph_bounds.x,
+        y: graph_bounds.y + graph_bounds.height,
+    };
 
     //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
-    let block_height = (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0)  / FREQUENCY_OF_Y_AXIS_LABELS as f32;
-    let chopped_y_values = chop_points(graph_widget_state,y_values);
+    let block_height =
+        (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+    let chopped_y_values = chop_weights(graph_widget_state, y_values);
 
-    let min_y: Kg = (chopped_y_values.iter().map(|value| (*value * 10.0) as usize).min().unwrap_or(0)) as f32 / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
-    let max_y: Kg = (chopped_y_values.iter().map(|value| (*value * 10.0) as usize).max().unwrap_or(0)) as f32 / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let min_y: Kg = (chopped_y_values
+        .iter()
+        .map(|value| (*value * 10.0) as usize)
+        .min()
+        .unwrap_or(0)) as f32
+        / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let max_y: Kg = (chopped_y_values
+        .iter()
+        .map(|value| (*value * 10.0) as usize)
+        .max()
+        .unwrap_or(0)) as f32
+        / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
     let min_to_max_distance = max_y - min_y;
 
-        let height_padding_for_arrow = block_height;
-        let x_axis_padding = block_height;
+    let height_padding_for_arrow = block_height;
+    let x_axis_padding = block_height;
 
-    let height_graph_from_min_to_max: f32 = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
+    let height_graph_from_min_to_max: f32 =
+        GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
 
     if graph_bounds.contains(cursor.position().unwrap_or_default()) {
-
         let cursor_position_in_graph =
             if let Some(mut position) = cursor.position_from(graph_origin) {
-                position.y = - position.y;                      //invert y-coordinate since everything above position_from(graph_origin) is negative
-                position.y -= x_axis_padding;                   //shifting everything one block above x-axis,first point starts after first block
+                position.y = -position.y; //invert y-coordinate since everything above position_from(graph_origin) is negative
+                position.y -= x_axis_padding; //shifting everything one block above x-axis,first point starts after first block
                 let position_percentage = position.y / height_graph_from_min_to_max; //percentage of the current position divided by the max_position possible
                 let kg_position_y = min_y + position_percentage * min_to_max_distance; //weight_calculation: min_weight + percentage * delta(max_weight,min_weight)
-                Point{x:position.x,y:kg_position_y}
+                Point {
+                    x: position.x,
+                    y: kg_position_y,
+                }
             } else {
-                Point{ x: 0.0, y: 0.0 }
+                Point { x: 0.0, y: 0.0 }
             };
 
-        let information_offset_from_cursor_x = - 70.0;
+        let information_offset_from_cursor_x = -70.0;
         let information_offset_from_cursor_y = 50.0;
 
         let cursor_information_position =
             if let Some(mut position) = cursor.position_from(graph_origin) {
-                position.y = position.y + (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) + information_offset_from_cursor_y;
-                position.x = position.x + information_offset_from_cursor_x;
+                position.y = position.y
+                    + (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0)
+                    + information_offset_from_cursor_y;
+                position.x += information_offset_from_cursor_x;
                 position
             } else {
                 Point { x: 0.0, y: 0.0 }
             };
 
-        let cursor_information_box_size = Size { width: 120.0, height: 60.0 };
+        let cursor_information_box_size = Size {
+            width: 120.0,
+            height: 60.0,
+        };
 
         frame.fill(
-                &Path::rounded_rectangle(
+            &Path::rounded_rectangle(
                 cursor_information_position,
-                cursor_information_box_size
-                ,10.0.into())
-            ,HIGHLIGHTED_CONTAINER_COLOR);
+                cursor_information_box_size,
+                10.0.into(),
+            ),
+            HIGHLIGHTED_CONTAINER_COLOR,
+        );
 
         let mut cursor_information_text = cursor_information_position;
         //ADD PADDING
-        cursor_information_text.x += cursor_information_box_size.width / 5.0;
-        cursor_information_text.y += cursor_information_box_size.height / 5.0;
+        cursor_information_text.x += cursor_information_box_size.width / 10.0;
+        cursor_information_text.y += cursor_information_box_size.width / 10.0;
 
+        let format_value: fn(f32) -> f32 = |value| (value * 10.0).round() / 10.0;
 
         frame.fill_text(canvas::Text {
-            content: format!("{} Kg", cursor_position_in_graph.y.round()),
+            content: format!("{} Kg", format_value(cursor_position_in_graph.y)),
             size: 25.0.into(),
             position: cursor_information_text,
-            color: color!(255,255,255),
-
+            color: color!(255, 255, 255),
             font: FIRA_SANS_EXTRABOLD,
             horizontal_alignment: Horizontal::Left,
             vertical_alignment: Vertical::Top,
@@ -467,29 +493,158 @@ fn draw_cursor_information(y_values: Vec<Kg>,graph_widget_state: &GraphWidgetSta
     }
 }
 
-fn draw_axis_lables(){
-    //TODO: Implement this
+fn draw_axis_labels(
+    frame: &mut Frame<Renderer>,
+    graph_widget_state: &GraphWidgetState,
+    exercise_data_points: &ExerciseDataPoints,
+) {
+    //X-AXIS
+    let number_labels = match graph_widget_state.points_to_draw {
+        ..=MAX_X_LABELS => graph_widget_state.points_to_draw,
+        _ => MAX_X_LABELS, //MAX X-AXIS LABLES
+    };
+
+    let block_width = (GRAPH_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / number_labels as f32; //division with 0 is not possible since limit is 1
+    let mut current_x = Point::ORIGIN.x + GRAPH_PADDING + block_width;
+    let height_text = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING / 2.0;
+
+    let chopped_dates = chop_dates(graph_widget_state, extract_dates(exercise_data_points));
+    let amount_points = chopped_dates.len();
+
+    let mut dates_for_axis = Vec::new();
+
+    if amount_points <= number_labels as usize {
+        for date in chopped_dates.iter() {
+            dates_for_axis.push(date);
+        }
+    } else {
+        let percentage = (amount_points - 1) as f32 / (number_labels - 1) as f32;
+
+        for i in 0..number_labels {
+            let index = (i as f32 * percentage).round() as usize;
+            dates_for_axis.push(&chopped_dates[index]);
+        }
+    }
+
+    for date in dates_for_axis {
+        let formatted_date = date.format("%d.%m.%y").to_string();
+        let position_text_x = Point {
+            x: current_x,
+            y: height_text,
+        };
+
+        frame.fill_text(canvas::Text {
+            content: formatted_date,
+            position: position_text_x,
+            color: color!(142, 142, 147),
+            size: AXIS_FONT_SIZE.into(),
+            line_height: Default::default(),
+            font: FIRA_SANS_EXTRABOLD,
+            horizontal_alignment: Horizontal::Center,
+            vertical_alignment: Vertical::Center,
+            shaping: Default::default(),
+        });
+
+        current_x += block_width;
+    }
+
+    // Y-AXIS
+    let chopped_weights = chop_weights(graph_widget_state, extract_weights(exercise_data_points));
+    let min_y: Kg = (chopped_weights
+        .iter()
+        .map(|value| (*value * 10.0) as usize)
+        .min()
+        .unwrap_or(0)) as f32
+        / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let max_y: Kg = (chopped_weights
+        .iter()
+        .map(|value| (*value * 10.0) as usize)
+        .max()
+        .unwrap_or(0)) as f32
+        / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let delta = max_y - min_y;
+    let block_height =
+        (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+    let x_axis_padding = block_height;
+    let height_padding_for_arrow = block_height;
+    let start_point_labels = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING - x_axis_padding;
+    let height_graph_from_min_to_max: f32 =
+        GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
+
+    let label_amount = FREQUENCY_OF_Y_AXIS_LABELS - 1;
+
+    let format_value: fn(f32) -> f32 = |value| (value * 10.0).round() / 10.0;
+
+    for i in 0..=label_amount {
+        let percentage = i as f32 / label_amount as f32;
+        let label_value = min_y + percentage * delta;
+
+        let position_text_y = start_point_labels - percentage * height_graph_from_min_to_max;
+
+        let position_text = Point {
+            x: GRAPH_PADDING / 2.0,
+            y: position_text_y,
+        };
+
+        frame.fill_text(canvas::Text {
+            content: format!("{}", format_value(label_value)),
+            position: position_text,
+            color: color!(142, 142, 147),
+            size: AXIS_FONT_SIZE.into(),
+            font: FIRA_SANS_EXTRABOLD,
+            horizontal_alignment: Horizontal::Center,
+            vertical_alignment: Vertical::Center,
+            line_height: Default::default(),
+            shaping: Default::default(),
+        });
+    }
+
+    let kg_label_position_y =
+        start_point_labels - height_graph_from_min_to_max - height_padding_for_arrow;
+    frame.fill_text(canvas::Text {
+        content: "kg".to_string(),
+        position: Point {
+            x: GRAPH_PADDING / 2.0,
+            y: kg_label_position_y,
+        },
+        color: color!(142, 142, 147),
+        size: AXIS_FONT_SIZE.into(),
+        font: FIRA_SANS_EXTRABOLD,
+        horizontal_alignment: Horizontal::Center,
+        vertical_alignment: Vertical::Center,
+        line_height: Default::default(),
+        shaping: Default::default(),
+    });
 }
 
-//LOGIC
+//LOGIC --------------------
 
-
-fn chop_points (graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) -> Vec<Kg> {
-    let chop_start_index: isize = y_values.len() as isize - graph_widget_state.points_to_draw as isize;
+fn chop_weights(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) -> Vec<Kg> {
+    let chop_start_index: isize =
+        y_values.len() as isize - graph_widget_state.points_to_draw as isize;
 
     let safe_chop_start_index = match chop_start_index {
         ..=0 => 0,
-        _ => chop_start_index
+        _ => chop_start_index,
     };
 
-    let chopped_y_values = y_values[(safe_chop_start_index) as usize..].to_vec();
-    chopped_y_values
+    y_values[(safe_chop_start_index) as usize..].to_vec()
+}
+
+fn chop_dates(graph_widget_state: &GraphWidgetState, x_values: Vec<NaiveDate>) -> Vec<NaiveDate> {
+    let chop_start_index: isize =
+        x_values.len() as isize - graph_widget_state.points_to_draw as isize;
+
+    let safe_chop_start_index = match chop_start_index {
+        ..=0 => 0,
+        _ => chop_start_index,
+    };
+
+    x_values[(safe_chop_start_index) as usize..].to_vec()
 }
 
 fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) -> Vec<Point> {
-
-    let chopped_y_values = &chop_points(graph_widget_state,y_values.clone());
-
+    let chopped_y_values = &chop_weights(graph_widget_state, y_values.clone());
 
     //PADDING LEFT AND RIGHT: LEFT FOR Y_LABELS, RIGHT FOR FREE SPACE
     let block_width =
@@ -528,9 +683,8 @@ fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) ->
     let lowest_point_graph: f32 = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING - x_axis_padding;
 
     //FORMULA: lowest_point-(y_min - current_y)/(max_y - min_y) * height_graph
-    let calculate_graph_value=  |y: &Kg| -> f32 {
-        (lowest_point_graph - (percentage(*y) * height_graph))
-    };
+    let calculate_graph_value =
+        |y: &Kg| -> f32 { lowest_point_graph - (percentage(*y) * height_graph) };
 
     let mut new_y_values = vec![];
 
@@ -544,7 +698,7 @@ fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) ->
     }
 
     //CALCULATE X-VALUES
-    for x_value in (1..=graph_widget_state.points_to_draw) {
+    for _x_value in 1..=graph_widget_state.points_to_draw {
         x_values.push(current_x);
         current_x -= block_width
     }
@@ -553,8 +707,8 @@ fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) ->
     //ZIP X- AND Y-VALUES
     for i in 0..chopped_y_values.len() {
         points.push(Point {
-            x: x_values[i as usize],
-            y: new_y_values[i as usize],
+            x: x_values[i],
+            y: new_y_values[i],
         })
     }
 
@@ -563,13 +717,22 @@ fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) ->
 
 fn extract_weights(exercise_data_points: &ExerciseDataPoints) -> Vec<Kg> {
     let mut weights: Vec<Kg> = vec![];
-    for (date, weight) in exercise_data_points {
+    for (_date, weight) in exercise_data_points {
         weights.push(*weight)
     }
     weights
 }
 
-impl<'a> canvas::Program<Message> for GraphWidget<'a> {
+fn extract_dates(exercise_data_points: &ExerciseDataPoints) -> Vec<NaiveDate> {
+    let mut dates: Vec<NaiveDate> = vec![];
+    for (date, _weight) in exercise_data_points {
+        dates.push(*date)
+    }
+
+    dates
+}
+
+impl canvas::Program<Message> for GraphWidget<'_> {
     type State = ();
 
     fn update(
@@ -577,7 +740,7 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
         _state: &mut Self::State,
         event: Event,
         _bounds: Rectangle,
-        cursor: iced_core::mouse::Cursor,
+        _cursor: iced_core::mouse::Cursor,
     ) -> (event::Status, Option<Message>) {
         match event {
             canvas::Event::Mouse(mouse::Event::CursorMoved { position }) => (
@@ -602,8 +765,14 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
         cursor: mouse::Cursor,
     ) -> Vec<Geometry> {
         let graph_widget = self.graph.draw(renderer, bounds.size(), |frame| {
+            //TODO: Find right frame center to centrate "NO DATA" text
             //FRAME CENTER
-            let mut center = frame.center();
+            let center_x = GRAPH_WIDGET_WIDTH / 2.0 - INDENT;
+            let center_y = GRAPH_WIDGET_HEIGHT / 2.0;
+            let center = Point {
+                x: center_x,
+                y: center_y,
+            };
 
             //DRAW BACKGROUND
             let background = Path::rectangle(
@@ -618,7 +787,7 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
                 0 => frame.fill_text(canvas::Text {
                     content: "NO DATA".to_string(),
                     position: center,
-                    color: self.active_mascot.get_primary_color(),
+                    color: color!(142, 142, 147),
                     size: 40.into(),
                     line_height: Default::default(),
                     font: FIRA_SANS_EXTRABOLD,
@@ -626,13 +795,16 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
                     vertical_alignment: Vertical::Top,
                     shaping: Default::default(),
                 }),
-                data_points_amount => {
+                _data_points_amount => {
                     let weights = extract_weights(&self.exercise_manager.data_points);
 
                     frame.fill(&background, CONTAINER_COLOR);
 
+                    //LABELS
+                    draw_axis_labels(frame, &self.graph_state, &self.exercise_manager.data_points);
+
                     //DASHED LINES
-                    draw_dashed_lines(&self.graph_state, frame);
+                    draw_dashed_lines(frame);
 
                     //CONNECTIONS BETWEEN POINTS
                     draw_connections(
@@ -647,13 +819,17 @@ impl<'a> canvas::Program<Message> for GraphWidget<'a> {
 
                     //POINTS
                     if self.graph_state.visible_points {
-                        draw_points(&self.graph_state, frame, weights.clone(), &self.active_mascot);
+                        draw_points(
+                            &self.graph_state,
+                            frame,
+                            weights.clone(),
+                            &self.active_mascot,
+                        );
                     }
 
-                    println!("{:?}",weights);
                     //CURSOR
                     if self.graph_state.visible_cursor_information {
-                        draw_cursor_information(weights,&self.graph_state,bounds,cursor, frame); //unwrap() can't fail since the list can't be empty
+                        draw_cursor_information(weights, &self.graph_state, bounds, cursor, frame); //unwrap() can't fail since the list can't be empty
                     }
                 }
             }
@@ -720,7 +896,7 @@ pub fn graph_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
     let graph_widget = GraphWidget::new(app);
 
     let exercise_stats = exercise_stat_column(app)
-        .width(Length::Fixed(graph_widget.get_width()))
+        .width(Length::Fixed(GRAPH_WIDGET_WIDTH))
         .padding(Padding {
             top: 0.0,
             right: default_padding,
@@ -729,7 +905,7 @@ pub fn graph_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         });
 
     let header_row = Row::new()
-        .width(Length::Fixed(graph_widget.get_width()))
+        .width(Length::Fixed(GRAPH_WIDGET_WIDTH))
         .push(Space::with_width(Length::FillPortion(1)))
         .push(title)
         .push(Space::with_width(Length::FillPortion(1)))
