@@ -16,9 +16,7 @@ use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_element_button, create_text_button,
 };
 use crate::client::gui::bb_theme::text_format::format_button_text;
-use crate::client::gui::bb_widget::activity_widget::activity::{
-    ActivityMessage, calculate_activity_data,
-};
+use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
 use crate::client::gui::bb_widget::graph::{GraphMessage, MAX_AMOUNT_POINTS};
 use crate::client::gui::bb_widget::pop_up::view_pop_up;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
@@ -70,7 +68,12 @@ impl UserInterface {
             Message::Select(tab) => {
                 self.app.activity_widget.update_data(
                     self.app.mascot_manager.selected_mascot,
-                    self.app.user_manager.user_info.profile_stat_manager.activity_data.clone()
+                    self.app
+                        .user_manager
+                        .user_info
+                        .profile_stat_manager
+                        .activity_data
+                        .clone(),
                 );
 
                 if let Tab::CreateWorkout = tab {
