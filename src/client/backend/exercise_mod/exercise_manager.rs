@@ -9,6 +9,7 @@ use crate::client::backend::exercise_mod::set::{Reps, StrengthSet};
 use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::user_mod::user::UserInformation;
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
+use crate::client::gui::bb_widget::activity_widget::activity::calculate_activity_data;
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
@@ -183,6 +184,7 @@ impl ExerciseManager {
             user_info.coin_balance += 5;
         }
         self.update_selected_exercise(self.selected_exercise_name.clone());
+        user_info.profile_stat_manager.activity_data = calculate_activity_data(&self.exercises);
         Ok(())
     }
 
