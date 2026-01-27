@@ -205,13 +205,12 @@ where
                     color::BACKGROUND_COLOR,
                 );
 
-                let kg_iterator = self
-                    .exercise_manager
-                    .data_points
-                    .iter()
-                    .map(|(_, kg)| *kg as u32);
-                let heaviest_weight = kg_iterator.clone().max().unwrap(); //100%
-                let lightest_weight = kg_iterator.min().unwrap(); // 0%
+                let heaviest_weight =
+                    exercise::get_maximum_weight(&self.exercise_manager.data_points).unwrap()
+                        as u32; //100% transform to f32 in the future
+                let lightest_weight =
+                    exercise::get_minimum_weight(&self.exercise_manager.data_points).unwrap()
+                        as u32; // 0% transform to f32 in the future
                 let range = heaviest_weight - lightest_weight;
 
                 let column_spacing = BASE_SPACING_BETWEEN_COLUMNS / *amount_of_data_points as f32;

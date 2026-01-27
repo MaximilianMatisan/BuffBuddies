@@ -1,5 +1,6 @@
 use strum_macros::{Display, EnumString};
 
+#[derive(Default)]
 pub struct GeneralExerciseInfo {
     pub id: u32,
     pub name: String,
@@ -24,7 +25,7 @@ impl GeneralExerciseInfo {
         }
     }
 }
-#[derive(Display, EnumString, Eq, PartialEq, Debug)]
+#[derive(Display, EnumString, Eq, PartialEq, Debug, Default)]
 #[strum(ascii_case_insensitive)]
 pub enum Muscle {
     Abdominals,
@@ -38,6 +39,7 @@ pub enum Muscle {
     Forearms,
     Abductors,
     Triceps,
+    #[default]
     Chest,
     #[strum(serialize = "lower back")]
     LowerBack,
@@ -48,25 +50,28 @@ pub enum Muscle {
     Neck,
 }
 
-#[derive(Display, EnumString)]
+#[derive(Display, EnumString, Default)]
 #[strum(ascii_case_insensitive)]
 pub enum ExerciseForce {
+    #[default]
     Pull,
     Push,
     Static,
 }
 
-#[derive(Display, EnumString, Eq, PartialEq, Debug)]
+#[derive(Display, EnumString, Eq, PartialEq, Debug, Default)]
 #[strum(ascii_case_insensitive)]
 pub enum ExerciseLevel {
+    #[default]
     Beginner,
     Intermediate,
     Expert,
 }
 
-#[derive(Display, EnumString)]
+#[derive(Display, EnumString, Default)]
 #[strum(ascii_case_insensitive)]
 pub enum ExerciseEquipment {
+    #[default]
     #[strum(serialize = "body only")]
     Body,
     Machine,
@@ -85,9 +90,10 @@ pub enum ExerciseEquipment {
     Other,
 }
 
-#[derive(Display, EnumString, Eq, PartialEq, Debug)]
+#[derive(Display, EnumString, Eq, PartialEq, Debug, Default)]
 #[strum(ascii_case_insensitive)]
 pub enum ExerciseCategory {
+    #[default]
     Strength,
     Stretching,
     Plyometrics,
