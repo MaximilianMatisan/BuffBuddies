@@ -138,13 +138,11 @@ pub fn generate_example_exercise(
     }
     exercise
 }
-#[allow(dead_code)] //TODO: Improve code readability using these functions
 pub fn get_minimum_weight(datapoints: &[(NaiveDate, Kg)]) -> Option<f32> {
     let temp_min = datapoints.iter().map(|(_, kg)| (*kg * 10.0) as u32).min();
 
     temp_min.map(|value| value as f32 / 10.0)
 }
-#[allow(dead_code)]
 pub fn get_maximum_weight(datapoints: &[(NaiveDate, Kg)]) -> Option<f32> {
     let temp_min = datapoints.iter().map(|(_, kg)| (*kg * 10.0) as u32).max();
     temp_min.map(|value| value as f32 / 10.0)

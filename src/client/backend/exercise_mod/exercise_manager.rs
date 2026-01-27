@@ -210,3 +210,61 @@ impl ExerciseManager {
         set
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use chrono::NaiveDate;
+
+    use crate::client::backend::exercise_mod::{
+        exercise::Exercise, exercise_manager::ExerciseManager,
+        general_exercise::GeneralExerciseInfo, set::StrengthSet, weight::ExerciseWeight,
+    };
+
+    #[test]
+    fn select_invalid_exercise() {
+        let mut ex_manager = ExerciseManager::default();
+        ex_manager.update_selected_exercise("a".to_string());
+
+        assert_eq!(ex_manager.data_points, vec![]);
+        assert_eq!(ex_manager.all_time_lifted_weight, 0.0);
+        assert_eq!(ex_manager.all_time_reps, 0);
+        assert_eq!(ex_manager.all_time_sets, 0);
+        assert_eq!(ex_manager.weight_personal_record, 0.0);
+        assert_eq!(
+            ex_manager.set_with_most_total_lifted_weight,
+            (NaiveDate::default(), 0.0)
+        );
+    }
+
+    #[test]
+    fn select_valid_exercise() {
+        let mut ex_manager = ExerciseManager::default();
+        let mock_exercise_name = "Mock exercise".to_string();
+        let mut test_stats: BTreeMap<NaiveDate, Vec<StrengthSet>> = BTreeMap::new();
+        test_stats.insert(
+            NaiveDate::default(),
+            vec![StrengthSet::new(ExerciseWeight::Kg(10.0), 1)],
+        );
+        let mock_exercise = Exercise {
+            general_exercise_info: GeneralExerciseInfo {
+                name: mock_exercise_name.clone(),
+                ..Default::default()
+            },
+            sets: test_stats,
+        };
+        ex_manager.exercises.push(mock_exercise);
+        ex_manager.update_selected_exercise(mock_exercise_name);
+
+        assert_eq!(ex_manager.data_points, vec![(NaiveDate::default(), 10.0)]);
+        assert_eq!(ex_manager.all_time_lifted_weight, 10.0);
+        assert_eq!(ex_manager.all_time_reps, 1);
+        assert_eq!(ex_manager.all_time_sets, 1);
+        assert_eq!(ex_manager.weight_personal_record, 10.0);
+        assert_eq!(
+            ex_manager.set_with_most_total_lifted_weight,
+            (NaiveDate::default(), 10.0)
+        );
+    }
+}
