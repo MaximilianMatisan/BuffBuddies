@@ -125,3 +125,123 @@ pub fn started_weeks_in_period(start: NaiveDate, end: NaiveDate) -> u32 {
 
     (((last_week_sunday_finder - first_week_monday_finder).num_days() + 1) / 7) as u32
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::NaiveDate;
+
+    #[test]
+    fn week_scope_across_years() {
+        let start_dates = get_start_dates_of_offsets(
+            NaiveDate::from_ymd_opt(2026, 1, 2).unwrap(),
+            DateScope::Week,
+        );
+        assert_eq!(
+            start_dates.current,
+            NaiveDate::from_ymd_opt(2025, 12, 29).unwrap()
+        );
+        assert_eq!(
+            start_dates.previous,
+            NaiveDate::from_ymd_opt(2025, 12, 22).unwrap()
+        );
+        assert_eq!(
+            start_dates.before_previous,
+            NaiveDate::from_ymd_opt(2025, 12, 15).unwrap()
+        );
+
+        let end_dates = get_end_dates_of_offsets(
+            NaiveDate::from_ymd_opt(2026, 1, 2).unwrap(),
+            DateScope::Week,
+        );
+        assert_eq!(
+            end_dates.current,
+            NaiveDate::from_ymd_opt(2026, 1, 4).unwrap()
+        );
+        assert_eq!(
+            end_dates.previous,
+            NaiveDate::from_ymd_opt(2025, 12, 28).unwrap()
+        );
+        assert_eq!(
+            end_dates.before_previous,
+            NaiveDate::from_ymd_opt(2025, 12, 21).unwrap()
+        );
+    }
+    #[test]
+    fn month_scope_across_years() {
+        let start_dates = get_start_dates_of_offsets(
+            NaiveDate::from_ymd_opt(2026, 1, 27).unwrap(),
+            DateScope::Month,
+        );
+        assert_eq!(
+            start_dates.current,
+            NaiveDate::from_ymd_opt(2026, 1, 1).unwrap()
+        );
+        assert_eq!(
+            start_dates.previous,
+            NaiveDate::from_ymd_opt(2025, 12, 1).unwrap()
+        );
+        assert_eq!(
+            start_dates.before_previous,
+            NaiveDate::from_ymd_opt(2025, 11, 1).unwrap()
+        );
+
+        let end_dates = get_end_dates_of_offsets(
+            NaiveDate::from_ymd_opt(2026, 1, 27).unwrap(),
+            DateScope::Month,
+        );
+        assert_eq!(
+            end_dates.current,
+            NaiveDate::from_ymd_opt(2026, 1, 31).unwrap()
+        );
+        assert_eq!(
+            end_dates.previous,
+            NaiveDate::from_ymd_opt(2025, 12, 31).unwrap()
+        );
+        assert_eq!(
+            end_dates.before_previous,
+            NaiveDate::from_ymd_opt(2025, 11, 30).unwrap()
+        );
+    }
+    #[test]
+    fn month_scope_leap_year_february() {
+        // 2024 was a leap year
+        let end_dates = get_end_dates_of_offsets(
+            NaiveDate::from_ymd_opt(2024, 2, 12).unwrap(),
+            DateScope::Month,
+        );
+        assert_eq!(
+            end_dates.current,
+            NaiveDate::from_ymd_opt(2024, 2, 29).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_started_weeks_2025() {
+        //2025 had 53 started weeks
+        let weeks = started_weeks_in_period(
+            NaiveDate::from_ymd_opt(2025, 1, 1).unwrap(),
+            NaiveDate::from_ymd_opt(2025, 12, 31).unwrap(),
+        );
+        assert_eq!(weeks, 53);
+    }
+
+    #[test]
+    fn test_started_weeks_2021_feb() {
+        //2021 feb had 28 days with exactly 4 started weeks
+        let weeks = started_weeks_in_period(
+            NaiveDate::from_ymd_opt(2021, 2, 1).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 2, 28).unwrap(),
+        );
+        assert_eq!(weeks, 4);
+    }
+
+    #[test]
+    fn test_started_weeks_one_day() {
+        let weeks = started_weeks_in_period(
+            NaiveDate::from_ymd_opt(2026, 1, 27).unwrap(),
+            NaiveDate::from_ymd_opt(2026, 1, 27).unwrap(),
+        );
+        assert_eq!(weeks, 1);
+    }
+}
