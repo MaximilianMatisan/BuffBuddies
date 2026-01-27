@@ -2,7 +2,6 @@ use crate::client::backend::exercise_mod::exercise::Exercise;
 use crate::client::backend::exercise_mod::weight::Kg;
 use crate::client::backend::mascot_mod::mascot::Mascot;
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
-use crate::client::gui::bb_widget::activity_widget::activity::ActivityData;
 use strum_macros::{Display, EnumIter};
 
 pub const MAX_DESCRIPTION_CHARACTERS: usize = 300;

@@ -132,6 +132,41 @@ mod tests {
     use chrono::NaiveDate;
 
     #[test]
+    fn basic_year_scope() {
+        let start_dates = get_start_dates_of_offsets(
+            NaiveDate::from_ymd_opt(2026, 1, 27).unwrap(),
+            DateScope::Year,
+        );
+        assert_eq!(
+            start_dates.current,
+            NaiveDate::from_ymd_opt(2026, 1, 1).unwrap()
+        );
+        assert_eq!(
+            start_dates.previous,
+            NaiveDate::from_ymd_opt(2025, 1, 1).unwrap()
+        );
+        assert_eq!(
+            start_dates.before_previous,
+            NaiveDate::from_ymd_opt(2024, 1, 1).unwrap()
+        );
+        let end_dates = get_end_dates_of_offsets(
+            NaiveDate::from_ymd_opt(2026, 1, 27).unwrap(),
+            DateScope::Year,
+        );
+        assert_eq!(
+            end_dates.current,
+            NaiveDate::from_ymd_opt(2026, 12, 31).unwrap()
+        );
+        assert_eq!(
+            end_dates.previous,
+            NaiveDate::from_ymd_opt(2025, 12, 31).unwrap()
+        );
+        assert_eq!(
+            end_dates.before_previous,
+            NaiveDate::from_ymd_opt(2024, 12, 31).unwrap()
+        );
+    }
+    #[test]
     fn week_scope_across_years() {
         let start_dates = get_start_dates_of_offsets(
             NaiveDate::from_ymd_opt(2026, 1, 2).unwrap(),
@@ -234,6 +269,15 @@ mod tests {
             NaiveDate::from_ymd_opt(2021, 2, 28).unwrap(),
         );
         assert_eq!(weeks, 4);
+    }
+
+    #[test]
+    fn end_date_before_start_date() {
+        let weeks = started_weeks_in_period(
+            NaiveDate::from_ymd_opt(2026, 12, 1).unwrap(),
+            NaiveDate::from_ymd_opt(2020, 7, 1).unwrap(),
+        );
+        assert_eq!(weeks, 0);
     }
 
     #[test]
