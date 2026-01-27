@@ -70,7 +70,7 @@ impl UserInterface {
             Message::Select(tab) => {
                 self.app.activity_widget.update_data(
                     self.app.mascot_manager.selected_mascot,
-                    calculate_activity_data(&self.app.exercise_manager.exercises),
+                    self.app.user_manager.user_info.profile_stat_manager.activity_data.clone()
                 );
 
                 if let Tab::CreateWorkout = tab {
@@ -263,7 +263,12 @@ impl UserInterface {
                     UserType::Own => {
                         self.app.activity_widget.update_data(
                             self.app.user_manager.user_info.favorite_mascot,
-                            calculate_activity_data(&self.app.exercise_manager.exercises),
+                            self.app
+                                .user_manager
+                                .user_info
+                                .profile_stat_manager
+                                .activity_data
+                                .clone(),
                         );
                         self.app.user_manager.most_recently_viewed_user = UserType::Own
                     }
@@ -272,7 +277,10 @@ impl UserInterface {
                         if let Some(user) = opt_user {
                             self.app.activity_widget.update_data(
                                 user.user_information.favorite_mascot,
-                                user.activity_data.clone(), //TODO maybe without clone possible?
+                                user.user_information
+                                    .profile_stat_manager
+                                    .activity_data
+                                    .clone(), //TODO maybe without clone possible?
                             );
                         }
                         self.app.user_manager.most_recently_viewed_user = UserType::Other(username);

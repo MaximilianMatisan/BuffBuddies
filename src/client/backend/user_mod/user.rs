@@ -50,7 +50,6 @@ impl UserInformation {
 }
 pub struct ForeignUser {
     pub user_information: UserInformation,
-    pub activity_data: ActivityData,
     pub selected_mascot: Mascot,
     pub owned_mascots: Vec<Mascot>,
     pub friends_with_active_user: bool,
@@ -61,7 +60,6 @@ impl Default for ForeignUser {
         ForeignUser {
             user_information: UserInformation::default(&exercise_data),
 
-            activity_data: ActivityData::default(),
             selected_mascot: Default::default(),
             owned_mascots: vec![Mascot::default()],
             friends_with_active_user: false,

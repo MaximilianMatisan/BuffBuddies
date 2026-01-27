@@ -1,11 +1,13 @@
 use crate::client::backend::exercise_mod::exercise::Exercise;
 use crate::client::backend::exercise_mod::set::Reps;
 use crate::client::backend::exercise_mod::weight::Kg;
+use crate::client::gui::bb_widget::activity_widget::activity::{ActivityData, calculate_activity_data};
 
 /// The data included in this struct is only there for performance enhancement purposes
 /// so that these values don't have to be calculated with every frame inside the view function
 #[derive(Clone)]
 pub struct ProfileStatManager {
+    pub activity_data: ActivityData,
     pub total_sets: u64,
     pub total_reps: Reps,
     pub total_lifted_weight: Kg,
@@ -15,6 +17,7 @@ pub struct ProfileStatManager {
 impl ProfileStatManager {
     pub fn new(exercise_data: &Vec<Exercise>) -> Self {
         ProfileStatManager {
+            activity_data: calculate_activity_data(exercise_data),
             total_sets: total_sets(exercise_data),
             total_reps: total_reps(exercise_data),
             total_lifted_weight: total_lifted_weight(exercise_data),
