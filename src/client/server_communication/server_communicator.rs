@@ -1,8 +1,8 @@
-use crate::client::backend::exercise_mod::exercise_create::ExerciseCreate;
-use crate::client::backend::exercise_mod::set::{Reps, StrengthSet};
-use crate::client::backend::exercise_mod::weight::Kg;
-use crate::client::backend::mascot_mod::mascot::Mascot;
-use crate::client::backend::mascot_mod::mascot_trait;
+use crate::client::backend::exercise_create::ExerciseCreate;
+use crate::common::exercise_mod::set::{Reps, StrengthSet};
+use crate::common::exercise_mod::weight::Kg;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]

@@ -1,5 +1,5 @@
-use crate::client::backend::mascot_mod::mascot::Mascot;
-use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color;
 use iced::gradient::{ColorStop, Linear};

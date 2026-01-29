@@ -1,6 +1,6 @@
-use crate::client::backend::exercise_mod::exercise_manager::ExerciseManager;
-use crate::client::backend::exercise_mod::general_exercise::GeneralExerciseInfo;
-use crate::client::backend::mascot_mod::mascot::Mascot;
+use crate::client::backend::exercise_manager::ExerciseManager;
+use crate::common::exercise_mod::general_exercise::GeneralExerciseInfo;
+use crate::common::mascot_mod::mascot::Mascot;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::container::{
     ContainerStyle, DEFAULT_TEXT_CONTAINER_PADDING, create_container_style,

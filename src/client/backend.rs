@@ -1,7 +1,9 @@
-pub mod exercise_mod;
-pub mod image;
 pub mod login_state;
-pub mod mascot_mod;
 pub mod pop_up_manager;
-pub(crate) mod profile_stat_manager;
-pub mod user_mod;
+pub mod profile_stat_manager;
+
+pub mod mascot_manager;
+pub mod exercise_manager;
+pub mod user_manager;
+pub mod image_manager;
+pub mod exercise_create;

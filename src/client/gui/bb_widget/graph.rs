@@ -13,11 +13,11 @@ use iced::widget::canvas::{
 };
 use iced_core::{Color, color};
 
-use crate::client::backend::exercise_mod::exercise::ExerciseDataPoints;
-use crate::client::backend::exercise_mod::exercise_manager::ExerciseManager;
-use crate::client::backend::exercise_mod::weight::Kg;
-use crate::client::backend::mascot_mod::mascot::Mascot;
-use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::exercise_mod::exercise::ExerciseDataPoints;
+use crate::client::backend::exercise_manager::ExerciseManager;
+use crate::common::exercise_mod::weight::Kg;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};

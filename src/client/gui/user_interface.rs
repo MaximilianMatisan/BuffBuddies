@@ -1,9 +1,9 @@
 use crate::client::backend::login_state::LoginStateError;
-use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
-use crate::client::backend::mascot_mod::mascot::{Mascot, MascotRarity};
-use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
+use crate::common::mascot_mod::epic_mascot::EpicMascot;
+use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
+use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::client::backend::pop_up_manager::PopUpType;
-use crate::client::backend::user_mod::user::UserType;
+use crate::common::user_mod::user::UserType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
 use crate::client::gui::bb_tab::settings::SettingsMessage;

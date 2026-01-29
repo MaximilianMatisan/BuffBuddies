@@ -1,6 +1,6 @@
-use crate::client::backend::exercise_mod::exercise::Exercise;
-use crate::client::backend::mascot_mod::mascot::Mascot;
-use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::exercise_mod::exercise::Exercise;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::ContainerStyle;

@@ -1,6 +1,6 @@
-use crate::client::backend::exercise_mod::general_exercise::GeneralExerciseInfo;
-use crate::client::backend::exercise_mod::set::{Reps, StrengthSet};
-use crate::client::backend::exercise_mod::weight::{ExerciseWeight, Kg};
+use crate::common::exercise_mod::general_exercise::GeneralExerciseInfo;
+use crate::common::exercise_mod::set::{Reps, StrengthSet};
+use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 use chrono::{Duration, Local, NaiveDate};
 use rand::Rng;
 use std::collections::BTreeMap;
@@ -138,20 +138,20 @@ pub fn generate_example_exercise(
     }
     exercise
 }
-pub fn get_minimum_weight(datapoints: &[(NaiveDate, Kg)]) -> Option<f32> {
-    let temp_min = datapoints.iter().map(|(_, kg)| (*kg * 10.0) as u32).min();
+pub fn get_minimum_weight(data_points: &ExerciseDataPoints) -> Option<f32> {
+    let temp_min = data_points.iter().map(|(_, kg)| (*kg * 10.0) as u32).min();
 
     temp_min.map(|value| value as f32 / 10.0)
 }
-pub fn get_maximum_weight(datapoints: &[(NaiveDate, Kg)]) -> Option<f32> {
-    let temp_min = datapoints.iter().map(|(_, kg)| (*kg * 10.0) as u32).max();
+pub fn get_maximum_weight(data_points: &ExerciseDataPoints) -> Option<f32> {
+    let temp_min = data_points.iter().map(|(_, kg)| (*kg * 10.0) as u32).max();
     temp_min.map(|value| value as f32 / 10.0)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::client::backend::exercise_mod::set::Reps;
+    use crate::common::exercise_mod::set::Reps;
 
     const CUSTOM_TRACKED_DAYS: u32 = 45;
     const CUSTOM_SETS_PER_DAY: u32 = 10;

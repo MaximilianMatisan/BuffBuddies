@@ -1,5 +1,5 @@
-use crate::client::backend::mascot_mod::mascot::Mascot;
-use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced_core::image::Handle;
 use image::DynamicImage;
 use std::collections::HashMap;

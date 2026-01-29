@@ -1,4 +1,4 @@
-use crate::client::backend::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot::Mascot;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format;
