@@ -1,6 +1,3 @@
-use crate::common::exercise_mod::exercise::Exercise;
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::ContainerStyle;
@@ -12,6 +9,9 @@ use crate::client::gui::bb_widget::activity_widget::date_utils::{
 };
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
+use crate::common::exercise_mod::exercise::Exercise;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use chrono::{Datelike, Duration, Local, NaiveDate};
 use iced::widget::{Column, container, row};
 use iced::{Element, Point, Task};

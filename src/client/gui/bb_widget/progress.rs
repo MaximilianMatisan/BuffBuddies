@@ -1,7 +1,4 @@
-use crate::common::exercise_mod::exercise;
 use crate::client::backend::exercise_manager::ExerciseManager;
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
@@ -10,6 +7,9 @@ use crate::client::gui::bb_theme::{color, text_format};
 use crate::client::gui::bb_widget::stats::exercise_stat_column;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
+use crate::common::exercise_mod::exercise;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::Element;
 use iced::widget::combo_box;
 use iced::widget::{Column, Row, Space, container};

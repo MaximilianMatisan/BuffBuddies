@@ -1,8 +1,4 @@
-use crate::common::mascot_mod::epic_mascot::EpicMascot;
-use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::client::backend::mascot_manager::MascotManager;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, create_element_button, create_text_button,
@@ -10,6 +6,10 @@ use crate::client::gui::bb_theme::custom_button::{
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text};
 use crate::client::gui::bb_widget::shop;
 use crate::client::gui::user_interface::{Message, UserInterface};
+use crate::common::mascot_mod::epic_mascot::EpicMascot;
+use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced::Element;
 use iced::widget::image;
 use iced::widget::scrollable::{Direction, Rail, Scrollbar, Scroller, Style};

@@ -1,8 +1,3 @@
-use crate::common::exercise_mod::weight::Kg;
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::user_mod::user::{
-    Gender, MAX_DESCRIPTION_CHARACTERS, UserInformation, UserInformationStrings,
-};
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
@@ -21,6 +16,11 @@ use crate::client::gui::bb_widget::widget_utils::{
 };
 use crate::client::gui::size;
 use crate::client::gui::user_interface::{Message, UserInterface};
+use crate::common::exercise_mod::weight::Kg;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::user_mod::user::{
+    Gender, MAX_DESCRIPTION_CHARACTERS, UserInformation, UserInformationStrings,
+};
 use iced::widget::{
     Button, Column, Container, Row, Space, TextInput, combo_box, container, image, text, text_input,
 };

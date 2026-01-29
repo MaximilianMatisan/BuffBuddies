@@ -1,7 +1,7 @@
+use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::common::exercise_mod::exercise::Exercise;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
-use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use strum_macros::{Display, EnumIter};
 
 pub const MAX_DESCRIPTION_CHARACTERS: usize = 300;

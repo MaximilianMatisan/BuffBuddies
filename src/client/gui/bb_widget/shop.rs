@@ -1,9 +1,9 @@
-use crate::common::mascot_mod::mascot::Mascot;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format;
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::user_interface::Message;
+use crate::common::mascot_mod::mascot::Mascot;
 use iced::advanced::{
     layout::Layout,
     widget::Widget,

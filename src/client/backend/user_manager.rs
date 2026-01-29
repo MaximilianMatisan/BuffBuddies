@@ -1,9 +1,9 @@
+use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::common::exercise_mod::exercise::{Exercise, generate_example_exercise};
 use crate::common::exercise_mod::general_exercise::GeneralExerciseInfo;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
-use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::common::user_mod::user::{
     ForeignUser, Gender, UserInformation, UserInformationStrings, UserType,
 };

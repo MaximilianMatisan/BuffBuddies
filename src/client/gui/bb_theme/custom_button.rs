@@ -1,7 +1,7 @@
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::gradient::{ColorStop, Linear};
 use iced::widget::button::{Status, Style};
 use iced::widget::{Button, button};

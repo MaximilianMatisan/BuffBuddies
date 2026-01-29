@@ -1,9 +1,5 @@
 use crate::client::backend::login_state::LoginStateError;
-use crate::common::mascot_mod::epic_mascot::EpicMascot;
-use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
-use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::client::backend::pop_up_manager::PopUpType;
-use crate::common::user_mod::user::UserType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
 use crate::client::gui::bb_tab::settings::SettingsMessage;
@@ -25,6 +21,10 @@ use crate::client::gui::{bb_theme, size};
 use crate::client::server_communication::server_communicator::{
     RequestValidUserError, SaveMascotError, SaveWorkoutError, save_mascot, valid_login,
 };
+use crate::common::mascot_mod::epic_mascot::EpicMascot;
+use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
+use crate::common::mascot_mod::rare_mascot::RareMascot;
+use crate::common::user_mod::user::UserType;
 use iced::widget::{Column, Space, Stack, container, row};
 use iced::{Element, Task};
 use iced_core::alignment::{Horizontal, Vertical};
