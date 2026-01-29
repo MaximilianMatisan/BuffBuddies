@@ -1,6 +1,4 @@
 use crate::client::backend::exercise_manager::ExerciseManager;
-use crate::common::exercise_mod::general_exercise::GeneralExerciseInfo;
-use crate::common::mascot_mod::mascot::Mascot;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::container::{
     ContainerStyle, DEFAULT_TEXT_CONTAINER_PADDING, create_container_style,
@@ -11,6 +9,8 @@ use crate::client::gui::bb_widget::widget_utils::{
     INDENT, LARGE_INDENT, descriptor_space_fill_text_row,
 };
 use crate::client::gui::user_interface::Message;
+use crate::common::exercise_mod::general_exercise::GeneralExerciseInfo;
+use crate::common::mascot_mod::mascot::Mascot;
 use iced::widget::{Column, Container, Row, Space, container, text};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};

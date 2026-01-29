@@ -1,7 +1,6 @@
 use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::backend::image_manager::ImageManager;
 use crate::client::backend::login_state::LoginState;
-use crate::common::mascot_mod::mascot::Mascot;
 use crate::client::backend::mascot_manager::MascotManager;
 use crate::client::backend::pop_up_manager::PopUpManager;
 use crate::client::backend::user_manager::UserManager;
@@ -10,6 +9,7 @@ use crate::client::gui::bb_widget::activity_widget::activity::{
     ActivityWidget, calculate_activity_data,
 };
 use crate::client::gui::bb_widget::graph::GraphWidgetState;
+use crate::common::mascot_mod::mascot::Mascot;
 
 pub struct App {
     pub loading: bool,

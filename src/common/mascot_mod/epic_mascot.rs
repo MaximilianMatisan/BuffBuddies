@@ -1,5 +1,5 @@
-use crate::common::mascot_mod::mascot::MascotError;
 use crate::client::backend::mascot_manager::MascotManager;
+use crate::common::mascot_mod::mascot::MascotError;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::{Color, color};
 use rand::Rng;

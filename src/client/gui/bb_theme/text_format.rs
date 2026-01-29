@@ -1,5 +1,5 @@
-use crate::common::exercise_mod::weight::Kg;
 use crate::client::gui::bb_theme::color;
+use crate::common::exercise_mod::weight::Kg;
 use iced::Renderer;
 use iced_core::font::Family::Name;
 use iced_core::font::Stretch::Normal;

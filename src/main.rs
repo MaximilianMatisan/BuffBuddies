@@ -3,8 +3,8 @@ use crate::server::server_main::server_main;
 use std::io;
 
 mod client;
-mod server;
 mod common;
+mod server;
 
 enum LaunchType {
     Server,

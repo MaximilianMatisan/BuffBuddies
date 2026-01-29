@@ -1,5 +1,3 @@
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::user_mod::user::{ForeignUser, UserType};
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
@@ -7,6 +5,8 @@ use crate::client::gui::bb_theme::text_format::{format_button_text, format_descr
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::size::{MEDIUM_PROFILE_PICTURE_DIMENSION, SMALL_PROFILE_PICTURE_DIMENSION};
 use crate::client::gui::user_interface::Message;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::user_mod::user::{ForeignUser, UserType};
 use iced::Element;
 use iced::widget::{Button, Column, Row, Space, column, image, text};
 use iced_core::Length;

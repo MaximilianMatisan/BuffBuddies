@@ -1,15 +1,15 @@
+use crate::client::backend::exercise_create::{ExerciseCreate, ExerciseCreateString};
+use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
+use crate::client::gui::bb_widget::activity_widget::activity::calculate_activity_data;
 use crate::common::exercise_mod::exercise::{
     Exercise, ExerciseDataPoints, generate_example_exercise,
 };
-use crate::client::backend::exercise_create::{ExerciseCreate, ExerciseCreateString};
 use crate::common::exercise_mod::general_exercise::{
     ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Muscle,
 };
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::user_mod::user::UserInformation;
-use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
-use crate::client::gui::bb_widget::activity_widget::activity::calculate_activity_data;
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
@@ -217,12 +217,12 @@ impl ExerciseManager {
 mod tests {
     use std::collections::BTreeMap;
 
-    use chrono::NaiveDate;
     use crate::client::backend::exercise_manager::ExerciseManager;
     use crate::common::exercise_mod::{
-        exercise::Exercise, 
-        general_exercise::GeneralExerciseInfo, set::StrengthSet, weight::ExerciseWeight,
+        exercise::Exercise, general_exercise::GeneralExerciseInfo, set::StrengthSet,
+        weight::ExerciseWeight,
     };
+    use chrono::NaiveDate;
 
     #[test]
     fn select_invalid_exercise() {

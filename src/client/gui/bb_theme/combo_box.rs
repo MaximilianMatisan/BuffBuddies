@@ -1,8 +1,8 @@
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::overlay::menu;
 use iced::widget::text_input;
 use iced::widget::text_input::Status;

@@ -1,6 +1,3 @@
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use crate::common::user_mod::user::UserInformation;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
@@ -11,6 +8,9 @@ use crate::client::gui::bb_widget::stats::{PROFILE_STAT_CONTAINER_HEIGHT, profil
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::size::LARGE_PROFILE_PICTURE_DIMENSION;
 use crate::client::gui::user_interface::Message;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::user_mod::user::UserInformation;
 use iced::Element;
 use iced::widget::{Column, Container, Row, Space, column, container, image, row, text};
 use iced_core::Length;
