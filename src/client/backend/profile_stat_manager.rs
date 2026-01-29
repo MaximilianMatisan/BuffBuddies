@@ -1,6 +1,6 @@
-use crate::client::backend::exercise_mod::exercise::Exercise;
-use crate::client::backend::exercise_mod::set::Reps;
-use crate::client::backend::exercise_mod::weight::Kg;
+use crate::common::exercise_mod::exercise::Exercise;
+use crate::common::exercise_mod::set::Reps;
+use crate::common::exercise_mod::weight::Kg;
 use crate::client::gui::bb_widget::activity_widget::activity::{
     ActivityData, calculate_activity_data,
 };

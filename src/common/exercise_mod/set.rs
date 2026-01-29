@@ -1,4 +1,4 @@
-use crate::client::backend::exercise_mod::weight::{ExerciseWeight, Kg};
+use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 
 pub type Reps = u32;
 #[derive(Debug, Clone)]

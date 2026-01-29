@@ -1,5 +1,5 @@
-use crate::client::backend::mascot_mod::mascot::Mascot;
-use crate::client::backend::user_mod::user::{ForeignUser, UserType};
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::user_mod::user::{ForeignUser, UserType};
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};

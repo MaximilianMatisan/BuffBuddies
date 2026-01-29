@@ -1,6 +1,6 @@
-use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
-use crate::client::backend::mascot_mod::mascot_trait::MascotTrait;
-use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
+use crate::common::mascot_mod::epic_mascot::EpicMascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced_core::Color;
 use std::fmt::{Display, Formatter};
 use strum::IntoEnumIterator;

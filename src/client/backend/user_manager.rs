@@ -1,10 +1,10 @@
-use crate::client::backend::exercise_mod::exercise::{Exercise, generate_example_exercise};
-use crate::client::backend::exercise_mod::general_exercise::GeneralExerciseInfo;
-use crate::client::backend::mascot_mod::epic_mascot::EpicMascot;
-use crate::client::backend::mascot_mod::mascot::Mascot;
-use crate::client::backend::mascot_mod::rare_mascot::RareMascot;
+use crate::common::exercise_mod::exercise::{Exercise, generate_example_exercise};
+use crate::common::exercise_mod::general_exercise::GeneralExerciseInfo;
+use crate::common::mascot_mod::epic_mascot::EpicMascot;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
-use crate::client::backend::user_mod::user::{
+use crate::common::user_mod::user::{
     ForeignUser, Gender, UserInformation, UserInformationStrings, UserType,
 };
 use iced::widget::combo_box;

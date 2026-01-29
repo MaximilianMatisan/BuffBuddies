@@ -4,6 +4,7 @@ use std::io;
 
 mod client;
 mod server;
+mod common;
 
 enum LaunchType {
     Server,
