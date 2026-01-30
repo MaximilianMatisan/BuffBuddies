@@ -1,4 +1,4 @@
-use crate::client::backend::login_state::LoginStateError;
+use std::sync::Arc;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
@@ -32,6 +32,8 @@ use iced_core::image::Handle;
 use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
+use crate::client::server_communication::exercise_communicator::{get_exercise_data_from_server, ServerRequestError};
+use crate::common::exercise_mod::exercise::Exercise;
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -47,7 +49,8 @@ pub enum Message {
     SelectMascot(Mascot),
     TryRegister,
     TryLogin,
-    RequestValidUser(Result<(), RequestValidUserError>),
+    RequestValidUser(Result<String, RequestValidUserError>),
+    RequestExerciseData(Result<Arc<Vec<Exercise>>, ServerRequestError>),
     UsernameEntered(String),
     PasswordEntered(String),
     SelectExercise(String),
@@ -164,15 +167,7 @@ impl UserInterface {
             Message::TryLogin => {
                 match self.app.login_state.try_login() {
                     Err(err) => {
-                        let error_text = &mut self.app.login_state.error_text;
-                        match err {
-                            LoginStateError::PasswordEmpty => {
-                                *error_text = "Password can't be empty!".to_string()
-                            }
-                            LoginStateError::UsernameEmpty => {
-                                *error_text = "Username can't be empty!".to_string()
-                            }
-                        }
+                        self.app.login_state.error_text = err.to_error_message();
                         Task::none()
                     }
                     //TODO check with server database_mod
@@ -185,11 +180,25 @@ impl UserInterface {
                     }
                 }
             }
-            Message::RequestValidUser(Ok(_)) => {
+            Message::RequestValidUser(Ok(username)) => {
                 self.app.loading = false;
                 self.app.login_state.logged_in = true;
-                Task::none()
+                Task::perform(
+                    async { get_exercise_data_from_server(username).await },
+                    |result| Message::RequestExerciseData(result)
+                )
             }
+            Message::RequestExerciseData(Ok(data)) => {
+                match Arc::try_unwrap(data) { //TODO MAYBE THIS ISN'T NECESSARY -> CREATE NEW EXERCISE CLIENT STRUCTURE
+                    Ok(data) => self.app.exercise_manager.exercises = data,
+                    Err(_) => println!("Error while moving exercise data out of Arc!"),
+                }
+                Task::none()
+            },
+            Message::RequestExerciseData(Err(err)) => {
+                println!("{}", err.to_error_message());
+                Task::none()
+            },
             Message::RequestValidUser(Err(request_valid_error)) => {
                 match request_valid_error {
                     RequestValidUserError::WrongPassword => {

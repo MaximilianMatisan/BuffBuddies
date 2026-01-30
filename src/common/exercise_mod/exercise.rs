@@ -3,13 +3,13 @@ use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 use chrono::{Duration, Local, NaiveDate};
 use rand::Rng;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
 
 pub type ExerciseDataPoints = Vec<(NaiveDate, Kg)>;
 
-#[derive(Serialize)]
+#[derive(Debug,Serialize, Deserialize)]
 pub struct Exercise {
     pub general_exercise_info: GeneralExerciseInfo,
     pub sets: BTreeMap<NaiveDate, Vec<StrengthSet>>,
