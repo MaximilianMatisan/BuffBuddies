@@ -47,14 +47,18 @@ impl From<Mascot> for MascotJson {
 
 /// Checks if the login data exists on serverside
 /// Returns valid username if data exists else RequestValidUserError
-pub fn valid_login(login_request: LoginRequest) -> Result<String, RequestValidUserError> {
-    let res = reqwest::blocking::Client::new()
+pub async fn valid_login(login_request: LoginRequest) -> Result<String, RequestValidUserError> {
+    let res = reqwest::Client::new()
         .get("http://127.0.0.1:3000/user/login")
         .json(&login_request)
         .send()
-        .expect("checking user login went wrong");
+        .await
+        .map_err(|_| RequestValidUserError::ServerError)?;
 
-    match res.json() {
+    let res = res.error_for_status()
+        .map_err(|_| RequestValidUserError::ServerError)?;
+
+    match res.json::<RequestValidUserAnswer>().await {
         Ok(answer) => match answer {
             RequestValidUserAnswer::UserNotFound => Err(RequestValidUserError::UserNotFound),
             RequestValidUserAnswer::WrongPassword => Err(RequestValidUserError::WrongPassword),
@@ -69,12 +73,13 @@ pub enum SaveMascotError {
     ServerError,
 }
 
-pub fn save_mascot(mascot: Mascot) -> Result<Mascot, SaveMascotError> {
+pub async fn save_mascot(mascot: Mascot) -> Result<Mascot, SaveMascotError> {
     let mascot_json: MascotJson = mascot.into();
-    let res = reqwest::blocking::Client::new()
+    let res = reqwest::Client::new()
         .post("http://127.0.0.1:3000/mascot/save")
         .json(&mascot_json)
-        .send();
+        .send()
+        .await;
     match res {
         Ok(_) => Ok(mascot),
         Err(_server_error) => Err(SaveMascotError::ServerError),
@@ -143,15 +148,16 @@ impl From<StrengthSet> for SetJson {
     }
 }
 
-pub fn save_workout(
+pub async fn save_workout(
     username: String,
     workout: Vec<ExerciseCreate>,
 ) -> Result<(), SaveWorkoutError> {
     let workout_json: WorkoutJson = WorkoutJson::new(username, workout);
-    let res = reqwest::blocking::Client::new()
+    let res = reqwest::Client::new()
         .post("http://127.0.0.1:3000/workout/save")
         .json(&workout_json)
-        .send();
+        .send()
+        .await;
     match res {
         Ok(_) => Ok(()),
         Err(_server_error) => Err(SaveWorkoutError::ServerError),

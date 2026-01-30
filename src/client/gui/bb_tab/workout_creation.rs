@@ -204,8 +204,8 @@ impl WorkoutCreationMessage {
                             .to_string();
                         let workout_clone = workout.clone();
                         return Task::perform(
-                            async move { save_workout(name_clone, workout_clone) },
-                            Message::SaveWorkout,
+                            save_workout(name_clone, workout_clone),
+                            |result| Message::SaveWorkout(result),
                         );
                     }
                 }
