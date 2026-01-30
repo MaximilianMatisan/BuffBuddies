@@ -50,7 +50,7 @@ pub enum Message {
     TryRegister,
     TryLogin,
     RequestValidUser(Result<String, RequestValidUserError>),
-    RequestExerciseData(Result<Arc<Vec<Exercise>>, ServerRequestError>),
+    RequestExerciseData(Result<Arc<Vec<Exercise>>, ServerRequestError>), //Arc necessary to receive non-cloneable Vec<Exercise>
     UsernameEntered(String),
     PasswordEntered(String),
     SelectExercise(String),
@@ -118,7 +118,7 @@ impl UserInterface {
                         }
                     };
                     if let Some(mascot) = mascot_maybe {
-                        Task::perform(async move { save_mascot(mascot) }, Message::SaveMascot)
+                        Task::perform( save_mascot(mascot) , Message::SaveMascot)
                     } else {
                         Task::none()
                     }
@@ -174,7 +174,7 @@ impl UserInterface {
                     Ok(login_request) => {
                         self.app.loading = true;
                         Task::perform(
-                            async { valid_login(login_request) },
+                            valid_login(login_request),
                             Message::RequestValidUser,
                         )
                     }
@@ -184,7 +184,7 @@ impl UserInterface {
                 self.app.loading = false;
                 self.app.login_state.logged_in = true;
                 Task::perform(
-                    async { get_exercise_data_from_server(username).await },
+                    get_exercise_data_from_server(username),
                     |result| Message::RequestExerciseData(result)
                 )
             }
