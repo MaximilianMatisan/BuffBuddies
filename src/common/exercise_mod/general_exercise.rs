@@ -1,7 +1,7 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumString};
 
-#[derive(Default, Serialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct GeneralExerciseInfo {
     pub id: u32,
     pub name: String,
@@ -26,7 +26,7 @@ impl GeneralExerciseInfo {
         }
     }
 }
-#[derive(Display, EnumString, Eq, PartialEq, Debug, Default, Serialize)]
+#[derive(Display, EnumString, Eq, PartialEq, Debug, Default, Serialize, Deserialize)]
 #[strum(ascii_case_insensitive)]
 pub enum Muscle {
     Abdominals,
@@ -51,7 +51,7 @@ pub enum Muscle {
     Neck,
 }
 
-#[derive(Display, EnumString, Default, Serialize)]
+#[derive(Debug, Display, EnumString, Default, Serialize, Deserialize)]
 #[strum(ascii_case_insensitive)]
 pub enum ExerciseForce {
     #[default]
@@ -60,7 +60,7 @@ pub enum ExerciseForce {
     Static,
 }
 
-#[derive(Display, EnumString, Eq, PartialEq, Debug, Default, Serialize)]
+#[derive(Display, EnumString, Eq, PartialEq, Debug, Default, Serialize, Deserialize)]
 #[strum(ascii_case_insensitive)]
 pub enum ExerciseLevel {
     #[default]
@@ -69,7 +69,7 @@ pub enum ExerciseLevel {
     Expert,
 }
 
-#[derive(Display, EnumString, Default, Serialize)]
+#[derive(Debug, Display, EnumString, Default, Serialize, Deserialize)]
 #[strum(ascii_case_insensitive)]
 pub enum ExerciseEquipment {
     #[default]
@@ -91,7 +91,7 @@ pub enum ExerciseEquipment {
     Other,
 }
 
-#[derive(Display, EnumString, Eq, PartialEq, Debug, Default, Serialize)]
+#[derive(Display, EnumString, Eq, PartialEq, Debug, Default, Serialize, Deserialize)]
 #[strum(ascii_case_insensitive)]
 pub enum ExerciseCategory {
     #[default]

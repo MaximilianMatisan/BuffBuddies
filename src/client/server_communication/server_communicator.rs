@@ -45,7 +45,9 @@ impl From<Mascot> for MascotJson {
     }
 }
 
-pub fn valid_login(login_request: LoginRequest) -> Result<(), RequestValidUserError> {
+/// Checks if the login data exists on serverside
+/// Returns valid username if data exists else RequestValidUserError
+pub fn valid_login(login_request: LoginRequest) -> Result<String, RequestValidUserError> {
     let res = reqwest::blocking::Client::new()
         .get("http://127.0.0.1:3000/user/login")
         .json(&login_request)
@@ -56,7 +58,7 @@ pub fn valid_login(login_request: LoginRequest) -> Result<(), RequestValidUserEr
         Ok(answer) => match answer {
             RequestValidUserAnswer::UserNotFound => Err(RequestValidUserError::UserNotFound),
             RequestValidUserAnswer::WrongPassword => Err(RequestValidUserError::WrongPassword),
-            RequestValidUserAnswer::Valid => Ok(()),
+            RequestValidUserAnswer::Valid => Ok(login_request.username),
         },
         Err(_e) => Err(RequestValidUserError::ServerError),
     }
