@@ -2,6 +2,7 @@ use crate::server::database_mod::database;
 use crate::server::database_mod::database::init_db;
 use crate::server::routes::login::check_login;
 use crate::server::routes::mascot_manager::save_mascot;
+use crate::server::routes::user_exercises::get_user_exercises;
 use crate::server::routes::workout::save_workout;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -18,6 +19,16 @@ pub enum ApiError {
     NotFound,
     InvalidInput(String),
     InternalError,
+    DatabaseError,
+    DatabaseRowNotFound,
+}
+impl From<sqlx::Error> for ApiError {
+    fn from(value: sqlx::Error) -> Self {
+        match value {
+            sqlx::Error::RowNotFound => ApiError::DatabaseRowNotFound,
+            _ => ApiError::DatabaseError,
+        }
+    }
 }
 impl IntoResponse for ApiError {
     fn into_response(self) -> axum::response::Response {
@@ -27,6 +38,14 @@ impl IntoResponse for ApiError {
             ApiError::InternalError => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Internal server error".to_string(),
+            ),
+            ApiError::DatabaseError => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error".to_string(),
+            ),
+            ApiError::DatabaseRowNotFound => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database entry doesn't exist!".to_string(),
             ),
         };
 
@@ -61,6 +80,7 @@ fn create_app(pool: SqlitePool) -> Router {
         .route("/user/login", get(check_login))
         .route("/mascot/save", post(save_mascot))
         .route("/workout/save", post(save_workout))
+        .route("/users/{username}/exercises", get(get_user_exercises))
         .with_state(pool)
 }
 
