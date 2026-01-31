@@ -1,12 +1,15 @@
+use serde::{Deserialize, Serialize};
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::common::exercise_mod::exercise::Exercise;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
-use strum_macros::{Display, EnumIter};
+use strum_macros::{Display, EnumIter, EnumString};
 
 pub const MAX_DESCRIPTION_CHARACTERS: usize = 300;
-#[derive(Debug, Clone, Display, EnumIter)]
+#[derive(Display,Clone, EnumString, Eq, PartialEq, Debug, Default, Serialize, Deserialize, EnumIter)]
+#[strum(ascii_case_insensitive)]
 pub enum Gender {
+    #[default]
     Male,
     Female,
 }
@@ -15,7 +18,7 @@ pub enum UserType {
     Own,
     Other(String),
 }
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserInformation {
     pub username: String,
     pub description: String,

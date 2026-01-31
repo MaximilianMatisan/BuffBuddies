@@ -12,6 +12,7 @@ use database::init_pool;
 use serde_json::json;
 use sqlx::SqlitePool;
 use tokio;
+use crate::server::routes::user_info::get_user_info;
 
 #[derive(Debug)]
 #[allow(dead_code)] //TODO: construct variants `NotFound`, `InvalidInput`, and `InternalError`
@@ -81,6 +82,7 @@ fn create_app(pool: SqlitePool) -> Router {
         .route("/mascot/save", post(save_mascot))
         .route("/workout/save", post(save_workout))
         .route("/users/{username}/exercises", get(get_user_exercises))
+        .route("/users/{username}/info/get", get(get_user_info))
         .with_state(pool)
 }
 

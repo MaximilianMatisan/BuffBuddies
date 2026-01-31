@@ -40,7 +40,7 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     );",
     )
     .execute(pool)
-    .await?;
+    .await?; //TODO change height to INTEGER
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS mascot(
@@ -363,13 +363,14 @@ pub async fn update_user_favorite_mascot(
 pub async fn get_user_favorite_mascot(
     pool: &SqlitePool,
     username: &str,
-) -> Result<String, sqlx::Error> {
+) -> Result<Mascot, sqlx::Error> {
     let favorite_mascot_row = sqlx::query("SELECT favorite_mascot FROM users WHERE username = ?")
         .bind(username)
         .fetch_optional(pool)
         .await?;
 
-    let favorite_mascot = favorite_mascot_row.unwrap().get("favorite_mascot");
+    let favorite_mascot_string: String = favorite_mascot_row.unwrap().get("favorite_mascot");
+    let favorite_mascot = Mascot::from_str(&favorite_mascot_string).unwrap_or(Mascot::default());
 
     Ok(favorite_mascot)
 }
@@ -441,7 +442,7 @@ pub async fn get_user_weight(pool: &SqlitePool, username: &str) -> Result<f32, s
     Ok(row.get("weight"))
 }
 #[allow(dead_code)]
-pub async fn get_user_height(pool: &SqlitePool, username: &str) -> Result<u32, sqlx::Error> {
+pub async fn get_user_height(pool: &SqlitePool, username: &str) -> Result<f32, sqlx::Error> {
     let row = sqlx::query("SELECT height FROM users WHERE username = ?")
         .bind(username)
         .fetch_one(pool)
@@ -450,13 +451,16 @@ pub async fn get_user_height(pool: &SqlitePool, username: &str) -> Result<u32, s
     Ok(row.get("height"))
 }
 #[allow(dead_code)]
-pub async fn get_user_gender(pool: &SqlitePool, username: &str) -> Result<String, sqlx::Error> {
+pub async fn get_user_gender(pool: &SqlitePool, username: &str) -> Result<Gender, sqlx::Error> {
     let row = sqlx::query("SELECT gender FROM users WHERE username = ?")
         .bind(username)
         .fetch_one(pool)
         .await?;
 
-    Ok(row.get("gender"))
+    let gender_string: String = row.get("gender");
+    let exercise_force = Gender::from_str(&gender_string).unwrap_or(Gender::default());
+
+    Ok(exercise_force)
 }
 #[allow(dead_code)]
 pub async fn get_user_weekly_workout_goal(
@@ -546,7 +550,6 @@ pub async fn add_exercise_log(
     Ok(())
 }
 
-#[allow(dead_code)]
 pub async fn get_exercises_stats(
     pool: &SqlitePool,
     username: &str,

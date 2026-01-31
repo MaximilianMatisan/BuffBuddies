@@ -3,10 +3,12 @@ use crate::common::mascot_mod::mascot::MascotError;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::{Color, color};
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use strum::{EnumCount, IntoEnumIterator};
-use strum_macros::{EnumCount, EnumIter};
+use strum_macros::{Display, EnumCount, EnumIter, EnumString};
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter,EnumString, Serialize, Deserialize)]
+#[strum(ascii_case_insensitive)]
 pub enum RareMascot {
     #[default]
     Duck,
