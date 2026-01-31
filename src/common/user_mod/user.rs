@@ -18,7 +18,7 @@ pub enum UserType {
     Own,
     Other(String),
 }
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserInformation {
     pub username: String,
     pub description: String,

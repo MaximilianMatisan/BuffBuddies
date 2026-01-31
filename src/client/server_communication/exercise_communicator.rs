@@ -16,7 +16,7 @@ impl ServerRequestError {
     }
 }
 
-pub async fn get_exercise_data_from_server(username: String) -> Result<Arc<Vec<Exercise>>, ServerRequestError> {
+pub async fn get_exercise_data_from_server(username: String) -> Result<Vec<Exercise>, ServerRequestError> {
     let url = format!("http://127.0.0.1:3000/users/{username}/exercises");
 
     let response = reqwest::get(url).await.map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
@@ -24,5 +24,5 @@ pub async fn get_exercise_data_from_server(username: String) -> Result<Arc<Vec<E
 
     let data = response.json::<Vec<Exercise>>().await.map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
 
-    Ok(Arc::new(data))
+    Ok(data)
 }

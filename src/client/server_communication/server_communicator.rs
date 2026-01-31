@@ -1,9 +1,14 @@
+use std::sync::Arc;
 use crate::client::backend::exercise_create::ExerciseCreate;
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait;
 use serde::{Deserialize, Serialize};
+use crate::client::server_communication::{exercise_communicator, user_communicator};
+use crate::client::server_communication::request_data::LoginServerRequestData;
+use crate::common::user_mod::user::UserInformation;
+use crate::server::server_main::ApiError;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LoginRequest {
@@ -163,3 +168,4 @@ pub async fn save_workout(
         Err(_server_error) => Err(SaveWorkoutError::ServerError),
     }
 }
+
