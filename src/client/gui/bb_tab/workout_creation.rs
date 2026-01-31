@@ -574,7 +574,7 @@ impl UserInterface {
             .height(FillPortion(6));
 
         let add_exercise: Element<Message> = combo_box(
-            &self.app.exercise_manager.owned_exercise_state,
+            &self.app.exercise_manager.all_exercise_state,
             "Search for exercise...",
             None,
             |exercise: String| -> Message {

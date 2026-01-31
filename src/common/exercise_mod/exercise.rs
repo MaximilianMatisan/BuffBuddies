@@ -27,6 +27,10 @@ impl Exercise {
             sets: Default::default(),
         }
     }
+    pub fn is_tracked(&self) -> bool {
+        !self.sets.is_empty()
+    }
+    
     pub fn calculate_max_weight_per_day(&self) -> ExerciseDataPoints {
         let mut results: ExerciseDataPoints = vec![];
         for (date, sets) in &self.sets {
