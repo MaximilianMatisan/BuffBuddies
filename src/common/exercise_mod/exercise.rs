@@ -9,7 +9,7 @@ use std::fmt::{Display, Formatter};
 
 pub type ExerciseDataPoints = Vec<(NaiveDate, Kg)>;
 
-#[derive(Debug,Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Exercise {
     pub general_exercise_info: GeneralExerciseInfo,
     pub sets: BTreeMap<NaiveDate, Vec<StrengthSet>>,
@@ -30,7 +30,7 @@ impl Exercise {
     pub fn is_tracked(&self) -> bool {
         !self.sets.is_empty()
     }
-    
+
     pub fn calculate_max_weight_per_day(&self) -> ExerciseDataPoints {
         let mut results: ExerciseDataPoints = vec![];
         for (date, sets) in &self.sets {

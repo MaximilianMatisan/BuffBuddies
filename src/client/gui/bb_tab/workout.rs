@@ -1,13 +1,13 @@
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
-use crate::client::gui::bb_theme::text_format::{format_description_text, FIRA_SANS_EXTRABOLD};
+use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text};
 use crate::client::gui::bb_widget::general_exercise_info_elements::display_general_exercise_infos;
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::bb_widget::{new_widget, workout};
 use crate::client::gui::user_interface::{Message, UserInterface};
 use iced::Element;
 use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{Column, Scrollable, column, container, row, text, Row};
+use iced::widget::{Column, Row, Scrollable, column, container, row, text};
 use iced_core::alignment::Vertical;
 
 impl UserInterface {
@@ -37,7 +37,10 @@ impl UserInterface {
 
         let title_bar = Row::new()
             .push(browse_exercises_title)
-            .push(format_description_text(text(format!(" - {} results", self.app.exercise_manager.exercises.len()))))
+            .push(format_description_text(text(format!(
+                " - {} results",
+                self.app.exercise_manager.exercises.len()
+            ))))
             .align_y(Vertical::Center);
 
         let exercise_browser = Column::new()

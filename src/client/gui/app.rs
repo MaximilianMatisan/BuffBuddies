@@ -12,6 +12,9 @@ use crate::client::gui::bb_widget::graph::GraphWidgetState;
 use crate::common::mascot_mod::mascot::Mascot;
 
 pub struct App {
+    /// Every connection to the server after the login has to contain this jwt in its json header
+    /// to qualify as a valid request. E.g. see user_communicator::get_user_information_from_server
+    pub jsonwebtoken: Option<String>,
     pub loading: bool,
     pub screen: Tab,
     pub activity_widget: ActivityWidget,
@@ -29,6 +32,7 @@ impl Default for App {
         let exercise_manager = ExerciseManager::default();
         let default_mascot = Mascot::default();
         App {
+            jsonwebtoken: None,
             loading: false,
             screen: Tab::Home,
             login_state: LoginState::default(),

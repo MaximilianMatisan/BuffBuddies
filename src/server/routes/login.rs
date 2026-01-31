@@ -1,3 +1,4 @@
+use crate::server::jwt::jwt_architecture::create_jwt;
 use crate::server::server_main::ApiError;
 use axum::Json;
 use serde::{Deserialize, Serialize};
@@ -9,11 +10,11 @@ pub struct LoginRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "answer")]
+#[serde(tag = "answer", content = "token")]
 pub enum RequestValidUserAnswer {
     UserNotFound,
     WrongPassword,
-    Valid,
+    Valid(String),
 }
 
 pub async fn check_login(
@@ -21,7 +22,9 @@ pub async fn check_login(
 ) -> Result<Json<RequestValidUserAnswer>, ApiError> {
     if login_request.username == "Felix" {
         if login_request.password == "password" {
-            Ok(Json(RequestValidUserAnswer::Valid))
+            let jwt = create_jwt(login_request.username);
+            println!("Sent session code to client: {}", jwt.clone());
+            Ok(Json(RequestValidUserAnswer::Valid(jwt)))
         } else {
             Ok(Json(RequestValidUserAnswer::WrongPassword))
         }

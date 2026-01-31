@@ -5,9 +5,22 @@ use iced::{Color, color};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use strum::{EnumCount, IntoEnumIterator};
-use strum_macros::{Display, EnumCount, EnumIter, EnumString};
+use strum_macros::{EnumCount, EnumIter, EnumString};
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter,EnumString, Serialize, Deserialize)]
+#[derive(
+    Default,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    EnumCount,
+    EnumIter,
+    EnumString,
+    Serialize,
+    Deserialize,
+)]
 #[strum(ascii_case_insensitive)]
 pub enum RareMascot {
     #[default]

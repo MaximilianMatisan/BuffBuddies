@@ -3,6 +3,7 @@ use crate::server::database_mod::database::init_db;
 use crate::server::routes::login::check_login;
 use crate::server::routes::mascot_manager::save_mascot;
 use crate::server::routes::user_exercises::get_user_exercises;
+use crate::server::routes::user_info::get_user_info;
 use crate::server::routes::workout::save_workout;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -12,7 +13,6 @@ use database::init_pool;
 use serde_json::json;
 use sqlx::SqlitePool;
 use tokio;
-use crate::server::routes::user_info::get_user_info;
 
 #[derive(Debug)]
 #[allow(dead_code)] //TODO: construct variants `NotFound`, `InvalidInput`, and `InternalError`
@@ -78,11 +78,11 @@ pub async fn server_main() {
 fn create_app(pool: SqlitePool) -> Router {
     Router::new()
         .route("/server", get(health_check))
-        .route("/user/login", get(check_login))
+        .route("/user/login", post(check_login))
         .route("/mascot/save", post(save_mascot))
         .route("/workout/save", post(save_workout))
-        .route("/users/{username}/exercises", get(get_user_exercises))
-        .route("/users/{username}/info/get", get(get_user_info))
+        .route("/user/exercises", get(get_user_exercises))
+        .route("/user/info/get", get(get_user_info))
         .with_state(pool)
 }
 

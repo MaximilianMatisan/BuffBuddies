@@ -2,11 +2,10 @@ use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced_core::Color;
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
-use strum_macros::EnumString;
 
 pub enum MascotError {
     AllBought,
@@ -28,10 +27,10 @@ impl FromStr for Mascot {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Ok(rare) = RareMascot::from_str(s) {
-            return Ok(Mascot::Rare(rare))
+            return Ok(Mascot::Rare(rare));
         }
         if let Ok(epic) = EpicMascot::from_str(s) {
-            return Ok(Mascot::Epic(epic))
+            return Ok(Mascot::Epic(epic));
         }
         Err(())
     }

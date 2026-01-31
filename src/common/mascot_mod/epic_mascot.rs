@@ -7,7 +7,20 @@ use serde::{Deserialize, Serialize};
 use strum::{EnumCount, IntoEnumIterator};
 use strum_macros::{EnumCount, EnumIter, EnumString};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter, EnumString, Default, Serialize, Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    EnumCount,
+    EnumIter,
+    EnumString,
+    Default,
+    Serialize,
+    Deserialize,
+)]
 pub enum EpicMascot {
     #[default]
     Capybara,

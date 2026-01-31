@@ -203,10 +203,9 @@ impl WorkoutCreationMessage {
                             .clone()
                             .to_string();
                         let workout_clone = workout.clone();
-                        return Task::perform(
-                            save_workout(name_clone, workout_clone),
-                            |result| Message::SaveWorkout(result),
-                        );
+                        return Task::perform(save_workout(name_clone, workout_clone), |result| {
+                            Message::SaveWorkout(result)
+                        });
                     }
                 }
                 Task::none()

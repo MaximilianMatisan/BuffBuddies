@@ -1,13 +1,26 @@
 use crate::client::server_communication::exercise_communicator::ServerRequestError;
 use crate::common::user_mod::user::UserInformation;
 
-pub async fn get_user_information_from_server(username: String) -> Result<UserInformation, ServerRequestError> {
-    let url = format!("http://127.0.0.1:3000/users/{username}/info/get");
+pub async fn get_user_information_from_server(
+    jwt: String,
+) -> Result<UserInformation, ServerRequestError> {
+    let response = reqwest::Client::new()
+        .get("http://127.0.0.1:3000/user/info/get")
+        .header("Authorization", format!("Token {jwt}"))
+        .send()
+        .await
+        .map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
 
-    let response = reqwest::get(url).await.map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
-    let response = response.error_for_status().map_err(|_| ServerRequestError::HTTPError)?;
+    let response = response
+        .error_for_status()
+        .map_err(|_| ServerRequestError::HTTPError)?;
 
-    let data = response.json::<UserInformation>().await.map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
+    //println!("{}", response.text().await.unwrap());
+
+    let data = response
+        .json::<UserInformation>()
+        .await
+        .map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
 
     Ok(data)
 }
