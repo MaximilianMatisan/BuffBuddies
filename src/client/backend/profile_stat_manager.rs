@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use crate::client::gui::bb_widget::activity_widget::activity::{
     ActivityData, calculate_activity_data,
 };
@@ -7,7 +8,7 @@ use crate::common::exercise_mod::weight::Kg;
 
 /// The data included in this struct is only there for performance enhancement purposes
 /// so that these values don't have to be calculated with every frame inside the view function
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ProfileStatManager {
     pub activity_data: ActivityData,
     pub total_sets: u64,

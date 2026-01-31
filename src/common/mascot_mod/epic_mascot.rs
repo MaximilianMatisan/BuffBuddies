@@ -3,10 +3,11 @@ use crate::common::mascot_mod::mascot::MascotError;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::{Color, color};
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use strum::{EnumCount, IntoEnumIterator};
-use strum_macros::{EnumCount, EnumIter};
+use strum_macros::{EnumCount, EnumIter, EnumString};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter, EnumString, Default, Serialize, Deserialize)]
 pub enum EpicMascot {
     #[default]
     Capybara,
