@@ -14,6 +14,8 @@ use crate::common::mascot_mod::mascot::Mascot;
 use iced::widget::{Column, Container, Row, Space, container, text};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
+use crate::common::exercise_mod::exercise::Exercise;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 
 pub fn display_general_exercise_infos<'a>(
     active_mascot: &Mascot,
@@ -26,7 +28,7 @@ pub fn display_general_exercise_infos<'a>(
             .contains(&exercise.general_exercise_info.id);
         content = content.push(general_exercise_info_element(
             active_mascot,
-            &exercise.general_exercise_info,
+            &exercise,
             show_extended_info,
         ));
     }
@@ -34,12 +36,17 @@ pub fn display_general_exercise_infos<'a>(
 }
 fn general_exercise_info_element<'a>(
     active_mascot: &Mascot,
-    general_exercise_info: &'a GeneralExerciseInfo,
+    exercise: &'a Exercise,
     show_extended: bool,
 ) -> Container<'a, Message> {
-    let exercise_name = text(&general_exercise_info.name)
+    let title_color = if exercise.is_tracked() {
+        active_mascot.get_primary_color()
+    } else {
+        TEXT_COLOR
+    };
+    let exercise_name = text(&exercise.general_exercise_info.name)
         .font(FIRA_SANS_EXTRABOLD)
-        .color(TEXT_COLOR)
+        .color(title_color)
         .size(20);
 
     let button_symbol = if show_extended { "^" } else { "v" };
@@ -54,7 +61,7 @@ fn general_exercise_info_element<'a>(
         ButtonStyle::ActiveTab,
         None,
     )
-    .on_press(Message::ToggleGeneralExerciseInfo(general_exercise_info.id));
+    .on_press(Message::ToggleGeneralExerciseInfo(exercise.general_exercise_info.id));
 
     let header = Row::new()
         .push(exercise_name)
@@ -68,7 +75,7 @@ fn general_exercise_info_element<'a>(
     });
 
     if show_extended {
-        content = content.push(create_extended_infos(general_exercise_info));
+        content = content.push(create_extended_infos(&exercise.general_exercise_info));
     }
     container(content)
         .padding(3)

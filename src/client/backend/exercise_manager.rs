@@ -13,6 +13,7 @@ use crate::common::user_mod::user::UserInformation;
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
+use crate::client::gui::bb_theme::combo_box::{get_combo_box_all_exercises_state, get_combo_box_tracked_exercise_state};
 
 pub struct ExerciseManager {
     //TODO get exercises from db
@@ -21,9 +22,13 @@ pub struct ExerciseManager {
     ///Show further general infos for these exercise_ids in the gui
     pub extended_general_exercise_infos: HashSet<u32>,
 
+    /// Selection options for a combo_box. Only containing tracked exercises
+    pub tracked_exercise_state: combo_box::State<String>, //TODO update after tracking a workout
+    /// Selection options for a combo_box. Containing all exercises
+    pub all_exercise_state: combo_box::State<String>,
+
     /// Not necessarily a valid exercise_mod name
     pub selected_exercise_name: String,
-    pub owned_exercise_state: combo_box::State<String>,
     //STATS OF SELECTED EXERCISE
     ///representing the heaviest weight used in a set per tracked day
     pub data_points: ExerciseDataPoints,
@@ -39,6 +44,7 @@ pub struct ExerciseManager {
 }
 impl Default for ExerciseManager {
     fn default() -> Self {
+        //TODO delete examples
         let general_info_preacher_curl = GeneralExerciseInfo {
             id: 0,
             name: "Preacher Curl".to_string(),
@@ -85,12 +91,15 @@ Repeat for the recommended amount of repetitions.".to_string(),
         let bench_press = generate_example_exercise(general_info_bench_press, 200, 60.0);
         let barbell_row = generate_example_exercise(general_info_barbell_row, 1, 80.0);
 
+        let exercises = vec![preacher_curl, bench_press, barbell_row];
+
         let selected_exercise_name = "Bench press".to_string();
         let mut exercise_manager = ExerciseManager {
-            exercises: vec![preacher_curl, bench_press, barbell_row],
+            exercises,
             extended_general_exercise_infos: HashSet::new(),
             selected_exercise_name: selected_exercise_name.clone(),
-            owned_exercise_state: combo_box::State::new(vec![]),
+            tracked_exercise_state: combo_box::State::new(vec![]),
+            all_exercise_state: combo_box::State::new(vec![]),
             data_points: vec![],
             all_time_lifted_weight: 0.0,
             all_time_reps: 0,
@@ -102,19 +111,25 @@ Repeat for the recommended amount of repetitions.".to_string(),
             exercise_in_edit_strings: None,
         };
 
-        exercise_manager.owned_exercise_state = combo_box::State::new(
-            exercise_manager
-                .exercises
-                .iter()
-                .map(|ex| ex.general_exercise_info.name.clone())
-                .collect(),
-        );
+        exercise_manager.all_exercise_state = get_combo_box_all_exercises_state(&exercise_manager.exercises);
+        exercise_manager.tracked_exercise_state = get_combo_box_tracked_exercise_state(&exercise_manager.exercises);
+
         exercise_manager.update_selected_exercise(selected_exercise_name);
 
         exercise_manager
     }
 }
 impl ExerciseManager {
+
+    pub fn update_exercise_manager_on_login(&mut self, exercises: Vec<Exercise>) {
+        let most_recently_tracked_exercise = "".to_string(); //TODO get
+        self.exercises = exercises;
+        self.selected_exercise_name = most_recently_tracked_exercise.clone();
+        self.tracked_exercise_state = get_combo_box_tracked_exercise_state(&self.exercises);
+        self.all_exercise_state = get_combo_box_all_exercises_state(&self.exercises);
+
+        self.update_selected_exercise(most_recently_tracked_exercise)
+    }
     pub fn get_selected_exercise(&self) -> Option<&Exercise> {
         self.exercises.iter().find(|ex| {
             ex.general_exercise_info
@@ -185,6 +200,7 @@ impl ExerciseManager {
         }
         self.update_selected_exercise(self.selected_exercise_name.clone());
         user_info.profile_stat_manager.activity_data = calculate_activity_data(&self.exercises);
+        self.tracked_exercise_state = get_combo_box_tracked_exercise_state(&self.exercises);
         Ok(())
     }
 
@@ -212,7 +228,6 @@ impl ExerciseManager {
         set
     }
 }
-
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;

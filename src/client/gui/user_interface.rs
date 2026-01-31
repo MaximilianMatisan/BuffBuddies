@@ -190,13 +190,13 @@ impl UserInterface {
             }
             Message::RequestExerciseData(Ok(data)) => {
                 match Arc::try_unwrap(data) { //TODO MAYBE THIS ISN'T NECESSARY -> CREATE NEW EXERCISE CLIENT STRUCTURE
-                    Ok(data) => self.app.exercise_manager.exercises = data,
-                    Err(_) => println!("Error while moving exercise data out of Arc!"),
+                    Ok(data) => self.app.exercise_manager.update_exercise_manager_on_login(data),
+                    Err(_) => eprintln!("Error while moving exercise data out of Arc!"),
                 }
                 Task::none()
             },
             Message::RequestExerciseData(Err(err)) => {
-                println!("{}", err.to_error_message());
+                eprintln!("{}", err.to_error_message()); //TODO popup
                 Task::none()
             },
             Message::RequestValidUser(Err(request_valid_error)) => {

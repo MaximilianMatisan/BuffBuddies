@@ -843,7 +843,7 @@ pub fn graph_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
     let default_padding = 30.0;
     let title: Element<'a, Message> = format_button_text(iced::widget::text("PRs").size(40)).into();
     let search_bar: Element<Message> = combo_box(
-        &app.exercise_manager.owned_exercise_state,
+        &app.exercise_manager.tracked_exercise_state,
         "Search Exercise...",
         Some(&app.exercise_manager.selected_exercise_name),
         Message::SelectExercise,
