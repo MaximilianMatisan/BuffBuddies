@@ -18,9 +18,7 @@ use crate::client::gui::bb_widget::pop_up::view_pop_up;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::{bb_theme, size};
-use crate::client::server_communication::server_communicator::{
-    RequestValidUserError, SaveMascotError, SaveWorkoutError, save_mascot, valid_login,
-};
+use crate::client::server_communication::server_communicator::{RequestValidUserError, SaveMascotError, SaveWorkoutError, save_mascot, valid_login};
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::rare_mascot::RareMascot;
@@ -32,8 +30,8 @@ use iced_core::image::Handle;
 use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
-use crate::client::server_communication::exercise_communicator::{get_exercise_data_from_server, ServerRequestError};
-use crate::common::exercise_mod::exercise::Exercise;
+use crate::client::server_communication::exercise_communicator::ServerRequestError;
+use crate::client::server_communication::request_data::{request_login_data, LoginServerRequestData};
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -50,7 +48,7 @@ pub enum Message {
     TryRegister,
     TryLogin,
     RequestValidUser(Result<String, RequestValidUserError>),
-    RequestExerciseData(Result<Arc<Vec<Exercise>>, ServerRequestError>), //Arc necessary to receive non-cloneable Vec<Exercise>
+    RequestLoginData(Result<Arc<LoginServerRequestData>, ServerRequestError>), //Arc necessary to receive non-cloneable Vec<Exercise>
     UsernameEntered(String),
     PasswordEntered(String),
     SelectExercise(String),
@@ -184,18 +182,21 @@ impl UserInterface {
                 self.app.loading = false;
                 self.app.login_state.logged_in = true;
                 Task::perform(
-                    get_exercise_data_from_server(username),
-                    |result| Message::RequestExerciseData(result)
+                    request_login_data(username),
+                    |result| Message::RequestLoginData(result)
                 )
             }
-            Message::RequestExerciseData(Ok(data)) => {
+            Message::RequestLoginData(Ok(data)) => {
                 match Arc::try_unwrap(data) { //TODO MAYBE THIS ISN'T NECESSARY -> CREATE NEW EXERCISE CLIENT STRUCTURE
-                    Ok(data) => self.app.exercise_manager.update_exercise_manager_on_login(data),
+                    Ok(data) => {
+                        self.app.exercise_manager.update_exercise_manager_on_login(data.exercises);
+                        self.app.user_manager.user_info = data.user_information;
+                    }
                     Err(_) => eprintln!("Error while moving exercise data out of Arc!"),
                 }
                 Task::none()
             },
-            Message::RequestExerciseData(Err(err)) => {
+            Message::RequestLoginData(Err(err)) => {
                 eprintln!("{}", err.to_error_message()); //TODO popup
                 Task::none()
             },
