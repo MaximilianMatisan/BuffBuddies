@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::login::view_login;
@@ -18,7 +17,13 @@ use crate::client::gui::bb_widget::pop_up::view_pop_up;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::{bb_theme, size};
-use crate::client::server_communication::server_communicator::{RequestValidUserError, SaveMascotError, SaveWorkoutError, save_mascot, valid_login};
+use crate::client::server_communication::exercise_communicator::ServerRequestError;
+use crate::client::server_communication::request_data::{
+    LoginServerRequestData, request_login_data,
+};
+use crate::client::server_communication::server_communicator::{
+    RequestValidUserError, SaveMascotError, SaveWorkoutError, save_mascot, valid_login,
+};
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::rare_mascot::RareMascot;
@@ -30,8 +35,7 @@ use iced_core::image::Handle;
 use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
-use crate::client::server_communication::exercise_communicator::ServerRequestError;
-use crate::client::server_communication::request_data::{request_login_data, LoginServerRequestData};
+use std::sync::Arc;
 
 #[derive(Default)]
 pub struct UserInterface {
@@ -116,7 +120,7 @@ impl UserInterface {
                         }
                     };
                     if let Some(mascot) = mascot_maybe {
-                        Task::perform( save_mascot(mascot) , Message::SaveMascot)
+                        Task::perform(save_mascot(mascot), Message::SaveMascot)
                     } else {
                         Task::none()
                     }
@@ -171,35 +175,36 @@ impl UserInterface {
                     //TODO check with server database_mod
                     Ok(login_request) => {
                         self.app.loading = true;
-                        Task::perform(
-                            valid_login(login_request),
-                            Message::RequestValidUser,
-                        )
+                        Task::perform(valid_login(login_request), Message::RequestValidUser)
                     }
                 }
             }
-            Message::RequestValidUser(Ok(username)) => {
+            Message::RequestValidUser(Ok(jwt)) => {
                 self.app.loading = false;
                 self.app.login_state.logged_in = true;
+                self.app.jsonwebtoken = Some(jwt);
                 Task::perform(
-                    request_login_data(username),
-                    |result| Message::RequestLoginData(result)
+                    request_login_data(self.app.jsonwebtoken.clone()),
+                    Message::RequestLoginData,
                 )
             }
             Message::RequestLoginData(Ok(data)) => {
-                match Arc::try_unwrap(data) { //TODO MAYBE THIS ISN'T NECESSARY -> CREATE NEW EXERCISE CLIENT STRUCTURE
+                match Arc::try_unwrap(data) {
+                    //TODO MAYBE THIS ISN'T NECESSARY -> CREATE NEW EXERCISE CLIENT STRUCTURE
                     Ok(data) => {
-                        self.app.exercise_manager.update_exercise_manager_on_login(data.exercises);
+                        self.app
+                            .exercise_manager
+                            .update_exercise_manager_on_login(data.exercises);
                         self.app.user_manager.user_info = data.user_information;
                     }
                     Err(_) => eprintln!("Error while moving exercise data out of Arc!"),
                 }
                 Task::none()
-            },
+            }
             Message::RequestLoginData(Err(err)) => {
                 eprintln!("{}", err.to_error_message()); //TODO popup
                 Task::none()
-            },
+            }
             Message::RequestValidUser(Err(request_valid_error)) => {
                 match request_valid_error {
                     RequestValidUserError::WrongPassword => {

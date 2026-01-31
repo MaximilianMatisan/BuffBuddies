@@ -1,7 +1,8 @@
 use axum::Json;
-use axum::extract::{Path, State};
+use axum::extract::State;
 use sqlx::SqlitePool;
 
+use crate::server::jwt::user_authentication_request_path::UserAuthenticationRequestPath;
 use crate::server::server_main::ApiError;
 use crate::{
     common::exercise_mod::exercise::Exercise, server::database_mod::database::get_exercises_stats,
@@ -9,8 +10,8 @@ use crate::{
 
 pub async fn get_user_exercises(
     State(pool): State<SqlitePool>,
-    Path(username): Path<String>,
+    user_authentication: UserAuthenticationRequestPath,
 ) -> Result<Json<Vec<Exercise>>, ApiError> {
-    let exercises = get_exercises_stats(&pool, &username).await?;
+    let exercises = get_exercises_stats(&pool, &user_authentication.username).await?;
     Ok(Json(exercises))
 }

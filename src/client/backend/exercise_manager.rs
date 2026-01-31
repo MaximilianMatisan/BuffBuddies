@@ -1,5 +1,8 @@
 use crate::client::backend::exercise_create::{ExerciseCreate, ExerciseCreateString};
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
+use crate::client::gui::bb_theme::combo_box::{
+    get_combo_box_all_exercises_state, get_combo_box_tracked_exercise_state,
+};
 use crate::client::gui::bb_widget::activity_widget::activity::calculate_activity_data;
 use crate::common::exercise_mod::exercise::{
     Exercise, ExerciseDataPoints, generate_example_exercise,
@@ -13,7 +16,6 @@ use crate::common::user_mod::user::UserInformation;
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
-use crate::client::gui::bb_theme::combo_box::{get_combo_box_all_exercises_state, get_combo_box_tracked_exercise_state};
 
 pub struct ExerciseManager {
     //TODO get exercises from db
@@ -111,8 +113,10 @@ Repeat for the recommended amount of repetitions.".to_string(),
             exercise_in_edit_strings: None,
         };
 
-        exercise_manager.all_exercise_state = get_combo_box_all_exercises_state(&exercise_manager.exercises);
-        exercise_manager.tracked_exercise_state = get_combo_box_tracked_exercise_state(&exercise_manager.exercises);
+        exercise_manager.all_exercise_state =
+            get_combo_box_all_exercises_state(&exercise_manager.exercises);
+        exercise_manager.tracked_exercise_state =
+            get_combo_box_tracked_exercise_state(&exercise_manager.exercises);
 
         exercise_manager.update_selected_exercise(selected_exercise_name);
 
@@ -120,7 +124,6 @@ Repeat for the recommended amount of repetitions.".to_string(),
     }
 }
 impl ExerciseManager {
-
     pub fn update_exercise_manager_on_login(&mut self, exercises: Vec<Exercise>) {
         let most_recently_tracked_exercise = "".to_string(); //TODO get
         self.exercises = exercises;

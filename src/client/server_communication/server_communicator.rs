@@ -1,14 +1,9 @@
-use std::sync::Arc;
 use crate::client::backend::exercise_create::ExerciseCreate;
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait;
 use serde::{Deserialize, Serialize};
-use crate::client::server_communication::{exercise_communicator, user_communicator};
-use crate::client::server_communication::request_data::LoginServerRequestData;
-use crate::common::user_mod::user::UserInformation;
-use crate::server::server_main::ApiError;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LoginRequest {
@@ -30,11 +25,11 @@ pub enum RequestValidUserError {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "answer")]
+#[serde(tag = "answer", content = "token")]
 pub enum RequestValidUserAnswer {
     UserNotFound,
     WrongPassword,
-    Valid,
+    Valid(String),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -51,23 +46,23 @@ impl From<Mascot> for MascotJson {
 }
 
 /// Checks if the login data exists on serverside
-/// Returns valid username if data exists else RequestValidUserError
+/// Returns jwt if login was successful else RequestValidUserError
 pub async fn valid_login(login_request: LoginRequest) -> Result<String, RequestValidUserError> {
     let res = reqwest::Client::new()
-        .get("http://127.0.0.1:3000/user/login")
+        .post("http://127.0.0.1:3000/user/login")
         .json(&login_request)
         .send()
         .await
         .map_err(|_| RequestValidUserError::ServerError)?;
-
-    let res = res.error_for_status()
+    let res = res
+        .error_for_status()
         .map_err(|_| RequestValidUserError::ServerError)?;
 
     match res.json::<RequestValidUserAnswer>().await {
         Ok(answer) => match answer {
             RequestValidUserAnswer::UserNotFound => Err(RequestValidUserError::UserNotFound),
             RequestValidUserAnswer::WrongPassword => Err(RequestValidUserError::WrongPassword),
-            RequestValidUserAnswer::Valid => Ok(login_request.username),
+            RequestValidUserAnswer::Valid(jwt) => Ok(jwt),
         },
         Err(_e) => Err(RequestValidUserError::ServerError),
     }
@@ -168,4 +163,3 @@ pub async fn save_workout(
         Err(_server_error) => Err(SaveWorkoutError::ServerError),
     }
 }
-

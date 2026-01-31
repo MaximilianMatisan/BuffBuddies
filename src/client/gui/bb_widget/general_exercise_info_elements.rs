@@ -9,13 +9,13 @@ use crate::client::gui::bb_widget::widget_utils::{
     INDENT, LARGE_INDENT, descriptor_space_fill_text_row,
 };
 use crate::client::gui::user_interface::Message;
+use crate::common::exercise_mod::exercise::Exercise;
 use crate::common::exercise_mod::general_exercise::GeneralExerciseInfo;
 use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::widget::{Column, Container, Row, Space, container, text};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
-use crate::common::exercise_mod::exercise::Exercise;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
 
 pub fn display_general_exercise_infos<'a>(
     active_mascot: &Mascot,
@@ -28,7 +28,7 @@ pub fn display_general_exercise_infos<'a>(
             .contains(&exercise.general_exercise_info.id);
         content = content.push(general_exercise_info_element(
             active_mascot,
-            &exercise,
+            exercise,
             show_extended_info,
         ));
     }
@@ -61,7 +61,9 @@ fn general_exercise_info_element<'a>(
         ButtonStyle::ActiveTab,
         None,
     )
-    .on_press(Message::ToggleGeneralExerciseInfo(exercise.general_exercise_info.id));
+    .on_press(Message::ToggleGeneralExerciseInfo(
+        exercise.general_exercise_info.id,
+    ));
 
     let header = Row::new()
         .push(exercise_name)
