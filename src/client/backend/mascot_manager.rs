@@ -2,6 +2,7 @@ use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot::Mascot::Rare;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced::widget::combo_box::State;
+use crate::common::mascot_mod::mascot_data_transfer::MascotDataServerClientTransfer;
 
 pub struct MascotManager {
     pub selected_mascot: Mascot,
@@ -30,6 +31,11 @@ impl MascotManager {
 
     pub fn add_mascot(&mut self, mascot: impl Into<Mascot>) {
         self.owned_mascots.push(mascot.into());
+        self.owned_mascots_state = State::with_selection(self.owned_mascots.clone(), None)
+    }
+    pub fn update_mascot_manager_on_login(&mut self, mascot_data: MascotDataServerClientTransfer) {
+        self.selected_mascot = mascot_data.selected_mascot;
+        self.owned_mascots = mascot_data.owned_mascots;
         self.owned_mascots_state = State::with_selection(self.owned_mascots.clone(), None)
     }
 }

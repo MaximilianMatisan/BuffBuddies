@@ -333,7 +333,7 @@ pub async fn add_mascot_to_user(
 pub async fn get_mascots_from_user(
     pool: &SqlitePool,
     username: &str,
-) -> Result<Vec<String>, sqlx::Error> {
+) -> Result<Vec<Mascot>, sqlx::Error> {
     let mascot_rows = sqlx::query("SELECT mascot_name FROM user_mascot WHERE username = ?")
         .bind(username)
         .fetch_all(pool)
@@ -342,7 +342,8 @@ pub async fn get_mascots_from_user(
 
     for mascot_row in mascot_rows {
         let mascot_name = mascot_row.get("mascot_name");
-        mascots.push(mascot_name);
+        let mascot = Mascot::from_str(mascot_name).unwrap_or(Mascot::default());
+        mascots.push(mascot);
     }
     Ok(mascots)
 }
@@ -391,13 +392,14 @@ pub async fn update_user_selected_mascot(
 pub async fn get_user_selected_mascot(
     pool: &SqlitePool,
     username: &str,
-) -> Result<String, sqlx::Error> {
+) -> Result<Mascot, sqlx::Error> {
     let selected_mascot_row = sqlx::query("SELECT selected_mascot FROM users WHERE username = ?")
         .bind(username)
         .fetch_optional(pool)
         .await?;
 
-    let selected_mascot = selected_mascot_row.unwrap().get("selected_mascot");
+    let selected_mascot_string: String = selected_mascot_row.unwrap().get("selected_mascot");
+    let selected_mascot = Mascot::from_str(&selected_mascot_string).unwrap_or(Mascot::default());
 
     Ok(selected_mascot)
 }

@@ -1,7 +1,7 @@
 use crate::server::database_mod::database;
 use crate::server::database_mod::database::init_db;
 use crate::server::routes::login::check_login;
-use crate::server::routes::mascot_manager::save_mascot;
+use crate::server::routes::mascot_manager::{get_mascot_data, save_mascot};
 use crate::server::routes::user_exercises::get_user_exercises;
 use crate::server::routes::user_info::get_user_info;
 use crate::server::routes::workout::save_workout;
@@ -80,6 +80,7 @@ fn create_app(pool: SqlitePool) -> Router {
         .route("/server", get(health_check))
         .route("/user/login", post(check_login))
         .route("/mascot/save", post(save_mascot))
+        .route("/mascot/get", get(get_mascot_data))
         .route("/workout/save", post(save_workout))
         .route("/user/exercises", get(get_user_exercises))
         .route("/user/info/get", get(get_user_info))

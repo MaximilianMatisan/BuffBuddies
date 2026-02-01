@@ -58,7 +58,7 @@ async fn insert_exercise_in_db(
         .primary_muscle
         .first()
         .map(|mus| mus.as_str())
-        .unwrap_or("None"); //Sollte normalerweise nicht passieren
+        .unwrap_or("None"); //Shouldn't happen normally
 
     sqlx::query(
         "INSERT INTO exercise (name,exercise_force_name,exercise_level_name,exercise_equipment_name, muscle_name, instructions, exercise_category_name)
