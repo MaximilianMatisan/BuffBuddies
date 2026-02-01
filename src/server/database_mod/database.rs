@@ -767,10 +767,20 @@ pub async fn test_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
     let felix_exercises = get_exercises_stats(pool, "felix").await?;
 
+    let exercise_info_from_incline_bench_pull = get_general_exercise_info(pool, 3).await?;
+    let user_information_robert = get_user_information(pool, "robert").await?;
+
     assert_eq!(
         felix_exercises[2].general_exercise_info.name,
         "Incline Bench Pull"
     );
+
+    assert_eq!(
+        felix_exercises[2].general_exercise_info.name,
+        exercise_info_from_incline_bench_pull.name
+    );
+
+    assert_eq!(user_information_robert.username, "robert");
 
     let mut name_list = String::new();
 
@@ -810,26 +820,27 @@ pub async fn get_general_exercise_info(
     pool: &SqlitePool,
     exercise_id: i64,
 ) -> Result<GeneralExerciseInfo, sqlx::Error> {
-    let name = get_exercise_name(pool, exercise_id).await?;
-    let force = get_exercise_force_name(pool, exercise_id).await?;
-    let level = get_exercise_level_name(pool, exercise_id).await?;
-    let equipment = get_exercise_equipment_name(pool, exercise_id).await?;
-    let primary_muscle = get_exercise_muscle_name(pool, exercise_id).await?;
-    let instructions = get_exercise_instructions(pool, exercise_id).await?;
-    let category = get_exercise_category_name(pool, exercise_id).await?;
+    let row = sqlx::query("SELECT * FROM exercise WHERE id = ?")
+        .bind(exercise_id)
+        .fetch_one(pool)
+        .await?;
 
     Ok(GeneralExerciseInfo {
-        id: exercise_id as u32,
-        name,
-        force,
-        level,
-        equipment,
-        primary_muscle,
-        instructions,
-        category,
+        id: row.get("id"),
+        name: row.get("name"),
+        force: ExerciseForce::from_str(row.get("exercise_force_name"))
+            .unwrap_or(ExerciseForce::Push),
+        level: ExerciseLevel::from_str(row.get("exercise_level_name"))
+            .unwrap_or(ExerciseLevel::Beginner),
+        equipment: ExerciseEquipment::from_str(row.get("exercise_equipment_name"))
+            .unwrap_or(ExerciseEquipment::Body),
+        primary_muscle: Muscle::from_str(row.get("muscle_name")).unwrap_or(Muscle::Chest),
+        instructions: row.get("instructions"),
+        category: ExerciseCategory::from_str(row.get("exercise_category_name"))
+            .unwrap_or(ExerciseCategory::Strength),
     })
 }
-
+#[allow(dead_code)]
 pub async fn get_exercise_name(pool: &SqlitePool, exercise_id: i64) -> Result<String, sqlx::Error> {
     let row = sqlx::query("SELECT name FROM exercise WHERE id = ?")
         .bind(exercise_id)
@@ -839,7 +850,7 @@ pub async fn get_exercise_name(pool: &SqlitePool, exercise_id: i64) -> Result<St
     let exercise_name = row.get("name");
     Ok(exercise_name)
 }
-
+#[allow(dead_code)]
 pub async fn get_exercise_force_name(
     pool: &SqlitePool,
     exercise_id: i64,
@@ -855,6 +866,7 @@ pub async fn get_exercise_force_name(
     Ok(exercise_force)
 }
 
+#[allow(dead_code)]
 pub async fn get_exercise_level_name(
     pool: &SqlitePool,
     exercise_id: i64,
@@ -869,7 +881,7 @@ pub async fn get_exercise_level_name(
 
     Ok(exercise_level)
 }
-
+#[allow(dead_code)]
 pub async fn get_exercise_equipment_name(
     pool: &SqlitePool,
     exercise_id: i64,
@@ -885,7 +897,7 @@ pub async fn get_exercise_equipment_name(
 
     Ok(exercise_equipment)
 }
-
+#[allow(dead_code)]
 pub async fn get_exercise_muscle_name(
     pool: &SqlitePool,
     exercise_id: i64,
@@ -900,7 +912,7 @@ pub async fn get_exercise_muscle_name(
 
     Ok(exercise_muscle)
 }
-
+#[allow(dead_code)]
 pub async fn get_exercise_category_name(
     pool: &SqlitePool,
     exercise_id: i64,
@@ -916,7 +928,7 @@ pub async fn get_exercise_category_name(
 
     Ok(exercise_category)
 }
-
+#[allow(dead_code)]
 pub async fn get_exercise_instructions(
     pool: &SqlitePool,
     exercise_id: i64,
@@ -929,4 +941,33 @@ pub async fn get_exercise_instructions(
     let instructions = row.get("instructions");
 
     Ok(instructions)
+}
+#[allow(dead_code)]
+pub async fn get_user_information(
+    pool: &SqlitePool,
+    username: &str,
+) -> Result<UserInformation, sqlx::Error> {
+    let row = sqlx::query("SELECT * FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+    let exercise_stats = get_exercises_stats(pool, username).await?;
+
+    Ok(UserInformation {
+        username: row.get("username"),
+        description: row.get("description"),
+        profile_picture_handle: row.get("profile_picture"),
+        weight: row.get::<Kg, _>("weight"),
+        height: row.get::<f64, _>("height") as u32,
+        gender: match row.get("gender") {
+            "Female" => Gender::Female,
+            _ => Gender::Male,
+        },
+        weekly_workout_goal: row.get::<i64, _>("weekly_workout_goal") as u32,
+        weekly_workout_streak: row.get::<i64, _>("weekly_workout_streak") as u32,
+        coin_balance: row.get::<i64, _>("coin_balance") as u32,
+        favorite_mascot: mascot_from_string(row.get("favorite_mascot")),
+        profile_stat_manager: ProfileStatManager::new(&exercise_stats),
+    })
 }
