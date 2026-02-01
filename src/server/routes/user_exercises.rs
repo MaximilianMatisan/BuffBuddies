@@ -13,5 +13,8 @@ pub async fn get_user_exercises(
     user_authentication: UserAuthenticationRequestPath,
 ) -> Result<Json<Vec<Exercise>>, ApiError> {
     let exercises = get_exercises_stats(&pool, &user_authentication.username).await?;
+
+    println!("Sending Exercise data to {}", user_authentication.username);
+
     Ok(Json(exercises))
 }

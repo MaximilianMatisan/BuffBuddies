@@ -27,5 +27,7 @@ pub async fn get_mascot_data(
         owned_mascots,
     };
 
+    println!("Sending Mascot data to {}", user_authentication.username);
+
     Ok(Json(mascot_data))
 }

@@ -18,14 +18,13 @@ use iced::widget::combo_box;
 use std::collections::HashSet;
 
 pub struct ExerciseManager {
-    //TODO get exercises from db
     pub exercises: Vec<Exercise>,
 
     ///Show further general infos for these exercise_ids in the gui
     pub extended_general_exercise_infos: HashSet<u32>,
 
     /// Selection options for a combo_box. Only containing tracked exercises
-    pub tracked_exercise_state: combo_box::State<String>, //TODO update after tracking a workout
+    pub tracked_exercise_state: combo_box::State<String>,
     /// Selection options for a combo_box. Containing all exercises
     pub all_exercise_state: combo_box::State<String>,
 
