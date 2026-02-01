@@ -1,4 +1,5 @@
 mod home;
+pub mod loading;
 pub mod login;
 mod mascot;
 pub mod settings;

@@ -138,7 +138,6 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
-#[allow(dead_code)]
 pub async fn add_user(
     pool: &SqlitePool,
     username: &str,
@@ -329,7 +328,6 @@ pub async fn add_mascot_to_user(
 
     Ok(())
 }
-#[allow(dead_code)]
 pub async fn get_mascots_from_user(
     pool: &SqlitePool,
     username: &str,
@@ -360,7 +358,6 @@ pub async fn update_user_favorite_mascot(
         .await?;
     Ok(())
 }
-#[allow(dead_code)]
 pub async fn get_user_favorite_mascot(
     pool: &SqlitePool,
     username: &str,
@@ -388,7 +385,6 @@ pub async fn update_user_selected_mascot(
         .await?;
     Ok(())
 }
-#[allow(dead_code)]
 pub async fn get_user_selected_mascot(
     pool: &SqlitePool,
     username: &str,
@@ -434,7 +430,6 @@ pub async fn reset_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
     Ok(())
 }
-#[allow(dead_code)]
 pub async fn get_user_weight(pool: &SqlitePool, username: &str) -> Result<f32, sqlx::Error> {
     let row = sqlx::query("SELECT weight FROM users WHERE username = ?")
         .bind(username)
@@ -443,7 +438,6 @@ pub async fn get_user_weight(pool: &SqlitePool, username: &str) -> Result<f32, s
 
     Ok(row.get("weight"))
 }
-#[allow(dead_code)]
 pub async fn get_user_height(pool: &SqlitePool, username: &str) -> Result<f32, sqlx::Error> {
     let row = sqlx::query("SELECT height FROM users WHERE username = ?")
         .bind(username)
@@ -452,7 +446,6 @@ pub async fn get_user_height(pool: &SqlitePool, username: &str) -> Result<f32, s
 
     Ok(row.get("height"))
 }
-#[allow(dead_code)]
 pub async fn get_user_gender(pool: &SqlitePool, username: &str) -> Result<Gender, sqlx::Error> {
     let row = sqlx::query("SELECT gender FROM users WHERE username = ?")
         .bind(username)
@@ -464,7 +457,6 @@ pub async fn get_user_gender(pool: &SqlitePool, username: &str) -> Result<Gender
 
     Ok(exercise_force)
 }
-#[allow(dead_code)]
 pub async fn get_user_weekly_workout_goal(
     pool: &SqlitePool,
     username: &str,
@@ -476,7 +468,6 @@ pub async fn get_user_weekly_workout_goal(
 
     Ok(row.get("weekly_workout_goal"))
 }
-#[allow(dead_code)]
 pub async fn get_user_weekly_workout_streak(
     pool: &SqlitePool,
     username: &str,
@@ -488,7 +479,6 @@ pub async fn get_user_weekly_workout_streak(
 
     Ok(row.get("weekly_workout_streak"))
 }
-#[allow(dead_code)]
 pub async fn get_user_coin_balance(pool: &SqlitePool, username: &str) -> Result<u32, sqlx::Error> {
     let row = sqlx::query("SELECT coin_balance FROM users WHERE username = ?")
         .bind(username)
@@ -497,7 +487,6 @@ pub async fn get_user_coin_balance(pool: &SqlitePool, username: &str) -> Result<
 
     Ok(row.get("coin_balance"))
 }
-#[allow(dead_code)]
 pub async fn get_user_description(
     pool: &SqlitePool,
     username: &str,
@@ -509,7 +498,6 @@ pub async fn get_user_description(
 
     Ok(row.get("description"))
 }
-#[allow(dead_code)]
 pub async fn get_user_profile_picture(
     pool: &SqlitePool,
     username: &str,
@@ -521,7 +509,6 @@ pub async fn get_user_profile_picture(
 
     Ok(row.get("profile_picture"))
 }
-#[allow(dead_code)]
 pub async fn add_exercise_log(
     pool: &SqlitePool,
     username: &str,
@@ -600,7 +587,6 @@ pub async fn get_exercises_stats(
     }
     Ok(exercises)
 }
-#[allow(dead_code)]
 pub async fn get_single_foreign_user(
     pool: &SqlitePool,
     active_user: &str,
@@ -654,7 +640,6 @@ pub async fn get_single_foreign_user(
         friends_with_active_user: is_friend,
     })
 }
-#[allow(dead_code)]
 pub fn mascot_from_string(name: &str) -> Mascot {
     for mascot in Mascot::iter() {
         if mascot.get_name() == name {
@@ -664,7 +649,6 @@ pub fn mascot_from_string(name: &str) -> Mascot {
     Mascot::default()
 }
 
-#[allow(dead_code)]
 pub async fn get_all_friends(
     pool: &SqlitePool,
     active_user: &str,
@@ -686,7 +670,6 @@ pub async fn get_all_friends(
     Ok(friends)
 }
 
-#[allow(dead_code)]
 pub async fn get_discovery_users(
     pool: &SqlitePool,
     active_user: &str,
@@ -823,7 +806,6 @@ pub async fn test_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
     Ok(())
 }
-#[allow(dead_code)]
 pub async fn get_general_exercise_info(
     pool: &SqlitePool,
     exercise_id: i64,

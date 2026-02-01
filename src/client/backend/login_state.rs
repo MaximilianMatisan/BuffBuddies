@@ -13,12 +13,19 @@ impl LoginStateError {
         slice.to_string()
     }
 }
+#[derive(Default, Debug)]
+pub enum LoginStates {
+    #[default]
+    NotLoggedIn,
+    FetchingLoginData,
+    LoggedIn,
+}
 
 #[derive(Default, Debug)]
 pub struct LoginState {
     pub username: String,
     pub password: String,
-    pub logged_in: bool,
+    pub state: LoginStates,
     pub error_text: String,
 }
 

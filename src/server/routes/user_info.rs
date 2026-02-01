@@ -32,7 +32,7 @@ pub async fn get_user_info(
     let profile_stat_manager = ProfileStatManager::new(&temp_exercises);
 
     let user_information = UserInformation {
-        username: user_authentication.username,
+        username: user_authentication.username.clone(),
         description,
         profile_picture_handle,
         weight,
@@ -44,6 +44,11 @@ pub async fn get_user_info(
         favorite_mascot,
         profile_stat_manager,
     };
+
+    println!(
+        "Sending UserInformation data to {}",
+        user_authentication.username
+    );
 
     Ok(Json(user_information))
 }

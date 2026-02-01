@@ -1,5 +1,7 @@
+use crate::client::backend::login_state::LoginStates;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
+use crate::client::gui::bb_tab::loading::view_loading_screen;
 use crate::client::gui::bb_tab::login::view_login;
 use crate::client::gui::bb_tab::settings::SettingsMessage;
 use crate::client::gui::bb_tab::tab::Tab;
@@ -164,7 +166,7 @@ impl UserInterface {
                 self.app.activity_widget.update(activity_message)
             }
             Message::TryRegister => {
-                self.app.login_state.logged_in = true;
+                self.app.login_state.state = LoginStates::LoggedIn;
                 Task::none()
             }
             Message::TryLogin => {
@@ -175,7 +177,7 @@ impl UserInterface {
                     }
                     //TODO check with server database
                     Ok(login_request) => {
-                        self.app.loading = true;
+                        self.app.loading = true; //TODO do we need this?
                         Task::perform(valid_login(login_request), Message::RequestValidUser)
                     }
                 }
@@ -183,6 +185,7 @@ impl UserInterface {
             Message::RequestValidUser(Ok(jwt)) => {
                 self.app.loading = false;
                 self.app.jsonwebtoken = Some(jwt);
+                self.app.login_state.state = LoginStates::FetchingLoginData;
                 Task::perform(
                     request_login_data(self.app.jsonwebtoken.clone()),
                     Message::RequestLoginData,
@@ -190,13 +193,12 @@ impl UserInterface {
             }
             Message::RequestLoginData(Ok(data)) => {
                 match Arc::try_unwrap(data) {
-                    //TODO MAYBE THIS ISN'T NECESSARY -> CREATE NEW EXERCISE CLIENT STRUCTURE
                     Ok(data) => {
                         self.app.update_app_on_login(data);
                     }
                     Err(_) => self.app.login_state.error_text = "Internal error: Arc".to_string(),
                 }
-                self.app.login_state.logged_in = true;
+                self.app.login_state.state = LoginStates::LoggedIn;
                 Task::none()
             }
             Message::RequestLoginData(Err(_err)) => {
@@ -338,8 +340,10 @@ impl UserInterface {
         if self.app.pop_up_manager.major_pop_up {
             return view_pop_up(self);
         }
-        if !self.app.login_state.logged_in {
-            return view_login(&self.app);
+        match self.app.login_state.state {
+            LoginStates::NotLoggedIn => return view_login(&self.app),
+            LoginStates::FetchingLoginData => return view_loading_screen(&self.app),
+            LoginStates::LoggedIn => (),
         }
         let mut tab_buttons: Column<Message> =
             Column::new().padding(INDENT).align_x(Horizontal::Center);

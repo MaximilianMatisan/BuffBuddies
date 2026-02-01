@@ -13,7 +13,7 @@ pub struct Claims {
 }
 
 pub fn create_jwt(username: String) -> String {
-    let expiration_time = Utc::now().timestamp() + 1800; // TODO 30 min
+    let expiration_time = Utc::now().timestamp() + 1800;
 
     let claims = Claims {
         sub: username,
