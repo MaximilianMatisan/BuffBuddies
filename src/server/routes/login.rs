@@ -1,3 +1,4 @@
+use crate::common::login::RequestValidUserAnswer;
 use crate::server::jwt::jwt_architecture::create_jwt;
 use crate::server::server_main::ApiError;
 use axum::Json;
@@ -7,14 +8,6 @@ use serde::{Deserialize, Serialize};
 pub struct LoginRequest {
     username: String,
     password: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "answer", content = "token")]
-pub enum RequestValidUserAnswer {
-    UserNotFound,
-    WrongPassword,
-    Valid(String),
 }
 
 pub async fn check_login(

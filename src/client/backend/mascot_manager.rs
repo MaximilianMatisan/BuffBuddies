@@ -1,8 +1,8 @@
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot::Mascot::Rare;
+use crate::common::mascot_mod::mascot_data_transfer::MascotDataServerClientTransfer;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced::widget::combo_box::State;
-use crate::common::mascot_mod::mascot_data_transfer::MascotDataServerClientTransfer;
 
 pub struct MascotManager {
     pub selected_mascot: Mascot,
