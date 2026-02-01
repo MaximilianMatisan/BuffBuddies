@@ -1,6 +1,7 @@
 use crate::client::backend::exercise_create::ExerciseCreate;
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
+use crate::common::login::{RequestValidUserAnswer, RequestValidUserError};
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait;
 use serde::{Deserialize, Serialize};
@@ -15,21 +16,6 @@ impl From<(String, String)> for LoginRequest {
     fn from((username, password): (String, String)) -> Self {
         LoginRequest { username, password }
     }
-}
-
-#[derive(Debug, Clone)]
-pub enum RequestValidUserError {
-    ServerError,
-    UserNotFound,
-    WrongPassword,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "answer", content = "token")]
-pub enum RequestValidUserAnswer {
-    UserNotFound,
-    WrongPassword,
-    Valid(String),
 }
 
 #[derive(Debug, Deserialize, Serialize)]

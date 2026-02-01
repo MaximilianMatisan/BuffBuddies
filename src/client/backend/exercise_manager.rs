@@ -1,9 +1,9 @@
 use crate::client::backend::exercise_create::{ExerciseCreate, ExerciseCreateString};
+use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
 use crate::client::gui::bb_theme::combo_box::{
     get_combo_box_all_exercises_state, get_combo_box_tracked_exercise_state,
 };
-use crate::client::gui::bb_widget::activity_widget::activity::calculate_activity_data;
 use crate::common::exercise_mod::exercise::{
     Exercise, ExerciseDataPoints, generate_example_exercise,
 };
@@ -202,7 +202,7 @@ impl ExerciseManager {
             user_info.coin_balance += 5;
         }
         self.update_selected_exercise(self.selected_exercise_name.clone());
-        user_info.profile_stat_manager.activity_data = calculate_activity_data(&self.exercises);
+        user_info.profile_stat_manager = ProfileStatManager::new(&self.exercises);
         self.tracked_exercise_state = get_combo_box_tracked_exercise_state(&self.exercises);
         Ok(())
     }

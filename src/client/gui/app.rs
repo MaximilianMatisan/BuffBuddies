@@ -9,6 +9,7 @@ use crate::client::gui::bb_widget::activity_widget::activity::{
     ActivityWidget, calculate_activity_data,
 };
 use crate::client::gui::bb_widget::graph::GraphWidgetState;
+use crate::client::server_communication::request_data::LoginServerRequestData;
 use crate::common::mascot_mod::mascot::Mascot;
 
 pub struct App {
@@ -47,5 +48,23 @@ impl Default for App {
             image_manager: ImageManager::default(),
             pop_up_manager: PopUpManager::default(),
         }
+    }
+}
+impl App {
+    pub fn update_app_on_login(&mut self, data: LoginServerRequestData) {
+        self.exercise_manager
+            .update_exercise_manager_on_login(data.exercises);
+        self.user_manager.user_info = data.user_information;
+        self.user_manager.loaded_users = data.foreign_users;
+        self.mascot_manager
+            .update_mascot_manager_on_login(data.mascot_data);
+        self.activity_widget.update_data(
+            self.mascot_manager.selected_mascot,
+            self.user_manager
+                .user_info
+                .profile_stat_manager
+                .activity_data
+                .clone(),
+        );
     }
 }

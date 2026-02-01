@@ -22,8 +22,9 @@ use crate::client::server_communication::request_data::{
     LoginServerRequestData, request_login_data,
 };
 use crate::client::server_communication::server_communicator::{
-    RequestValidUserError, SaveMascotError, SaveWorkoutError, save_mascot, valid_login,
+    SaveMascotError, SaveWorkoutError, save_mascot, valid_login,
 };
+use crate::common::login::RequestValidUserError;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::rare_mascot::RareMascot;
@@ -172,7 +173,7 @@ impl UserInterface {
                         self.app.login_state.error_text = err.to_error_message();
                         Task::none()
                     }
-                    //TODO check with server database_mod
+                    //TODO check with server database
                     Ok(login_request) => {
                         self.app.loading = true;
                         Task::perform(valid_login(login_request), Message::RequestValidUser)
@@ -181,7 +182,6 @@ impl UserInterface {
             }
             Message::RequestValidUser(Ok(jwt)) => {
                 self.app.loading = false;
-                self.app.login_state.logged_in = true;
                 self.app.jsonwebtoken = Some(jwt);
                 Task::perform(
                     request_login_data(self.app.jsonwebtoken.clone()),
@@ -192,18 +192,16 @@ impl UserInterface {
                 match Arc::try_unwrap(data) {
                     //TODO MAYBE THIS ISN'T NECESSARY -> CREATE NEW EXERCISE CLIENT STRUCTURE
                     Ok(data) => {
-                        self.app
-                            .exercise_manager
-                            .update_exercise_manager_on_login(data.exercises);
-                        self.app.user_manager.user_info = data.user_information;
-                        self.app.mascot_manager.update_mascot_manager_on_login(data.mascot_data);
+                        self.app.update_app_on_login(data);
                     }
-                    Err(_) => eprintln!("Error while moving exercise data out of Arc!"),
+                    Err(_) => self.app.login_state.error_text = "Internal error: Arc".to_string(),
                 }
+                self.app.login_state.logged_in = true;
                 Task::none()
             }
-            Message::RequestLoginData(Err(err)) => {
-                eprintln!("{}", err.to_error_message()); //TODO popup
+            Message::RequestLoginData(Err(_err)) => {
+                self.app.login_state.error_text =
+                    "Could not fetch login data from the server.".to_string();
                 Task::none()
             }
             Message::RequestValidUser(Err(request_valid_error)) => {

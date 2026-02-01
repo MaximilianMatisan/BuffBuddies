@@ -52,6 +52,7 @@ impl UserInformation {
         }
     }
 }
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ForeignUser {
     pub user_information: UserInformation,
     pub selected_mascot: Mascot,
