@@ -23,7 +23,7 @@ pub async fn check_login(
     if login_request.username == "Felix" {
         if login_request.password == "password" {
             let jwt = create_jwt(login_request.username);
-            println!("Sent session code to client: {}", jwt.clone());
+            //println!("Sent session code to client: {}", jwt.clone());
             Ok(Json(RequestValidUserAnswer::Valid(jwt)))
         } else {
             Ok(Json(RequestValidUserAnswer::WrongPassword))

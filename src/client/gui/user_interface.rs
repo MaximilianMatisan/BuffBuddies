@@ -196,6 +196,7 @@ impl UserInterface {
                             .exercise_manager
                             .update_exercise_manager_on_login(data.exercises);
                         self.app.user_manager.user_info = data.user_information;
+                        self.app.mascot_manager.update_mascot_manager_on_login(data.mascot_data);
                     }
                     Err(_) => eprintln!("Error while moving exercise data out of Arc!"),
                 }
