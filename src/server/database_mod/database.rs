@@ -358,6 +358,7 @@ pub async fn update_user_favorite_mascot(
         .await?;
     Ok(())
 }
+#[allow(dead_code)]
 pub async fn get_user_favorite_mascot(
     pool: &SqlitePool,
     username: &str,
@@ -430,6 +431,7 @@ pub async fn reset_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 
     Ok(())
 }
+#[allow(dead_code)]
 pub async fn get_user_weight(pool: &SqlitePool, username: &str) -> Result<f32, sqlx::Error> {
     let row = sqlx::query("SELECT weight FROM users WHERE username = ?")
         .bind(username)
@@ -438,6 +440,7 @@ pub async fn get_user_weight(pool: &SqlitePool, username: &str) -> Result<f32, s
 
     Ok(row.get("weight"))
 }
+#[allow(dead_code)]
 pub async fn get_user_height(pool: &SqlitePool, username: &str) -> Result<f32, sqlx::Error> {
     let row = sqlx::query("SELECT height FROM users WHERE username = ?")
         .bind(username)
@@ -446,6 +449,7 @@ pub async fn get_user_height(pool: &SqlitePool, username: &str) -> Result<f32, s
 
     Ok(row.get("height"))
 }
+#[allow(dead_code)]
 pub async fn get_user_gender(pool: &SqlitePool, username: &str) -> Result<Gender, sqlx::Error> {
     let row = sqlx::query("SELECT gender FROM users WHERE username = ?")
         .bind(username)
@@ -457,6 +461,7 @@ pub async fn get_user_gender(pool: &SqlitePool, username: &str) -> Result<Gender
 
     Ok(exercise_force)
 }
+#[allow(dead_code)]
 pub async fn get_user_weekly_workout_goal(
     pool: &SqlitePool,
     username: &str,
@@ -468,6 +473,7 @@ pub async fn get_user_weekly_workout_goal(
 
     Ok(row.get("weekly_workout_goal"))
 }
+#[allow(dead_code)]
 pub async fn get_user_weekly_workout_streak(
     pool: &SqlitePool,
     username: &str,
@@ -479,6 +485,7 @@ pub async fn get_user_weekly_workout_streak(
 
     Ok(row.get("weekly_workout_streak"))
 }
+#[allow(dead_code)]
 pub async fn get_user_coin_balance(pool: &SqlitePool, username: &str) -> Result<u32, sqlx::Error> {
     let row = sqlx::query("SELECT coin_balance FROM users WHERE username = ?")
         .bind(username)
@@ -487,6 +494,7 @@ pub async fn get_user_coin_balance(pool: &SqlitePool, username: &str) -> Result<
 
     Ok(row.get("coin_balance"))
 }
+#[allow(dead_code)]
 pub async fn get_user_description(
     pool: &SqlitePool,
     username: &str,
@@ -498,6 +506,7 @@ pub async fn get_user_description(
 
     Ok(row.get("description"))
 }
+#[allow(dead_code)]
 pub async fn get_user_profile_picture(
     pool: &SqlitePool,
     username: &str,
@@ -942,7 +951,6 @@ pub async fn get_exercise_instructions(
 
     Ok(instructions)
 }
-#[allow(dead_code)]
 pub async fn get_user_information(
     pool: &SqlitePool,
     username: &str,

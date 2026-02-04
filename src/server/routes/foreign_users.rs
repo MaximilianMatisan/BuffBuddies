@@ -17,7 +17,7 @@ pub async fn get_foreign_users(
     friends.append(&mut non_friend_users);
 
     println!(
-        "Sending ForeignUser data to {}",
+        "{}: Fetching ForeignUser Data!",
         user_authentication.username
     );
 
