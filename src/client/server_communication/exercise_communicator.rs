@@ -4,6 +4,7 @@ use crate::common::exercise_mod::exercise::Exercise;
 pub enum ServerRequestError {
     NoJWTValidation,
     CouldNotRetrieveData,
+    CouldNotSendData,
     HTTPError,
 }
 impl ServerRequestError {
@@ -14,6 +15,9 @@ impl ServerRequestError {
             }
             ServerRequestError::CouldNotRetrieveData => {
                 "Could not retrieve the data from the server!"
+            }
+            ServerRequestError::CouldNotSendData => {
+                "Could not send the data to the server!"
             }
             ServerRequestError::HTTPError => "The http request failed!",
         };

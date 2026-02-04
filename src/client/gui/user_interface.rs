@@ -59,6 +59,7 @@ pub enum Message {
     ViewProfile(UserType),
     ResetPopUp,
     Settings(SettingsMessage),
+    UpdateUserInfoServerResult(Result<(), ServerRequestError>),
     ToggleGeneralExerciseInfo(u32),
     WorkoutCreation(WorkoutCreationMessage),
     SaveWorkout(Result<(), SaveWorkoutError>),
@@ -298,7 +299,14 @@ impl App {
                 self.pop_up_manager.reset();
                 Task::none()
             }
-            Message::Settings(settings_msg) => settings_msg.update(self),
+            Message::Settings(settings_msg) => settings_msg.update(self, self.jsonwebtoken.clone()),
+            Message::UpdateUserInfoServerResult(res) => {
+                match res {
+                    Ok(_) => println!("Updated user info was successfully sent to the server!"),
+                    Err(err) => println!("{}", err.to_error_message()),
+                }
+                Task::none()
+            }
             Message::ToggleGeneralExerciseInfo(id) => {
                 let extended_set = &mut self.exercise_manager.extended_general_exercise_infos;
                 if extended_set.contains(&id) {
