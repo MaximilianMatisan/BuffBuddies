@@ -1,22 +1,23 @@
+use crate::client::gui::app::App;
 use crate::client::gui::bb_widget::graph::graph_environment_widget;
 use crate::client::gui::bb_widget::progress::progress_environment_widget;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::client::gui::user_interface::{Message, UserInterface};
+use crate::client::gui::user_interface::Message;
 use iced::Element;
 use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{Column, Row, Scrollable, Space};
 use iced_core::Length;
 
-impl UserInterface {
+impl App {
     pub fn homescreen(&self) -> Element<Message> {
-        let activity_widget: Element<Message> = self.app.activity_widget.view(&self.app);
+        let activity_widget: Element<Message> = self.activity_widget.view(self);
 
         let progress_widget = Row::new()
             .push(Space::with_width(Length::Fill))
-            .push(progress_environment_widget(&self.app))
+            .push(progress_environment_widget(self))
             .push(Space::with_width(Length::Fill));
 
-        let actual_version = graph_environment_widget(&self.app);
+        let actual_version = graph_environment_widget(self);
 
         let contents = Column::new()
             .push(activity_widget)

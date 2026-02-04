@@ -1,29 +1,29 @@
+use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color::{DARK_SHADOW, HIGHLIGHTED_CONTAINER_COLOR};
 use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button};
 use crate::client::gui::bb_theme::text_format::format_button_text;
-use crate::client::gui::user_interface::{Message, UserInterface};
+use crate::client::gui::user_interface::Message;
 use iced::Element;
 use iced::widget::container::Style;
 use iced::widget::{Column, container, text};
 use iced_core::Length::{Fill, Shrink};
 use iced_core::{Border, Shadow, Theme, Vector};
 
-pub fn view_pop_up(user_interface: &UserInterface) -> Element<'_, Message> {
-    let title: Element<Message> =
-        format_button_text(text(&user_interface.app.pop_up_manager.title))
-            .size(30)
-            .center()
-            .into();
+pub fn view_pop_up(app: &App) -> Element<'_, Message> {
+    let title: Element<Message> = format_button_text(text(&app.pop_up_manager.title))
+        .size(30)
+        .center()
+        .into();
 
-    let text: Element<Message> = format_button_text(text(&user_interface.app.pop_up_manager.text))
+    let text: Element<Message> = format_button_text(text(&app.pop_up_manager.text))
         .size(15)
         .center()
         .into();
 
     let ok_button: Element<Message> = create_text_button(
-        &user_interface.app.mascot_manager.selected_mascot,
+        &app.mascot_manager.selected_mascot,
         "Okay".to_string(),
         ButtonStyle::Active,
         None,
