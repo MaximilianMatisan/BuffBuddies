@@ -203,7 +203,7 @@ pub async fn get_all_usernames(pool: &SqlitePool) -> Result<String, sqlx::Error>
 pub async fn update_user_weight(
     pool: &SqlitePool,
     username: &str,
-    new_weight: f64,
+    new_weight: Kg,
 ) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE users SET weight = ? WHERE username = ?")
         .bind(new_weight)
@@ -349,10 +349,11 @@ pub async fn get_mascots_from_user(
 pub async fn update_user_favorite_mascot(
     pool: &SqlitePool,
     username: &str,
-    new_favorite_mascot: &str,
+    new_favorite_mascot: &Mascot
 ) -> Result<(), sqlx::Error> {
+    let new_fav_mascot_string = new_favorite_mascot.to_string();
     sqlx::query("UPDATE users SET favorite_mascot = ? WHERE username = ?")
-        .bind(new_favorite_mascot)
+        .bind(new_fav_mascot_string)
         .bind(username)
         .execute(pool)
         .await?;

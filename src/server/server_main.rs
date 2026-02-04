@@ -4,7 +4,7 @@ use crate::server::routes::foreign_users::get_foreign_users;
 use crate::server::routes::login::check_login;
 use crate::server::routes::mascot_manager::{get_mascot_data, save_mascot};
 use crate::server::routes::user_exercises::get_user_exercises;
-use crate::server::routes::user_info::get_user_info;
+use crate::server::routes::user_info::{get_user_info, update_user_info};
 use crate::server::routes::workout::save_workout;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -85,6 +85,7 @@ fn create_app(pool: SqlitePool) -> Router {
         .route("/workout/save", post(save_workout))
         .route("/user/exercises", get(get_user_exercises))
         .route("/user/info/get", get(get_user_info))
+        .route("/user/info/update", post(update_user_info))
         .route("/user/foreign/get", get(get_foreign_users))
         .with_state(pool)
 }

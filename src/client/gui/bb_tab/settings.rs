@@ -16,6 +16,7 @@ use crate::client::gui::bb_widget::widget_utils::{
 };
 use crate::client::gui::size;
 use crate::client::gui::user_interface::Message;
+use crate::client::server_communication::user_communicator::update_user_info_on_server;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::user_mod::user::{
@@ -275,7 +276,7 @@ pub enum SettingsMessage {
     DiscardPendingUserInfoChanges,
 }
 impl SettingsMessage {
-    pub fn update(self, app: &mut App) -> Task<Message> {
+    pub fn update(self, app: &mut App, opt_jwt: Option<String>) -> Task<Message> {
         let existing_user_info = &app.user_manager.user_info;
         let pending_user_info_changes = &mut app.user_manager.pending_user_info_changes;
         match self {
@@ -371,8 +372,15 @@ impl SettingsMessage {
                 if let Some((pending_user_info, _)) =
                     app.user_manager.pending_user_info_changes.take()
                 {
-                    app.user_manager.user_info = pending_user_info;
-                    //TODO SEND TO DATABASE
+                    app.user_manager.user_info = pending_user_info.clone();
+                    if let Some(jwt) = opt_jwt {
+                        return Task::perform(
+                            update_user_info_on_server(jwt, pending_user_info),
+                            Message::UpdateUserInfoServerResult,
+                        );
+                    } else {
+                        println!("JWT missing!");
+                    }
                 }
             }
             SettingsMessage::DiscardPendingUserInfoChanges => {
