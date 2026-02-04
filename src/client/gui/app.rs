@@ -52,12 +52,19 @@ impl Default for App {
 }
 impl App {
     pub fn update_app_on_login(&mut self, data: LoginServerRequestData) {
-        self.exercise_manager
-            .update_exercise_manager_on_login(data.exercises);
         self.user_manager.user_info = data.user_information;
         self.user_manager.loaded_users = data.foreign_users;
         self.mascot_manager
             .update_mascot_manager_on_login(data.mascot_data);
+        self.exercise_manager.update_exercise_manager_on_login(
+            data.exercises,
+            self.user_manager
+                .user_info
+                .profile_stat_manager
+                .best_pr
+                .0
+                .clone(),
+        );
         self.activity_widget.update_data(
             self.mascot_manager.selected_mascot,
             self.user_manager

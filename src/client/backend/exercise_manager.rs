@@ -123,14 +123,17 @@ Repeat for the recommended amount of repetitions.".to_string(),
     }
 }
 impl ExerciseManager {
-    pub fn update_exercise_manager_on_login(&mut self, exercises: Vec<Exercise>) {
-        let most_recently_tracked_exercise = "".to_string(); //TODO get
+    pub fn update_exercise_manager_on_login(
+        &mut self,
+        exercises: Vec<Exercise>,
+        selected_exercise: String,
+    ) {
         self.exercises = exercises;
-        self.selected_exercise_name = most_recently_tracked_exercise.clone();
+        self.selected_exercise_name = selected_exercise.clone();
         self.tracked_exercise_state = get_combo_box_tracked_exercise_state(&self.exercises);
         self.all_exercise_state = get_combo_box_all_exercises_state(&self.exercises);
 
-        self.update_selected_exercise(most_recently_tracked_exercise)
+        self.update_selected_exercise(selected_exercise)
     }
     pub fn get_selected_exercise(&self) -> Option<&Exercise> {
         self.exercises.iter().find(|ex| {

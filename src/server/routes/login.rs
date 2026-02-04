@@ -13,7 +13,7 @@ pub struct LoginRequest {
 pub async fn check_login(
     Json(login_request): Json<LoginRequest>,
 ) -> Result<Json<RequestValidUserAnswer>, ApiError> {
-    if login_request.username == "Felix" {
+    if login_request.username == "Felix" || login_request.username == "maxi" {
         if login_request.password == "password" {
             let jwt = create_jwt(login_request.username);
             //println!("Sent session code to client: {}", jwt.clone());
