@@ -1,5 +1,6 @@
 use crate::client::backend::exercise_create::ExerciseCreate;
 use crate::client::backend::pop_up_manager::PopUpType;
+use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
@@ -7,7 +8,7 @@ use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_bu
 use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, format_button_text, format_description_text,
 };
-use crate::client::gui::user_interface::{Message, UserInterface};
+use crate::client::gui::user_interface::Message;
 use crate::client::server_communication::server_communicator::save_workout;
 use crate::common::exercise_mod::set::StrengthSet;
 use crate::common::exercise_mod::weight::Kg;
@@ -38,12 +39,10 @@ pub enum WorkoutCreationMessage {
 }
 
 impl WorkoutCreationMessage {
-    pub fn update(&self, user_interface: &mut UserInterface) -> Task<Message> {
-        let exercise_in_edit_number =
-            &mut user_interface.app.exercise_manager.exercise_in_edit_number;
-        let workout_in_creation = &mut user_interface.app.exercise_manager.workout_in_creation;
-        let exercise_in_edit_strings =
-            &mut user_interface.app.exercise_manager.exercise_in_edit_strings;
+    pub fn update(&self, app: &mut App) -> Task<Message> {
+        let exercise_in_edit_number = &mut app.exercise_manager.exercise_in_edit_number;
+        let workout_in_creation = &mut app.exercise_manager.workout_in_creation;
+        let exercise_in_edit_strings = &mut app.exercise_manager.exercise_in_edit_strings;
 
         match self {
             WorkoutCreationMessage::AddSet => {
@@ -54,29 +53,18 @@ impl WorkoutCreationMessage {
                         .clone()
                         .to_string();
                 }
-                add_set(user_interface, &name);
+                add_set(app, &name);
                 Task::none()
             }
             WorkoutCreationMessage::DeleteSet(set_number) => {
-                if let Some(workout) = &mut user_interface.app.exercise_manager.workout_in_creation
-                {
-                    workout[user_interface
-                        .app
-                        .exercise_manager
-                        .exercise_in_edit_number
-                        .unwrap()
-                        - 1]
-                    .sets
-                    .remove(*set_number - 1);
+                if let Some(workout) = &mut app.exercise_manager.workout_in_creation {
+                    workout[app.exercise_manager.exercise_in_edit_number.unwrap() - 1]
+                        .sets
+                        .remove(*set_number - 1);
                     *exercise_in_edit_strings = Some(
-                        workout[user_interface
-                            .app
-                            .exercise_manager
-                            .exercise_in_edit_number
-                            .unwrap()
-                            - 1]
-                        .clone()
-                        .into(),
+                        workout[app.exercise_manager.exercise_in_edit_number.unwrap() - 1]
+                            .clone()
+                            .into(),
                     );
                 }
                 Task::none()
@@ -87,7 +75,7 @@ impl WorkoutCreationMessage {
                     let exercise_number = workout.len();
                     *exercise_in_edit_number = Some(exercise_number);
                     *exercise_in_edit_strings = Some(workout[exercise_number - 1].clone().into());
-                    add_set(user_interface, name);
+                    add_set(app, name);
                 }
                 Task::none()
             }
@@ -97,7 +85,7 @@ impl WorkoutCreationMessage {
                     if let Some(exercise_number_edit) = *exercise_in_edit_number {
                         if *exercise_number == exercise_number_edit {
                             *exercise_in_edit_number = None;
-                            user_interface.app.exercise_manager.exercise_in_edit_strings = None;
+                            app.exercise_manager.exercise_in_edit_strings = None;
                         }
                     }
                 }
@@ -176,14 +164,14 @@ impl WorkoutCreationMessage {
             WorkoutCreationMessage::FinishWorkoutCreation => {
                 let mut err: bool = false;
                 let mut workout_clone: Option<Vec<ExerciseCreate>> = None;
-                if let Some(workout) = &user_interface.app.exercise_manager.workout_in_creation {
+                if let Some(workout) = &app.exercise_manager.workout_in_creation {
                     workout_clone = Some(workout.clone());
-                    if let Err(()) = user_interface.app.exercise_manager.save_workout(
-                        &workout.clone(),
-                        &mut user_interface.app.user_manager.user_info,
-                    ) {
+                    if let Err(()) = app
+                        .exercise_manager
+                        .save_workout(&workout.clone(), &mut app.user_manager.user_info)
+                    {
                         err = true;
-                        user_interface.app.pop_up_manager.new_pop_up(
+                        app.pop_up_manager.new_pop_up(
                             PopUpType::Minor,
                             "Failed Saving Workout".to_string(),
                             "Something went wrong during the saving progress of your workout"
@@ -191,17 +179,11 @@ impl WorkoutCreationMessage {
                         );
                     }
                 }
-                user_interface.app.exercise_manager.clear_workout();
-                user_interface.app.screen = Tab::Workout;
+                app.exercise_manager.clear_workout();
+                app.screen = Tab::Workout;
                 if let Some(workout) = workout_clone {
                     if !err {
-                        let name_clone = user_interface
-                            .app
-                            .user_manager
-                            .user_info
-                            .username
-                            .clone()
-                            .to_string();
+                        let name_clone = app.user_manager.user_info.username.clone().to_string();
                         let workout_clone = workout.clone();
                         return Task::perform(save_workout(name_clone, workout_clone), |result| {
                             Message::SaveWorkout(result)
@@ -214,35 +196,24 @@ impl WorkoutCreationMessage {
     }
 }
 
-pub fn add_set(user_interface: &mut UserInterface, exercise_name: &String) {
-    let set = user_interface
-        .app
+pub fn add_set(app: &mut App, exercise_name: &String) {
+    let set = app
         .exercise_manager
         .get_last_done_set(exercise_name)
         .unwrap_or_default();
-    if let Some(workout) = &mut user_interface.app.exercise_manager.workout_in_creation {
-        let exercise_sets = &mut workout[user_interface
-            .app
-            .exercise_manager
-            .exercise_in_edit_number
-            .unwrap()
-            - 1]
-        .sets;
+    if let Some(workout) = &mut app.exercise_manager.workout_in_creation {
+        let exercise_sets =
+            &mut workout[app.exercise_manager.exercise_in_edit_number.unwrap() - 1].sets;
         if !exercise_sets.is_empty() {
             //take the last set and add a copy of it to the sets
             (*exercise_sets).push(exercise_sets[exercise_sets.len() - 1].clone());
         } else {
             (*exercise_sets).push(set.clone());
         }
-        user_interface.app.exercise_manager.exercise_in_edit_strings = Some(
-            workout[user_interface
-                .app
-                .exercise_manager
-                .exercise_in_edit_number
-                .unwrap()
-                - 1]
-            .clone()
-            .into(),
+        app.exercise_manager.exercise_in_edit_strings = Some(
+            workout[app.exercise_manager.exercise_in_edit_number.unwrap() - 1]
+                .clone()
+                .into(),
         );
     }
 }
@@ -250,20 +221,20 @@ pub fn add_set(user_interface: &mut UserInterface, exercise_name: &String) {
 pub fn view_exercise<'a>(
     exercise: &'a ExerciseCreate,
     number: ExerciseNumber,
-    user_interface: &'a UserInterface,
+    app: &'a App,
 ) -> Element<'a, Message> {
-    if let Some(edited_exercise) = user_interface.app.exercise_manager.exercise_in_edit_number {
+    if let Some(edited_exercise) = app.exercise_manager.exercise_in_edit_number {
         if edited_exercise == number {
-            return view_exercise_edit(exercise, number, user_interface);
+            return view_exercise_edit(exercise, number, app);
         }
     }
-    view_exercise_no_edit(exercise, number, user_interface)
+    view_exercise_no_edit(exercise, number, app)
 }
 
 pub fn view_exercise_edit<'a>(
     exercise: &ExerciseCreate,
     exercise_number: ExerciseNumber,
-    user_interface: &'a UserInterface,
+    app: &'a App,
 ) -> Element<'a, Message> {
     let done_text = format_button_text(text(" Done")).size(20).center();
 
@@ -273,7 +244,7 @@ pub fn view_exercise_edit<'a>(
 
     let done_button: Element<Message> = container(
         create_element_button(
-            &user_interface.app.mascot_manager.selected_mascot,
+            &app.mascot_manager.selected_mascot,
             done_row.into(),
             ButtonStyle::Active,
             None,
@@ -289,11 +260,11 @@ pub fn view_exercise_edit<'a>(
 
     let mut exercise_name: Element<Message> = Column::new().into();
 
-    if let Some(workout) = &user_interface.app.exercise_manager.workout_in_creation {
+    if let Some(workout) = &app.exercise_manager.workout_in_creation {
         exercise_name = view_exercise_name(workout, exercise_number);
     }
 
-    let delete_button: Element<Message> = view_delete_button(exercise_number, user_interface);
+    let delete_button: Element<Message> = view_delete_button(exercise_number, app);
 
     let top_row = Row::new()
         .push(done_button)
@@ -304,12 +275,12 @@ pub fn view_exercise_edit<'a>(
     let mut counter: SetNumber = 1;
     let mut sets_column = Column::new().spacing(10).width(Fill);
 
-    let descriptions: Element<Message> = view_descriptions(user_interface);
+    let descriptions: Element<Message> = view_descriptions();
 
     sets_column = sets_column.push(descriptions);
 
     for _set in &exercise.sets {
-        sets_column = sets_column.push(view_set_edit(counter, user_interface));
+        sets_column = sets_column.push(view_set_edit(counter, app));
         counter += 1;
     }
 
@@ -318,7 +289,7 @@ pub fn view_exercise_edit<'a>(
     let new_set_text_centered = container(new_set_text).center_x(Fill);
 
     let new_set_button: Element<Message> = create_element_button(
-        &user_interface.app.mascot_manager.selected_mascot,
+        &app.mascot_manager.selected_mascot,
         new_set_text_centered.into(),
         ButtonStyle::ActiveTab,
         None,
@@ -342,11 +313,11 @@ pub fn view_exercise_edit<'a>(
 pub fn view_exercise_no_edit<'a>(
     exercise: &'a ExerciseCreate,
     exercise_number: ExerciseNumber,
-    user_interface: &'a UserInterface,
+    app: &'a App,
 ) -> Element<'a, Message> {
     let edit_button: Element<Message> = container(
         create_element_button(
-            &user_interface.app.mascot_manager.selected_mascot,
+            &app.mascot_manager.selected_mascot,
             image(Handle::from_path("assets/images/edit.png")).into(),
             ButtonStyle::InactiveTransparent,
             None,
@@ -360,11 +331,11 @@ pub fn view_exercise_no_edit<'a>(
 
     let mut exercise_name: Element<Message> = Column::new().into();
 
-    if let Some(workout) = &user_interface.app.exercise_manager.workout_in_creation {
+    if let Some(workout) = &app.exercise_manager.workout_in_creation {
         exercise_name = view_exercise_name(workout, exercise_number);
     }
 
-    let delete_button: Element<Message> = view_delete_button(exercise_number, user_interface);
+    let delete_button: Element<Message> = view_delete_button(exercise_number, app);
 
     let top_row = Row::new()
         .push(edit_button)
@@ -375,7 +346,7 @@ pub fn view_exercise_no_edit<'a>(
     let mut counter: SetNumber = 1;
     let mut sets_column = Column::new().spacing(10).width(Fill);
 
-    let descriptions: Element<Message> = view_descriptions(user_interface);
+    let descriptions: Element<Message> = view_descriptions();
 
     sets_column = sets_column.push(descriptions);
 
@@ -394,7 +365,7 @@ pub fn view_exercise_no_edit<'a>(
     exercise_container.into()
 }
 
-pub fn view_descriptions(_user_interface: &UserInterface) -> Element<Message> {
+pub fn view_descriptions<'a>() -> Element<'a, Message> {
     Row::new()
         .push(
             format_description_text(text("SETS"))
@@ -425,14 +396,11 @@ pub fn view_exercise_name(
         .into()
 }
 
-pub fn view_delete_button(
-    exercise_number: ExerciseNumber,
-    user_interface: &UserInterface,
-) -> Element<Message> {
+pub fn view_delete_button(exercise_number: ExerciseNumber, app: &App) -> Element<Message> {
     container(row![
         Space::with_width(Fill),
         create_element_button(
-            &user_interface.app.mascot_manager.selected_mascot,
+            &app.mascot_manager.selected_mascot,
             image(Handle::from_path("assets/images/trash_red.png")).into(),
             ButtonStyle::InactiveTransparent,
             None,
@@ -480,19 +448,17 @@ pub fn view_set_no_edit(set: &StrengthSet, number: SetNumber) -> Element<Message
         .into()
 }
 
-pub fn view_set_edit(number: SetNumber, user_interface: &UserInterface) -> Element<Message> {
+pub fn view_set_edit(number: SetNumber, app: &App) -> Element<Message> {
     let set_number: Element<Message> = container(format_button_text(text(number.to_string())))
         .center(FillPortion(1))
         .into();
 
     let mut kg: Element<Message> = Column::new().into();
     let mut reps: Element<Message> = Column::new().into();
-    if let Some(exercise_string) = &user_interface.app.exercise_manager.exercise_in_edit_strings {
+    if let Some(exercise_string) = &app.exercise_manager.exercise_in_edit_strings {
         kg = container(
             text_input("Enter weight...", &exercise_string.sets[number - 1].kg)
-                .style(create_text_input_style(
-                    &user_interface.app.mascot_manager.selected_mascot,
-                ))
+                .style(create_text_input_style(&app.mascot_manager.selected_mascot))
                 .font(FIRA_SANS_EXTRABOLD)
                 .on_input(move |new_kg| -> Message {
                     Message::WorkoutCreation(WorkoutCreationMessage::EditKg(number, new_kg))
@@ -504,9 +470,7 @@ pub fn view_set_edit(number: SetNumber, user_interface: &UserInterface) -> Eleme
         .into();
         reps = container(
             text_input("Enter reps...", &exercise_string.sets[number - 1].reps)
-                .style(create_text_input_style(
-                    &user_interface.app.mascot_manager.selected_mascot,
-                ))
+                .style(create_text_input_style(&app.mascot_manager.selected_mascot))
                 .font(FIRA_SANS_EXTRABOLD)
                 .on_input(move |new_reps| -> Message {
                     Message::WorkoutCreation(WorkoutCreationMessage::EditReps(number, new_reps))
@@ -520,7 +484,7 @@ pub fn view_set_edit(number: SetNumber, user_interface: &UserInterface) -> Eleme
 
     let delete_button: Element<Message> = container(
         create_element_button(
-            &user_interface.app.mascot_manager.selected_mascot,
+            &app.mascot_manager.selected_mascot,
             image(Handle::from_path("assets/images/trash_black.png")).into(),
             ButtonStyle::InactiveTransparent,
             None,
@@ -556,11 +520,11 @@ pub fn view_set_edit(number: SetNumber, user_interface: &UserInterface) -> Eleme
         .into()
 }
 
-impl UserInterface {
+impl App {
     pub fn workout_creation_screen(&self) -> Element<Message> {
         let mut column = Column::new().spacing(20);
 
-        if let Some(current_workout) = &self.app.exercise_manager.workout_in_creation {
+        if let Some(current_workout) = &self.exercise_manager.workout_in_creation {
             let mut counter: ExerciseNumber = 1;
             for exercise in current_workout {
                 column = column.push(view_exercise(exercise, counter, self));
@@ -573,16 +537,16 @@ impl UserInterface {
             .height(FillPortion(6));
 
         let add_exercise: Element<Message> = combo_box(
-            &self.app.exercise_manager.all_exercise_state,
+            &self.exercise_manager.all_exercise_state,
             "Search for exercise...",
             None,
             |exercise: String| -> Message {
                 Message::WorkoutCreation(WorkoutCreationMessage::AddExercise(exercise))
             },
         )
-        .menu_style(create_menu_style(&self.app.mascot_manager.selected_mascot))
+        .menu_style(create_menu_style(&self.mascot_manager.selected_mascot))
         .input_style(create_text_input_style(
-            &self.app.mascot_manager.selected_mascot,
+            &self.mascot_manager.selected_mascot,
         ))
         .font(FIRA_SANS_EXTRABOLD)
         .line_height(LineHeight::Absolute(Pixels(30.0)))
@@ -596,7 +560,7 @@ impl UserInterface {
             container(row![check_box_image, finish_workout_text]).center_x(Fill);
 
         let finish_workout_button: Element<Message> = create_element_button(
-            &self.app.mascot_manager.selected_mascot,
+            &self.mascot_manager.selected_mascot,
             finish_workout_image_and_text.into(),
             ButtonStyle::Active,
             None,

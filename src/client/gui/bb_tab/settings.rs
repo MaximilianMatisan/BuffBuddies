@@ -15,7 +15,7 @@ use crate::client::gui::bb_widget::widget_utils::{
     descriptor_space_fill_element_row, descriptor_space_fill_text_row,
 };
 use crate::client::gui::size;
-use crate::client::gui::user_interface::{Message, UserInterface};
+use crate::client::gui::user_interface::Message;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::user_mod::user::{
@@ -29,9 +29,9 @@ use iced_core::image::Handle;
 use iced_core::{Length, Padding};
 
 const SETTINGS_TEXT_INPUT_WIDTH: f32 = 250.0;
-impl UserInterface {
+impl App {
     pub fn settings_screen(&self) -> Element<Message> {
-        settings_user_info_preview(&self.app).map(Message::Settings)
+        settings_user_info_preview(self).map(Message::Settings)
     }
 }
 fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
@@ -275,13 +275,13 @@ pub enum SettingsMessage {
     DiscardPendingUserInfoChanges,
 }
 impl SettingsMessage {
-    pub fn update(self, ui: &mut UserInterface) -> Task<Message> {
-        let existing_user_info = &ui.app.user_manager.user_info;
-        let pending_user_info_changes = &mut ui.app.user_manager.pending_user_info_changes;
+    pub fn update(self, app: &mut App) -> Task<Message> {
+        let existing_user_info = &app.user_manager.user_info;
+        let pending_user_info_changes = &mut app.user_manager.pending_user_info_changes;
         match self {
             SettingsMessage::StartEditingProfile => {
-                ui.app.user_manager.pending_user_info_changes = Some((
-                    ui.app.user_manager.user_info.clone(),
+                app.user_manager.pending_user_info_changes = Some((
+                    app.user_manager.user_info.clone(),
                     UserInformationStrings::new(
                         existing_user_info.weight.to_string(),
                         existing_user_info.height.to_string(),
@@ -369,14 +369,14 @@ impl SettingsMessage {
             }
             SettingsMessage::SavePendingUserInfoChanges => {
                 if let Some((pending_user_info, _)) =
-                    ui.app.user_manager.pending_user_info_changes.take()
+                    app.user_manager.pending_user_info_changes.take()
                 {
-                    ui.app.user_manager.user_info = pending_user_info;
+                    app.user_manager.user_info = pending_user_info;
                     //TODO SEND TO DATABASE
                 }
             }
             SettingsMessage::DiscardPendingUserInfoChanges => {
-                ui.app.user_manager.pending_user_info_changes = None;
+                app.user_manager.pending_user_info_changes = None;
             }
         }
         Task::none()

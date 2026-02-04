@@ -1,11 +1,12 @@
 use crate::client::backend::mascot_manager::MascotManager;
+use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, create_element_button, create_text_button,
 };
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text};
 use crate::client::gui::bb_widget::shop;
-use crate::client::gui::user_interface::{Message, UserInterface};
+use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
@@ -19,12 +20,12 @@ use iced_core::image::{Handle, Image};
 use iced_core::{Border, Color, Shadow, Theme};
 use strum::IntoEnumIterator;
 
-impl UserInterface {
+impl App {
     pub fn mascot_screen(&self) -> Element<Message> {
-        let current_mascot_image: Element<Message> = view_active_mascot(&self.app.mascot_manager);
+        let current_mascot_image: Element<Message> = view_active_mascot(&self.mascot_manager);
 
         let current_mascot_text: Element<Message> =
-            text(self.app.mascot_manager.selected_mascot.get_name())
+            text(self.mascot_manager.selected_mascot.get_name())
                 .font(FIRA_SANS_EXTRABOLD)
                 .color(TEXT_COLOR)
                 .size(30)
@@ -52,14 +53,12 @@ impl UserInterface {
 
         for rare_mascot in RareMascot::iter() {
             let mascot: Mascot = rare_mascot.into();
-            pet_selection =
-                pet_selection.push(create_mascot_button(&self.app.mascot_manager, mascot))
+            pet_selection = pet_selection.push(create_mascot_button(&self.mascot_manager, mascot))
         }
 
         for epic_mascot in EpicMascot::iter() {
             let mascot: Mascot = epic_mascot.into();
-            pet_selection =
-                pet_selection.push(create_mascot_button(&self.app.mascot_manager, mascot))
+            pet_selection = pet_selection.push(create_mascot_button(&self.mascot_manager, mascot))
         }
 
         let scroll: Element<Message> = Scrollable::new(pet_selection)
@@ -137,7 +136,7 @@ impl UserInterface {
             shop::ShopWidget::new(
                 "Random rare pet-egg".to_string(),
                 50,
-                &self.app.mascot_manager.selected_mascot,
+                &self.mascot_manager.selected_mascot,
                 Message::BuyMascot(MascotRarity::Rare),
             )
             .set_image(Image::new(Handle::from_path(
@@ -146,7 +145,7 @@ impl UserInterface {
             shop::ShopWidget::new(
                 "Random epic pet-egg".to_string(),
                 100,
-                &self.app.mascot_manager.selected_mascot,
+                &self.mascot_manager.selected_mascot,
                 Message::BuyMascot(MascotRarity::Epic),
             )
             .set_image(Image::new(Handle::from_path(
