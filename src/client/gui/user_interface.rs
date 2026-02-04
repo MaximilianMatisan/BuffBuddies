@@ -341,6 +341,7 @@ impl UserInterface {
             return view_pop_up(self);
         }
         match self.app.login_state.state {
+            // COULD BE INTEGRATED AS A TAB
             LoginStates::NotLoggedIn => return view_login(&self.app),
             LoginStates::FetchingLoginData => return view_loading_screen(&self.app),
             LoginStates::LoggedIn => (),
