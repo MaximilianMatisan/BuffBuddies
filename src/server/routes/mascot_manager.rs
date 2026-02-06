@@ -5,6 +5,7 @@ use crate::server::server_main::ApiError;
 use axum::Json;
 use axum::extract::State;
 use sqlx::SqlitePool;
+use crate::common::mascot_mod::mascot::Mascot;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct MascotJson {
@@ -30,4 +31,17 @@ pub async fn get_mascot_data(
     println!("{}: Fetching Mascot Data!", user_authentication.username);
 
     Ok(Json(mascot_data))
+}
+
+pub async fn select_mascot(
+    State(pool): State<SqlitePool>,
+    user_authentication: UserAuthenticationRequestPath,
+    Json(mascot): Json<Mascot>
+) -> Result<(), ApiError> {
+
+    database::update_user_selected_mascot(&pool, &user_authentication.username, &mascot).await?;
+
+    println!("{}: Updated selected mascot to {}!", user_authentication.username, mascot.to_string());
+
+    Ok(())
 }

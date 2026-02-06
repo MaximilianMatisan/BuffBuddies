@@ -41,6 +41,7 @@ use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
 use std::sync::Arc;
+use crate::client::server_communication::mascot_communicator::update_selected_mascot_on_server;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -155,7 +156,15 @@ impl App {
                 let active_mascot = &mut self.mascot_manager.selected_mascot;
                 *active_mascot = mascot;
                 self.activity_widget.update_active_mascot(*active_mascot);
-                Task::none()
+
+                if let Some(jwt) = self.jsonwebtoken.clone() {
+                    Task::perform(
+                        update_selected_mascot_on_server(jwt, mascot),
+                        |result| Message::UpdateInfoOnServerResult(result, "selected Mascot".to_string())
+                    )
+                } else {
+                    Task::none()
+                }
             }
             Message::Activity(activity_message) => self.activity_widget.update(activity_message),
             Message::TryRegister => {
