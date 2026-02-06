@@ -349,7 +349,7 @@ pub async fn get_mascots_from_user(
 pub async fn update_user_favorite_mascot(
     pool: &SqlitePool,
     username: &str,
-    new_favorite_mascot: &Mascot
+    new_favorite_mascot: &Mascot,
 ) -> Result<(), sqlx::Error> {
     let new_fav_mascot_string = new_favorite_mascot.to_string();
     sqlx::query("UPDATE users SET favorite_mascot = ? WHERE username = ?")

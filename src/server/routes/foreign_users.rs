@@ -1,3 +1,4 @@
+use crate::common::user_mod::friend_request::FriendRequest;
 use crate::common::user_mod::user::ForeignUser;
 use crate::server::database_mod::database;
 use crate::server::jwt::user_authentication_request_path::UserAuthenticationRequestPath;
@@ -22,4 +23,19 @@ pub async fn get_foreign_users(
     );
 
     Ok(Json(friends))
+}
+
+pub async fn add_friend(
+    State(pool): State<SqlitePool>,
+    user_authentication: UserAuthenticationRequestPath,
+    Json(other_user): Json<FriendRequest>,
+) -> Result<(), ApiError> {
+    database::add_friend(&pool, &user_authentication.username, &other_user.username).await?;
+
+    println!(
+        "{}: Added {} as a friend",
+        user_authentication.username, other_user.username
+    );
+
+    Ok(())
 }

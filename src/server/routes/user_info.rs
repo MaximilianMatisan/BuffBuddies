@@ -61,7 +61,10 @@ pub async fn update_user_info(
     )
     .await?;
 
-    println!("{}: Updated UserInformation was saved in the database!", user_authentication.username);
+    println!(
+        "{}: Updated UserInformation was saved in the database!",
+        user_authentication.username
+    );
 
     Ok(())
 }

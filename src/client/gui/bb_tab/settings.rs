@@ -376,7 +376,7 @@ impl SettingsMessage {
                     if let Some(jwt) = opt_jwt {
                         return Task::perform(
                             update_user_info_on_server(jwt, pending_user_info),
-                            Message::UpdateUserInfoServerResult,
+                            |result| Message::UpdateInfoOnServerResult(result, "user".to_string()),
                         );
                     } else {
                         println!("JWT missing!");
