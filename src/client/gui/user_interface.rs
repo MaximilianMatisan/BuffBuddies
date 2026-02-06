@@ -26,10 +26,12 @@ use crate::client::server_communication::request_data::{
 use crate::client::server_communication::server_communicator::{
     SaveMascotError, SaveWorkoutError, save_mascot, valid_login,
 };
+use crate::client::server_communication::user_communicator::add_foreign_user_as_friend_on_server;
 use crate::common::login::RequestValidUserError;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::rare_mascot::RareMascot;
+use crate::common::user_mod::friend_request::FriendRequest;
 use crate::common::user_mod::user::UserType;
 use iced::widget::{Column, Space, Stack, container, row};
 use iced::{Element, Task};
@@ -59,7 +61,7 @@ pub enum Message {
     ViewProfile(UserType),
     ResetPopUp,
     Settings(SettingsMessage),
-    UpdateUserInfoServerResult(Result<(), ServerRequestError>),
+    UpdateInfoOnServerResult(Result<(), ServerRequestError>, String),
     ToggleGeneralExerciseInfo(u32),
     WorkoutCreation(WorkoutCreationMessage),
     SaveWorkout(Result<(), SaveWorkoutError>),
@@ -263,7 +265,15 @@ impl App {
 
             Message::AddUserAsFriend(username) => {
                 self.user_manager.add_user_as_friend(&username);
-                Task::none()
+                if let Some(jwt) = self.jsonwebtoken.clone() {
+                    Task::perform(
+                        add_foreign_user_as_friend_on_server(jwt, FriendRequest { username }),
+                        |result| Message::UpdateInfoOnServerResult(result, "Friend".to_string()),
+                    )
+                } else {
+                    println!("JWT missing!");
+                    Task::none()
+                }
             }
             Message::ViewProfile(user_type) => {
                 match user_type {
@@ -300,9 +310,12 @@ impl App {
                 Task::none()
             }
             Message::Settings(settings_msg) => settings_msg.update(self, self.jsonwebtoken.clone()),
-            Message::UpdateUserInfoServerResult(res) => {
+
+            Message::UpdateInfoOnServerResult(res, info_type) => {
                 match res {
-                    Ok(_) => println!("Updated user info was successfully sent to the server!"),
+                    Ok(_) => {
+                        println!("Updated {info_type} info was successfully sent to the server!")
+                    }
                     Err(err) => println!("{}", err.to_error_message()),
                 }
                 Task::none()

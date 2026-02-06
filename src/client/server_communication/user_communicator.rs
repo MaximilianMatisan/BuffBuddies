@@ -1,4 +1,5 @@
 use crate::client::server_communication::exercise_communicator::ServerRequestError;
+use crate::common::user_mod::friend_request::FriendRequest;
 use crate::common::user_mod::user::{ForeignUser, UserInformation};
 
 pub async fn get_user_information_from_server(
@@ -27,16 +28,15 @@ pub async fn get_user_information_from_server(
 
 pub async fn update_user_info_on_server(
     jwt: String,
-    new_user_info: UserInformation
+    new_user_info: UserInformation,
 ) -> Result<(), ServerRequestError> {
-
     let response = reqwest::Client::new()
         .post("http://127.0.0.1:3000/user/info/update")
         .header("Authorization", format!("Token {jwt}"))
         .json(&new_user_info)
         .send()
         .await
-        .map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
+        .map_err(|_| ServerRequestError::CouldNotRetrieveData)?; //TODO create variant could not send data
 
     response
         .error_for_status()
@@ -67,4 +67,22 @@ pub async fn get_foreign_users_from_server(
         .map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
 
     Ok(data)
+}
+pub async fn add_foreign_user_as_friend_on_server(
+    jwt: String,
+    friend_request: FriendRequest,
+) -> Result<(), ServerRequestError> {
+    let response = reqwest::Client::new()
+        .post("http://127.0.0.1:3000/user/foreign/add_friend")
+        .header("Authorization", format!("Token {jwt}"))
+        .json(&friend_request)
+        .send()
+        .await
+        .map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
+
+    response
+        .error_for_status()
+        .map_err(|_| ServerRequestError::HTTPError)?;
+
+    Ok(())
 }
