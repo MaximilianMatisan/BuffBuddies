@@ -380,13 +380,12 @@ pub async fn update_user_selected_mascot(
     username: &str,
     new_selected_mascot: &Mascot,
 ) -> Result<(), sqlx::Error> {
-    
     sqlx::query("UPDATE users SET selected_mascot = ? WHERE username = ?")
         .bind(new_selected_mascot.to_string())
         .bind(username)
         .execute(pool)
         .await?;
-    
+
     Ok(())
 }
 pub async fn get_user_selected_mascot(

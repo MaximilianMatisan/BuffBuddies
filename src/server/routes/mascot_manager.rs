@@ -1,3 +1,4 @@
+use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_data_transfer::MascotDataServerClientTransfer;
 use crate::server::database_mod::database;
 use crate::server::jwt::user_authentication_request_path::UserAuthenticationRequestPath;
@@ -5,14 +6,9 @@ use crate::server::server_main::ApiError;
 use axum::Json;
 use axum::extract::State;
 use sqlx::SqlitePool;
-use crate::common::mascot_mod::mascot::Mascot;
 
-#[derive(serde::Deserialize, serde::Serialize)]
-pub struct MascotJson {
-    name: String,
-}
-pub async fn save_mascot(Json(mascot): Json<MascotJson>) {
-    println!("User purchased {}", mascot.name)
+pub async fn save_mascot(Json(mascot): Json<Mascot>) {
+    println!("User purchased {}", mascot)
 }
 pub async fn get_mascot_data(
     State(pool): State<SqlitePool>,
@@ -36,12 +32,14 @@ pub async fn get_mascot_data(
 pub async fn select_mascot(
     State(pool): State<SqlitePool>,
     user_authentication: UserAuthenticationRequestPath,
-    Json(mascot): Json<Mascot>
+    Json(mascot): Json<Mascot>,
 ) -> Result<(), ApiError> {
-
     database::update_user_selected_mascot(&pool, &user_authentication.username, &mascot).await?;
 
-    println!("{}: Updated selected mascot to {}!", user_authentication.username, mascot.to_string());
+    println!(
+        "{}: Updated selected mascot to {}!",
+        user_authentication.username, mascot
+    );
 
     Ok(())
 }

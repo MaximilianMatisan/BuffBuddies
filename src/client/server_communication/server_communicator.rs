@@ -3,7 +3,6 @@ use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::login::{RequestValidUserAnswer, RequestValidUserError};
 use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot_trait;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -15,19 +14,6 @@ pub struct LoginRequest {
 impl From<(String, String)> for LoginRequest {
     fn from((username, password): (String, String)) -> Self {
         LoginRequest { username, password }
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct MascotJson {
-    name: String,
-}
-
-impl From<Mascot> for MascotJson {
-    fn from(mascot: Mascot) -> Self {
-        MascotJson {
-            name: mascot_trait::MascotTrait::get_name(&mascot).to_string(),
-        }
     }
 }
 
@@ -60,10 +46,9 @@ pub enum SaveMascotError {
 }
 
 pub async fn save_mascot(mascot: Mascot) -> Result<Mascot, SaveMascotError> {
-    let mascot_json: MascotJson = mascot.into();
     let res = reqwest::Client::new()
         .post("http://127.0.0.1:3000/mascot/save")
-        .json(&mascot_json)
+        .json(&mascot)
         .send()
         .await;
     match res {

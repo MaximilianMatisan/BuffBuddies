@@ -25,9 +25,8 @@ pub async fn get_mascot_data_from_server(
 }
 pub async fn update_selected_mascot_on_server(
     jwt: String,
-    new_mascot: Mascot
+    new_mascot: Mascot,
 ) -> Result<(), ServerRequestError> {
-
     let response = reqwest::Client::new()
         .post("http://127.0.0.1:3000/mascot/select")
         .header("Authorization", format!("Token {jwt}"))

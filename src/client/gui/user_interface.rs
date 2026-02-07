@@ -20,6 +20,7 @@ use crate::client::gui::bb_widget::social_elements::profile_tab_button;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::{bb_theme, size};
 use crate::client::server_communication::exercise_communicator::ServerRequestError;
+use crate::client::server_communication::mascot_communicator::update_selected_mascot_on_server;
 use crate::client::server_communication::request_data::{
     LoginServerRequestData, request_login_data,
 };
@@ -41,7 +42,6 @@ use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
 use std::sync::Arc;
-use crate::client::server_communication::mascot_communicator::update_selected_mascot_on_server;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -158,10 +158,9 @@ impl App {
                 self.activity_widget.update_active_mascot(*active_mascot);
 
                 if let Some(jwt) = self.jsonwebtoken.clone() {
-                    Task::perform(
-                        update_selected_mascot_on_server(jwt, mascot),
-                        |result| Message::UpdateInfoOnServerResult(result, "selected Mascot".to_string())
-                    )
+                    Task::perform(update_selected_mascot_on_server(jwt, mascot), |result| {
+                        Message::UpdateInfoOnServerResult(result, "selected Mascot".to_string())
+                    })
                 } else {
                     Task::none()
                 }
