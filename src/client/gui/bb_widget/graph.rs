@@ -497,6 +497,7 @@ fn draw_axis_labels(
     frame: &mut Frame<Renderer>,
     graph_widget_state: &GraphWidgetState,
     exercise_data_points: &ExerciseDataPoints,
+    mascot: &Mascot
 ) {
     //X-AXIS
     let number_labels = match graph_widget_state.points_to_draw {
@@ -571,12 +572,12 @@ fn draw_axis_labels(
     let height_graph_from_min_to_max: f32 =
         GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
 
-    let label_amount = FREQUENCY_OF_Y_AXIS_LABELS - 1;
+    let label_amount = FREQUENCY_OF_Y_AXIS_LABELS - 1; //since on label is used for the "kg" label at the top of the graph, the amount has to be decreased by 1
 
     let format_value: fn(f32) -> f32 = |value| (value * 10.0).round() / 10.0;
 
-    for i in 0..=label_amount {
-        let percentage = i as f32 / label_amount as f32;
+    for i in 0..= (label_amount - 1) { //since i is used  for the percentage and it starts at 0, I have to decrease label_amount by 1 or otherwise one extra label would be drawn
+        let percentage = i as f32 / (label_amount - 1) as f32; // Since the maximum value of i is (label_amount - 1), the denominator must also be (label_amount - 1) so that the percentage can reach 1.0
         let label_value = min_y + percentage * delta;
 
         let position_text_y = start_point_labels - percentage * height_graph_from_min_to_max;
@@ -607,7 +608,7 @@ fn draw_axis_labels(
             x: GRAPH_PADDING / 2.0,
             y: kg_label_position_y,
         },
-        color: color!(142, 142, 147),
+        color: mascot.get_secondary_color(),
         size: AXIS_FONT_SIZE.into(),
         font: FIRA_SANS_EXTRABOLD,
         horizontal_alignment: Horizontal::Center,
@@ -801,7 +802,7 @@ impl canvas::Program<Message> for GraphWidget<'_> {
                     frame.fill(&background, CONTAINER_COLOR);
 
                     //LABELS
-                    draw_axis_labels(frame, &self.graph_state, &self.exercise_manager.data_points);
+                    draw_axis_labels(frame, &self.graph_state, &self.exercise_manager.data_points,&self.active_mascot);
 
                     //DASHED LINES
                     draw_dashed_lines(frame);
