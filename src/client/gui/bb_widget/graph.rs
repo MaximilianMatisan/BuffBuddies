@@ -12,6 +12,7 @@ use iced::widget::canvas::{
     Cache, Event, Geometry, LineCap, LineDash, LineJoin, Path, Stroke, event, stroke,
 };
 use iced_core::{Color, color};
+use std::time::Duration;
 
 use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::gui::app::App;
@@ -30,6 +31,7 @@ use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::Element;
 use iced::widget::{Column, Row, Space, container};
 use iced::widget::{canvas, combo_box, row, text};
+use iced_anim::{Animated, Animation, Motion};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::gradient::ColorStop;
 use iced_core::keyboard::Key;
@@ -51,10 +53,13 @@ pub enum GraphMessage {
     GraphKeyPressed(Key),
     IncrementCounter,
     DecrementCounter,
+    UpdateAnimatedSelection(iced_anim::Event<f32>),
 }
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct GraphWidgetState {
+    graph_cache: Cache,
+    pub animation_progress: Animated<f32>,
     visible_points: bool,
     visible_cursor_information: bool,
     points_to_draw: u8,
@@ -62,7 +67,14 @@ pub struct GraphWidgetState {
 
 impl GraphWidgetState {
     pub fn new() -> Self {
+        let animation_motion = Motion {
+            response: Duration::from_millis(3000),
+            damping: Motion::SMOOTH.damping(),
+        };
+
         GraphWidgetState {
+            graph_cache: Cache::default(),
+            animation_progress: Animated::new(0.0, animation_motion),
             visible_points: true,
             visible_cursor_information: true,
             points_to_draw: 9,
@@ -85,12 +97,14 @@ impl GraphWidgetState {
     pub(crate) fn get_counter(&self) -> u8 {
         self.points_to_draw
     }
+    pub(crate) fn update_graph(&self) {
+        self.graph_cache.clear();
+    }
 }
 pub struct GraphWidget<'a> {
     active_mascot: Mascot,
     exercise_manager: &'a ExerciseManager,
-    graph_state: GraphWidgetState,
-    graph: Cache,
+    graph_state: &'a GraphWidgetState,
 }
 
 impl<'a> GraphWidget<'a> {
@@ -98,21 +112,24 @@ impl<'a> GraphWidget<'a> {
         GraphWidget {
             active_mascot: app.mascot_manager.selected_mascot,
             exercise_manager: &app.exercise_manager,
-            graph_state: app.graph_widget_state.clone(),
-            graph: Cache::default(),
+            graph_state: &app.graph_widget_state,
         }
     }
 
     pub(crate) fn view(self) -> Element<'a, Message> {
+        let draw_percentage = &self.graph_state.animation_progress;
+
         let canvas = canvas(self)
             .width(GRAPH_WIDGET_WIDTH)
             .height(GRAPH_WIDGET_HEIGHT);
 
-        container(canvas).into()
+        Animation::new(draw_percentage, canvas)
+            .on_update(|event| Message::Graph(GraphMessage::UpdateAnimatedSelection(event)))
+            .into()
     }
 }
 
-fn draw_dashed_lines(frame: &mut Frame<Renderer>) {
+fn draw_dashed_lines(animation_percentage: f32, frame: &mut Frame<Renderer>) {
     let gradient_padding = GRAPH_PADDING + 6.0;
 
     let gradient = Gradient::Linear(
@@ -185,7 +202,7 @@ fn draw_dashed_lines(frame: &mut Frame<Renderer>) {
 
     let point_bottom = Point {
         x: Point::ORIGIN.x + current_x,
-        y: GRAPH_WIDGET_HEIGHT - GRAPH_PADDING,
+        y: (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) * animation_percentage + GRAPH_PADDING,
     };
 
     draw_stroke(point_up, point_bottom, dashed_stroke);
@@ -208,7 +225,7 @@ fn draw_dashed_lines(frame: &mut Frame<Renderer>) {
     }
 }
 
-fn draw_axis(active_mascot: &Mascot, frame: &mut Frame<Renderer>) {
+fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<Renderer>) {
     //LATER CREATE PARAMETER VIRTUAL GRAPH BOUNDS
     let axis_color = active_mascot.get_primary_color();
 
@@ -231,7 +248,7 @@ fn draw_axis(active_mascot: &Mascot, frame: &mut Frame<Renderer>) {
             //BOTTOM
             Point {
                 x: Point::ORIGIN.x + GRAPH_PADDING,
-                y: frame.height() - GRAPH_PADDING,
+                y: (frame.height() - GRAPH_PADDING * 2.0) * animation_progress + GRAPH_PADDING,
             },
         ),
         solid_mascot_colored_stroke,
@@ -242,7 +259,9 @@ fn draw_axis(active_mascot: &Mascot, frame: &mut Frame<Renderer>) {
         &Path::line(
             //LEFT
             Point {
-                x: Point::ORIGIN.x + GRAPH_PADDING,
+                x: Point::ORIGIN.x
+                    + (frame.width() - GRAPH_PADDING * 2.0) * (1.0 - animation_progress)
+                    + GRAPH_PADDING,
                 y: frame.height() - GRAPH_PADDING,
             },
             //RIGHT
@@ -320,7 +339,10 @@ fn draw_points(
     //DRAW POINTS
     for point in points.iter() {
         frame.fill(
-            &Path::circle(*point, point_size),
+            &Path::circle(
+                *point,
+                point_size * graph_widget_state.animation_progress.value(),
+            ),
             mascot.get_primary_color(),
         );
     }
@@ -344,7 +366,7 @@ fn draw_connections(
     let stroke_size = max_size_stroke - percentage * range_size_stroke;
 
     let connection_stroke = Stroke {
-        width: stroke_size,
+        width: stroke_size * graph_widget_state.animation_progress.value(),
         line_cap: LineCap::Round,
         line_join: LineJoin::Round,
         style: stroke::Style::Solid(mascot.get_secondary_color()),
@@ -458,11 +480,34 @@ fn draw_cursor_information(
                 Point { x: 0.0, y: 0.0 }
             };
 
+        let cursor_information_shadow_position = Point {
+            x: cursor_information_position.x + 10.0,
+            y: cursor_information_position.y + 10.0,
+        };
+
         let cursor_information_box_size = Size {
             width: 120.0,
             height: 60.0,
         };
 
+        let shadow_color = Color {
+            r: 0.0,
+            g: 0.0,
+            b: 0.0,
+            a: 0.5,
+        };
+
+        //SHADOW
+        frame.fill(
+            &Path::rounded_rectangle(
+                cursor_information_shadow_position,
+                cursor_information_box_size,
+                10.0.into(),
+            ),
+            shadow_color,
+        );
+
+        //CONTAINER
         frame.fill(
             &Path::rounded_rectangle(
                 cursor_information_position,
@@ -483,7 +528,7 @@ fn draw_cursor_information(
             content: format!("{} Kg", format_value(cursor_position_in_graph.y)),
             size: 25.0.into(),
             position: cursor_information_text,
-            color: color!(255, 255, 255),
+            color: bb_theme::color::TEXT_COLOR,
             font: FIRA_SANS_EXTRABOLD,
             horizontal_alignment: Horizontal::Left,
             vertical_alignment: Vertical::Top,
@@ -497,7 +542,7 @@ fn draw_axis_labels(
     frame: &mut Frame<Renderer>,
     graph_widget_state: &GraphWidgetState,
     exercise_data_points: &ExerciseDataPoints,
-    mascot: &Mascot
+    mascot: &Mascot,
 ) {
     //X-AXIS
     let number_labels = match graph_widget_state.points_to_draw {
@@ -537,7 +582,7 @@ fn draw_axis_labels(
         frame.fill_text(canvas::Text {
             content: formatted_date,
             position: position_text_x,
-            color: color!(142, 142, 147),
+            color: bb_theme::color::TEXT_COLOR,
             size: AXIS_FONT_SIZE.into(),
             line_height: Default::default(),
             font: FIRA_SANS_EXTRABOLD,
@@ -576,7 +621,8 @@ fn draw_axis_labels(
 
     let format_value: fn(f32) -> f32 = |value| (value * 10.0).round() / 10.0;
 
-    for i in 0..= (label_amount - 1) { //since i is used  for the percentage and it starts at 0, I have to decrease label_amount by 1 or otherwise one extra label would be drawn
+    for i in 0..=(label_amount - 1) {
+        //since i is used  for the percentage and it starts at 0, I have to decrease label_amount by 1 or otherwise one extra label would be drawn
         let percentage = i as f32 / (label_amount - 1) as f32; // Since the maximum value of i is (label_amount - 1), the denominator must also be (label_amount - 1) so that the percentage can reach 1.0
         let label_value = min_y + percentage * delta;
 
@@ -590,7 +636,7 @@ fn draw_axis_labels(
         frame.fill_text(canvas::Text {
             content: format!("{}", format_value(label_value)),
             position: position_text,
-            color: color!(142, 142, 147),
+            color: color!(255, 255, 255),
             size: AXIS_FONT_SIZE.into(),
             font: FIRA_SANS_EXTRABOLD,
             horizontal_alignment: Horizontal::Center,
@@ -734,7 +780,7 @@ fn extract_dates(exercise_data_points: &ExerciseDataPoints) -> Vec<NaiveDate> {
 }
 
 impl canvas::Program<Message> for GraphWidget<'_> {
-    type State = ();
+    type State = GraphWidgetState; //not used yet
 
     fn update(
         &self,
@@ -743,6 +789,8 @@ impl canvas::Program<Message> for GraphWidget<'_> {
         _bounds: Rectangle,
         _cursor: iced_core::mouse::Cursor,
     ) -> (event::Status, Option<Message>) {
+        self.graph_state.update_graph();
+
         match event {
             canvas::Event::Mouse(mouse::Event::CursorMoved { position }) => (
                 iced::widget::canvas::event::Status::Captured,
@@ -753,7 +801,12 @@ impl canvas::Program<Message> for GraphWidget<'_> {
                 Some(Message::Graph(GraphMessage::GraphKeyPressed(key))),
             ),
 
-            _ => (iced::widget::canvas::event::Status::Ignored, None),
+            _ => (
+                event::Status::Ignored,
+                Some(Message::Graph(GraphMessage::UpdateAnimatedSelection(
+                    iced_anim::Event::Target(1.0),
+                ))),
+            ),
         }
     }
 
@@ -765,110 +818,130 @@ impl canvas::Program<Message> for GraphWidget<'_> {
         bounds: Rectangle,
         cursor: mouse::Cursor,
     ) -> Vec<Geometry> {
-        let graph_widget = self.graph.draw(renderer, bounds.size(), |frame| {
-            //TODO: Find right frame center to centrate "NO DATA" text
-            //FRAME CENTER
-            let center_x = GRAPH_WIDGET_WIDTH / 2.0 - INDENT;
-            let center_y = GRAPH_WIDGET_HEIGHT / 2.0;
-            let center = Point {
-                x: center_x,
-                y: center_y,
-            };
+        let graph_widget = self
+            .graph_state
+            .graph_cache
+            .draw(renderer, bounds.size(), |frame| {
+                //TODO: Find right frame center to centrate "NO DATA" text
+                //FRAME CENTER
+                let center_x = GRAPH_WIDGET_WIDTH / 2.0 - INDENT;
+                let center_y = GRAPH_WIDGET_HEIGHT / 2.0;
+                let center = Point {
+                    x: center_x,
+                    y: center_y,
+                };
 
-            //DRAW BACKGROUND
-            let background = Path::rectangle(
-                Point{
-                    x: Point::ORIGIN.x + GRAPH_PADDING,
-                    y: Point::ORIGIN.y + GRAPH_PADDING,
-                },
-                Size {
-                    width: frame.width() - GRAPH_PADDING * 2.0,
-                    height: frame.height() - GRAPH_PADDING * 2.0,
-                },
-            );
+                //DRAW BACKGROUND
+                let background = Path::rectangle(
+                    Point {
+                        x: Point::ORIGIN.x + frame.width() - GRAPH_PADDING, //setting top right, so that the animation goes along the x-axis animation
+                        y: Point::ORIGIN.y + GRAPH_PADDING,
+                    },
+                    Size {
+                        width: -((frame.width() - GRAPH_PADDING * 2.0)
+                            * self.graph_state.animation_progress.value()), //negative width, so that the animation goes along the x-axis animation
+                        height: frame.height() - GRAPH_PADDING * 2.0,
+                    },
+                );
 
-            match self.exercise_manager.data_points.len() {
-                0 => frame.fill_text(canvas::Text {
-                    content: "NO DATA".to_string(),
-                    position: center,
-                    color: color!(142, 142, 147),
-                    size: 40.into(),
-                    line_height: Default::default(),
-                    font: FIRA_SANS_EXTRABOLD,
-                    horizontal_alignment: Horizontal::Left,
-                    vertical_alignment: Vertical::Top,
-                    shaping: Default::default(),
-                }),
-                _data_points_amount => {
-                    let weights = extract_weights(&self.exercise_manager.data_points);
+                match self.exercise_manager.data_points.len() {
+                    0 => frame.fill_text(canvas::Text {
+                        content: "NO DATA".to_string(),
+                        position: center,
+                        color: color!(142, 142, 147),
+                        size: 40.into(),
+                        line_height: Default::default(),
+                        font: FIRA_SANS_EXTRABOLD,
+                        horizontal_alignment: Horizontal::Left,
+                        vertical_alignment: Vertical::Top,
+                        shaping: Default::default(),
+                    }),
+                    _data_points_amount => {
+                        let weights = extract_weights(&self.exercise_manager.data_points);
 
-                    let background_gradient = Gradient::Linear(
-                        Linear::new(
-                            Point {
-                                x: frame.width()/2.0,
-                                y: Point::ORIGIN.y + GRAPH_PADDING,
-                            },
-                            Point {
-                                x: frame.width()/2.0,
-                                y: frame.height() - GRAPH_PADDING,
-                            },
-                        )
+                        let background_gradient = Gradient::Linear(
+                            Linear::new(
+                                Point {
+                                    x: frame.width() / 2.0,
+                                    y: Point::ORIGIN.y + GRAPH_PADDING,
+                                },
+                                Point {
+                                    x: frame.width() / 2.0,
+                                    y: frame.height() - GRAPH_PADDING,
+                                },
+                            )
                             .add_stops([
                                 // FADE IN
                                 ColorStop {
-                                    offset: 0.80 ,
+                                    offset: 0.80
+                                        + (0.20
+                                            * (1.0 - self.graph_state.animation_progress.value())),
                                     color: Color {
                                         a: 0.0,
                                         ..CONTAINER_COLOR
                                     },
                                 },
                                 //ACTUAL COLOR
-
                                 ColorStop {
                                     offset: 1.0,
                                     color: Color {
                                         a: 0.3,
-                                        ..self.active_mascot.get_primary_color()                                    },
+                                        ..self.active_mascot.get_primary_color()
+                                    },
                                 },
                             ]),
-                    );
+                        );
 
-                    frame.fill(&background, background_gradient);
+                        frame.fill(&background, background_gradient);
 
-                    //LABELS
-                    draw_axis_labels(frame, &self.graph_state, &self.exercise_manager.data_points,&self.active_mascot);
+                        //LABELS
+                        draw_axis_labels(
+                            frame,
+                            self.graph_state,
+                            &self.exercise_manager.data_points,
+                            &self.active_mascot,
+                        );
 
-                    //DASHED LINES
-                    draw_dashed_lines(frame);
+                        //DASHED LINES
+                        draw_dashed_lines(*self.graph_state.animation_progress.value(), frame);
 
-                    //CONNECTIONS BETWEEN POINTS
-                    draw_connections(
-                        &self.graph_state,
-                        frame,
-                        weights.clone(),
-                        &self.active_mascot,
-                    );
-
-                    //AXIS
-                    draw_axis(&self.active_mascot, frame);
-
-                    //POINTS
-                    if self.graph_state.visible_points {
-                        draw_points(
-                            &self.graph_state,
+                        //CONNECTIONS BETWEEN POINTS
+                        draw_connections(
+                            self.graph_state,
                             frame,
                             weights.clone(),
                             &self.active_mascot,
                         );
-                    }
 
-                    //CURSOR
-                    if self.graph_state.visible_cursor_information {
-                        draw_cursor_information(weights, &self.graph_state, bounds, cursor, frame); //unwrap() can't fail since the list can't be empty
+                        let draw_percentage = self.graph_state.animation_progress.value();
+                        //AXIS
+                        draw_axis(*draw_percentage, &self.active_mascot, frame);
+
+                        //POINTS
+                        if self.graph_state.visible_points {
+                            draw_points(
+                                self.graph_state,
+                                frame,
+                                weights.clone(),
+                                &self.active_mascot,
+                            );
+                        }
+
+                        //println!("{:?}", weights);
+
+                        //CURSOR
+                        if self.graph_state.visible_cursor_information {
+                            draw_cursor_information(
+                                weights,
+                                self.graph_state,
+                                bounds,
+                                cursor,
+                                frame,
+                            ); //unwrap() can't fail since the list can't be empty
+                        }
                     }
                 }
-            }
-        });
+            });
 
         vec![graph_widget]
     }
@@ -896,18 +969,20 @@ pub fn graph_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
 
     let mut counter = format_button_text(text!("{}", app.graph_widget_state.points_to_draw));
     counter = counter.size(19);
+
     let increment_button = create_text_button(
         &app.mascot_manager.selected_mascot,
         "+".to_string(),
         ButtonStyle::Active,
-        Some(100.0.into()),
+        Some(10.0.into()),
     )
     .on_press(Message::Graph(GraphMessage::IncrementCounter));
+
     let decrement_button = create_text_button(
         &app.mascot_manager.selected_mascot,
         "-".to_string(),
         ButtonStyle::Active,
-        Some(100.0.into()),
+        Some(10.0.into()),
     )
     .on_press(Message::Graph(GraphMessage::DecrementCounter));
 

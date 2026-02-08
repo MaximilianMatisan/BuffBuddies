@@ -266,6 +266,10 @@ impl App {
                             self.graph_widget_state.decrement_counter();
                         }
                     }
+                    GraphMessage::UpdateAnimatedSelection(event) => {
+                        self.graph_widget_state.animation_progress.update(event);
+                        self.graph_widget_state.update_graph();
+                    }
                     _other_key_enums => {}
                 };
                 Task::none()

@@ -17,12 +17,12 @@ impl App {
             .push(progress_environment_widget(self))
             .push(Space::with_width(Length::Fill));
 
-        let actual_version = graph_environment_widget(self);
+        let graph_widget = graph_environment_widget(self);
 
         let contents = Column::new()
             .push(activity_widget)
+            .push(graph_widget)
             .push(progress_widget)
-            .push(actual_version)
             .spacing(INDENT)
             .padding(INDENT);
 
