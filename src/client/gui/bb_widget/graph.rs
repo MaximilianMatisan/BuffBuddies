@@ -777,10 +777,13 @@ impl canvas::Program<Message> for GraphWidget<'_> {
 
             //DRAW BACKGROUND
             let background = Path::rectangle(
-                Point::ORIGIN,
+                Point{
+                    x: Point::ORIGIN.x + GRAPH_PADDING,
+                    y: Point::ORIGIN.y + GRAPH_PADDING,
+                },
                 Size {
-                    width: frame.width(),
-                    height: frame.height(),
+                    width: frame.width() - GRAPH_PADDING * 2.0,
+                    height: frame.height() - GRAPH_PADDING * 2.0,
                 },
             );
 
@@ -799,7 +802,38 @@ impl canvas::Program<Message> for GraphWidget<'_> {
                 _data_points_amount => {
                     let weights = extract_weights(&self.exercise_manager.data_points);
 
-                    frame.fill(&background, CONTAINER_COLOR);
+                    let background_gradient = Gradient::Linear(
+                        Linear::new(
+                            Point {
+                                x: frame.width()/2.0,
+                                y: Point::ORIGIN.y + GRAPH_PADDING,
+                            },
+                            Point {
+                                x: frame.width()/2.0,
+                                y: frame.height() - GRAPH_PADDING,
+                            },
+                        )
+                            .add_stops([
+                                // FADE IN
+                                ColorStop {
+                                    offset: 0.80 ,
+                                    color: Color {
+                                        a: 0.0,
+                                        ..CONTAINER_COLOR
+                                    },
+                                },
+                                //ACTUAL COLOR
+
+                                ColorStop {
+                                    offset: 1.0,
+                                    color: Color {
+                                        a: 0.3,
+                                        ..self.active_mascot.get_primary_color()                                    },
+                                },
+                            ]),
+                    );
+
+                    frame.fill(&background, background_gradient);
 
                     //LABELS
                     draw_axis_labels(frame, &self.graph_state, &self.exercise_manager.data_points,&self.active_mascot);
