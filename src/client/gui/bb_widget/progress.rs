@@ -283,7 +283,7 @@ where
                                 x: x_of_column,
                                 y: bottom_y_coordinate + INDENT,
                             },
-                            color::DESCRIPTION_TEXT_COLOR,
+                            color::TEXT_COLOR,
                             *viewport,
                         );
                     }
@@ -321,7 +321,7 @@ where
                                 - graph_axis_padding_y
                                 - (share) * height_of_graph_canvas,
                         },
-                        color::DESCRIPTION_TEXT_COLOR,
+                        color::TEXT_COLOR,
                         *viewport,
                     );
                 }
