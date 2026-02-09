@@ -46,6 +46,7 @@ use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
 use std::sync::Arc;
+use crate::client::gui::bb_widget::circle_widget::CircleMessage;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -63,6 +64,7 @@ pub enum Message {
     SelectExercise(String),
     Graph(GraphMessage),
     ChangeShownChartType(ChartTypes),
+    Circle(CircleMessage),
     AddUserAsFriend(String),
     RemoveUserAsFriend(String),
     ViewProfile(UserType),
@@ -301,6 +303,15 @@ impl App {
             Message::ChangeShownChartType(chart_type) => {
                 self.graph_widget_state.shown_chart_type = chart_type;
                 Task::none()
+            }
+            Message::Circle(circle_message) => {
+                match circle_message {
+                    CircleMessage::UpdateAnimation(event) => {
+                        self.circle_widget_state.animation_progress.update(event);
+                        self.circle_widget_state.update_circle();
+                        Task::none()
+                    }
+                }
             }
 
             Message::AddUserAsFriend(username) => {

@@ -53,7 +53,7 @@ impl App {
             .style(create_container_style(ContainerStyle::Default, None, None))
             .padding(LARGE_INDENT);
 
-        let circle_widget =  circle_widget::CircleWidget::new().view();
+        let circle_widget =  circle_widget::CircleWidget::new(self).view();
 
         let content = column![
             circle_widget,

@@ -8,6 +8,7 @@ use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_widget::activity_widget::activity::{
     ActivityWidget, calculate_activity_data,
 };
+use crate::client::gui::bb_widget::circle_widget::CircleWidgetState;
 use crate::client::gui::bb_widget::graph::GraphWidgetState;
 use crate::client::server_communication::request_data::LoginServerRequestData;
 use crate::common::mascot_mod::mascot::Mascot;
@@ -20,6 +21,7 @@ pub struct App {
     pub screen: Tab,
     pub activity_widget: ActivityWidget,
     pub graph_widget_state: GraphWidgetState,
+    pub circle_widget_state: CircleWidgetState,
     pub login_state: LoginState,
     pub mascot_manager: MascotManager,
     pub exercise_manager: ExerciseManager,
@@ -45,6 +47,7 @@ impl Default for App {
             mascot_manager: MascotManager::default(),
             exercise_manager,
             graph_widget_state: GraphWidgetState::new(),
+            circle_widget_state: CircleWidgetState::new(),
             image_manager: ImageManager::default(),
             pop_up_manager: PopUpManager::default(),
         }
