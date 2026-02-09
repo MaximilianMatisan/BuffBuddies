@@ -355,7 +355,7 @@ fn draw_connections(
     y_values: Vec<f32>,
     mascot: &Mascot,
 ) {
-    //TODO: Make connections thicker when less points_to_draw
+
 
     let points = calculate_points(graph_widget_state, y_values);
     let base_size_stroke = 1.5;
@@ -373,6 +373,20 @@ fn draw_connections(
         style: stroke::Style::Solid(mascot.get_secondary_color()),
         line_dash: Default::default(),
     };
+
+    let shadow_stroke = Stroke {
+        width: (stroke_size + 2.0) * graph_widget_state.animation_progress.value(),
+        line_cap: LineCap::Round,
+        line_join: LineJoin::Round,
+        style: stroke::Style::Solid(Color{
+            r: 0.0,
+            g: 0.0,
+            b: 0.0,
+            a: 0.25,
+        }),
+        line_dash: Default::default(),
+    };
+
 
     let point_tuples = points
         .iter()
@@ -401,6 +415,25 @@ fn draw_connections(
         connection_stroke,
     );
 
+    let shadow_point_tuples =
+    point_tuples
+        .iter()
+        .map(|(p_start, p_end)| {
+            let shadow_offset = 5.0;
+            let shadow_start = Point{x: p_start.x + shadow_offset, y: p_start.y + shadow_offset};
+            let shadow_end = Point{x: p_end.x + shadow_offset, y: p_end.y + shadow_offset};
+
+            (shadow_start, shadow_end)
+        })
+        .collect::<Vec<(Point, Point)>>();
+
+    //SHADOW
+
+    for (start, end) in shadow_point_tuples {
+        frame.stroke(&Path::line(start, end), shadow_stroke);
+    }
+
+    //CONNECTIONS
     for (start, end) in point_tuples {
         frame.stroke(&Path::line(start, end), connection_stroke);
     }
