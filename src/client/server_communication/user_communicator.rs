@@ -86,3 +86,22 @@ pub async fn add_foreign_user_as_friend_on_server(
 
     Ok(())
 }
+
+pub async fn remove_foreign_user_as_friend_on_server(
+    jwt: String,
+    friend_request: FriendRequest,
+) -> Result<(), ServerRequestError> {
+    let response = reqwest::Client::new()
+        .post("http://127.0.0.1:3000/user/foreign/remove_friend")
+        .header("Authorization", format!("Token {jwt}"))
+        .json(&friend_request)
+        .send()
+        .await
+        .map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
+
+    response
+        .error_for_status()
+        .map_err(|_| ServerRequestError::HTTPError)?;
+
+    Ok(())
+}

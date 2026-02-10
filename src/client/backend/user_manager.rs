@@ -159,7 +159,7 @@ impl UserManager {
             .filter(|user| !user.friends_with_active_user)
             .collect()
     }
-    
+
     /// Returns whether deletion was successful or not
     pub fn add_user_as_friend(&mut self, username: &str) -> bool {
         let user_opt = self.get_user_by_username_mut(username);
@@ -171,7 +171,7 @@ impl UserManager {
             false
         }
     }
-    
+
     /// Returns whether deletion was successful or not
     pub fn remove_user_as_friend(&mut self, username: &str) -> bool {
         let user_opt = self.get_user_by_username_mut(username);
@@ -182,6 +182,5 @@ impl UserManager {
         } else {
             false
         }
-        
     }
 }
