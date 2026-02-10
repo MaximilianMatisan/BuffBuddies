@@ -28,7 +28,7 @@ use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::Element;
-use iced::widget::{Space, container};
+use iced::widget::{Column, Row, Space, container};
 use iced::widget::{canvas, row, text};
 use iced_anim::{Animated, Animation, Motion};
 use iced_core::alignment::{Horizontal, Vertical};
@@ -51,6 +51,8 @@ pub enum GraphMessage {
     IncrementCounter,
     DecrementCounter,
     UpdateAnimatedSelection(iced_anim::Event<f32>),
+    ToggleDots,
+    ToggleCursor,
 }
 
 #[derive(Default)]
@@ -983,5 +985,36 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         ))
         .width(Length::Fixed(100.0));
 
-    counter_with_buttons.into()
+    let toggle_dots_button = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        "Toggle dots".to_string(),
+        ButtonStyle::Active,
+        Some(10.0.into()),
+    )
+    .on_press(Message::Graph(GraphMessage::ToggleDots));
+
+    let toggle_cursor_button = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        "Toggle cursor".to_string(),
+        ButtonStyle::Active,
+        Some(10.0.into()),
+    )
+    .on_press(Message::Graph(GraphMessage::ToggleCursor));
+
+    let settings_row = Row::new()
+        .width(Length::Fixed(CHART_WIDGET_WIDTH))
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(counter_with_buttons)
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(toggle_dots_button)
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(toggle_cursor_button)
+        .push(Space::with_width(Length::FillPortion(9)))
+        .align_y(Vertical::Bottom);
+
+    let settings_row_with_padding = Column::new()
+        .push(Space::with_height(21.5))
+        .push(settings_row);
+
+    settings_row_with_padding.into()
 }

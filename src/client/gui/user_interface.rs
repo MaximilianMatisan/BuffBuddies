@@ -276,6 +276,12 @@ impl App {
                         self.graph_widget_state.animation_progress.update(event);
                         self.graph_widget_state.update_graph();
                     }
+
+                    GraphMessage::ToggleDots => self.graph_widget_state.invert_visible_points(),
+
+                    GraphMessage::ToggleCursor => {
+                        self.graph_widget_state.invert_visible_cursor_information()
+                    }
                     _other_key_enums => {}
                 };
                 Task::none()
