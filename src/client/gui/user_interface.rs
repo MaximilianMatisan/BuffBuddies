@@ -27,7 +27,9 @@ use crate::client::server_communication::request_data::{
 use crate::client::server_communication::server_communicator::{
     SaveMascotError, SaveWorkoutError, save_mascot, valid_login,
 };
-use crate::client::server_communication::user_communicator::add_foreign_user_as_friend_on_server;
+use crate::client::server_communication::user_communicator::{
+    add_foreign_user_as_friend_on_server, remove_foreign_user_as_friend_on_server,
+};
 use crate::common::login::RequestValidUserError;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
@@ -281,7 +283,9 @@ impl App {
                 if let Some(jwt) = self.jsonwebtoken.clone() {
                     Task::perform(
                         add_foreign_user_as_friend_on_server(jwt, FriendRequest { username }),
-                        |result| Message::UpdateInfoOnServerResult(result, "Friend".to_string()),
+                        |result| {
+                            Message::UpdateInfoOnServerResult(result, "added-Friend".to_string())
+                        },
                     )
                 } else {
                     println!("JWT missing!");
@@ -290,7 +294,17 @@ impl App {
             }
             Message::RemoveUserAsFriend(username) => {
                 self.user_manager.remove_user_as_friend(&username);
-                Task::none() //TODO remove friend on server
+                if let Some(jwt) = self.jsonwebtoken.clone() {
+                    Task::perform(
+                        remove_foreign_user_as_friend_on_server(jwt, FriendRequest { username }),
+                        |result| {
+                            Message::UpdateInfoOnServerResult(result, "removed-Friend".to_string())
+                        },
+                    )
+                } else {
+                    println!("JWT missing!");
+                    Task::none()
+                }
             }
             Message::ViewProfile(user_type) => {
                 match user_type {

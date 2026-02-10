@@ -39,3 +39,18 @@ pub async fn add_friend(
 
     Ok(())
 }
+
+pub async fn remove_friend(
+    State(pool): State<SqlitePool>,
+    user_authentication: UserAuthenticationRequestPath,
+    Json(other_user): Json<FriendRequest>,
+) -> Result<(), ApiError> {
+    database::remove_friend(&pool, &user_authentication.username, &other_user.username).await?;
+
+    println!(
+        "{}: Removed {} as a friend",
+        user_authentication.username, other_user.username
+    );
+
+    Ok(())
+}

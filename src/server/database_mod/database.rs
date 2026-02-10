@@ -294,7 +294,6 @@ pub async fn update_user_description(
     Ok(())
 }
 
-#[allow(dead_code)]
 pub async fn add_friend(
     pool: &SqlitePool,
     username: &str,
@@ -307,7 +306,18 @@ pub async fn add_friend(
             .execute(pool)
             .await?;
     }
-
+    Ok(())
+}
+pub async fn remove_friend(
+    pool: &SqlitePool,
+    username: &str,
+    friendname: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM friendship WHERE username = ? AND friendname = ?")
+        .bind(username)
+        .bind(friendname)
+        .execute(pool)
+        .await?;
     Ok(())
 }
 #[allow(dead_code)]
