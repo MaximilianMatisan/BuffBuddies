@@ -14,6 +14,7 @@ use crate::client::gui::bb_theme::custom_button::{
 };
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
+use crate::client::gui::bb_widget::chart::ChartTypes;
 use crate::client::gui::bb_widget::graph::{GraphMessage, MAX_AMOUNT_POINTS};
 use crate::client::gui::bb_widget::pop_up::view_pop_up;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
@@ -60,6 +61,7 @@ pub enum Message {
     PasswordEntered(String),
     SelectExercise(String),
     Graph(GraphMessage),
+    ChangeShownChartType(ChartTypes),
     AddUserAsFriend(String),
     RemoveUserAsFriend(String),
     ViewProfile(UserType),
@@ -165,6 +167,7 @@ impl App {
                         Message::UpdateInfoOnServerResult(result, "selected Mascot".to_string())
                     })
                 } else {
+                    println!("Log in to select a Mascot!");
                     Task::none()
                 }
             }
@@ -277,6 +280,10 @@ impl App {
                 };
                 Task::none()
             }
+            Message::ChangeShownChartType(chart_type) => {
+                self.graph_widget_state.shown_chart_type = chart_type;
+                Task::none()
+            }
 
             Message::AddUserAsFriend(username) => {
                 self.user_manager.add_user_as_friend(&username);
@@ -288,7 +295,7 @@ impl App {
                         },
                     )
                 } else {
-                    println!("JWT missing!");
+                    println!("Log in to add a friend!");
                     Task::none()
                 }
             }
@@ -302,7 +309,7 @@ impl App {
                         },
                     )
                 } else {
-                    println!("JWT missing!");
+                    println!("Log in to remove a friend!");
                     Task::none()
                 }
             }

@@ -1,4 +1,5 @@
 pub mod activity_widget;
+pub mod chart;
 pub mod general_exercise_info_elements;
 pub mod graph;
 pub mod new_widget;

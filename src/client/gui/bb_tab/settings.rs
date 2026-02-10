@@ -379,7 +379,7 @@ impl SettingsMessage {
                             |result| Message::UpdateInfoOnServerResult(result, "user".to_string()),
                         );
                     } else {
-                        println!("JWT missing!");
+                        println!("Log in to update User info!");
                     }
                 }
             }

@@ -19,9 +19,8 @@ use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button};
-use crate::client::gui::bb_theme::text_format;
 use crate::client::gui::bb_theme::text_format::format_button_text;
-use crate::client::gui::bb_widget::stats::exercise_stat_column;
+use crate::client::gui::bb_widget::chart::{CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH, ChartTypes};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::common::exercise_mod::exercise::ExerciseDataPoints;
@@ -29,17 +28,15 @@ use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::Element;
-use iced::widget::{Column, Row, Space, container};
-use iced::widget::{canvas, combo_box, row, text};
+use iced::widget::{Space, container};
+use iced::widget::{canvas, row, text};
 use iced_anim::{Animated, Animation, Motion};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::gradient::ColorStop;
 use iced_core::keyboard::Key;
 use iced_core::mouse::Cursor;
-use iced_core::{Length, Padding, Point, Rectangle, Size, Theme};
+use iced_core::{Length, Point, Rectangle, Size, Theme};
 
-const GRAPH_WIDGET_WIDTH: f32 = 700.0;
-const GRAPH_WIDGET_HEIGHT: f32 = 500.0;
 const GRAPH_PADDING: f32 = 50.0;
 const AXIS_FONT_SIZE: f32 = 12.0;
 const FREQUENCY_OF_Y_AXIS_LABELS: u32 = 12;
@@ -63,6 +60,7 @@ pub struct GraphWidgetState {
     visible_points: bool,
     visible_cursor_information: bool,
     points_to_draw: u8,
+    pub shown_chart_type: ChartTypes,
 }
 
 impl GraphWidgetState {
@@ -78,6 +76,7 @@ impl GraphWidgetState {
             visible_points: true,
             visible_cursor_information: true,
             points_to_draw: 9,
+            shown_chart_type: ChartTypes::default(),
         }
     }
     pub fn invert_visible_points(&mut self) {
@@ -120,8 +119,8 @@ impl<'a> GraphWidget<'a> {
         let draw_percentage = &self.graph_state.animation_progress;
 
         let canvas = canvas(self)
-            .width(GRAPH_WIDGET_WIDTH)
-            .height(GRAPH_WIDGET_HEIGHT);
+            .width(CHART_WIDGET_WIDTH)
+            .height(CHART_WIDGET_HEIGHT);
 
         Animation::new(draw_percentage, canvas)
             .on_update(|event| Message::Graph(GraphMessage::UpdateAnimatedSelection(event)))
@@ -185,9 +184,9 @@ fn draw_dashed_lines(animation_percentage: f32, frame: &mut Frame<Renderer>) {
 
     //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
     let block_height =
-        (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+        (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 
-    let current_x = GRAPH_WIDGET_WIDTH - GRAPH_PADDING; //START OF GRAPH
+    let current_x = CHART_WIDGET_WIDTH - GRAPH_PADDING; //START OF GRAPH
     let mut current_y = Point::ORIGIN.y + GRAPH_PADDING;
 
     let mut draw_stroke = |start: Point, end: Point, stroke: Stroke| {
@@ -202,7 +201,7 @@ fn draw_dashed_lines(animation_percentage: f32, frame: &mut Frame<Renderer>) {
 
     let point_bottom = Point {
         x: Point::ORIGIN.x + current_x,
-        y: (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) * animation_percentage + GRAPH_PADDING,
+        y: (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) * animation_percentage + GRAPH_PADDING,
     };
 
     draw_stroke(point_up, point_bottom, dashed_stroke);
@@ -216,7 +215,7 @@ fn draw_dashed_lines(animation_percentage: f32, frame: &mut Frame<Renderer>) {
         };
 
         let point_right = Point {
-            x: GRAPH_WIDGET_WIDTH - GRAPH_PADDING,
+            x: CHART_WIDGET_WIDTH - GRAPH_PADDING,
             y: Point::ORIGIN.y + current_y,
         };
 
@@ -428,7 +427,7 @@ fn draw_cursor_information(
 
     //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
     let block_height =
-        (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+        (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
     let chopped_y_values = chop_weights(graph_widget_state, y_values);
 
     let min_y: Kg = (chopped_y_values
@@ -449,7 +448,7 @@ fn draw_cursor_information(
     let x_axis_padding = block_height;
 
     let height_graph_from_min_to_max: f32 =
-        GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
+        CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
 
     if graph_bounds.contains(cursor.position().unwrap_or_default()) {
         let cursor_position_in_graph =
@@ -472,7 +471,7 @@ fn draw_cursor_information(
         let cursor_information_position =
             if let Some(mut position) = cursor.position_from(graph_origin) {
                 position.y = position.y
-                    + (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0)
+                    + (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0)
                     + information_offset_from_cursor_y;
                 position.x += information_offset_from_cursor_x;
                 position
@@ -550,9 +549,9 @@ fn draw_axis_labels(
         _ => MAX_X_LABELS, //MAX X-AXIS LABLES
     };
 
-    let block_width = (GRAPH_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / number_labels as f32; //division with 0 is not possible since limit is 1
+    let block_width = (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / number_labels as f32; //division with 0 is not possible since limit is 1
     let mut current_x = Point::ORIGIN.x + GRAPH_PADDING + block_width;
-    let height_text = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING / 2.0;
+    let height_text = CHART_WIDGET_HEIGHT - GRAPH_PADDING / 2.0;
 
     let chopped_dates = chop_dates(graph_widget_state, extract_dates(exercise_data_points));
     let amount_points = chopped_dates.len();
@@ -610,12 +609,12 @@ fn draw_axis_labels(
         / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
     let delta = max_y - min_y;
     let block_height =
-        (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+        (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
     let x_axis_padding = block_height;
     let height_padding_for_arrow = block_height;
-    let start_point_labels = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING - x_axis_padding;
+    let start_point_labels = CHART_WIDGET_HEIGHT - GRAPH_PADDING - x_axis_padding;
     let height_graph_from_min_to_max: f32 =
-        GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
+        CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
 
     let label_amount = FREQUENCY_OF_Y_AXIS_LABELS - 1; //since on label is used for the "kg" label at the top of the graph, the amount has to be decreased by 1
 
@@ -695,11 +694,11 @@ fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) ->
 
     //PADDING LEFT AND RIGHT: LEFT FOR Y_LABELS, RIGHT FOR FREE SPACE
     let block_width =
-        (GRAPH_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / graph_widget_state.points_to_draw as f32; //division with 0 is not possible since limit is 1
+        (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / graph_widget_state.points_to_draw as f32; //division with 0 is not possible since limit is 1
     //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
     let block_height =
-        (GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
-    let mut current_x = GRAPH_WIDGET_WIDTH - GRAPH_PADDING;
+        (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+    let mut current_x = CHART_WIDGET_WIDTH - GRAPH_PADDING;
 
     //I can unwrap() since the function is not going to get called if exercises.len() = 0
     let min_y: Kg = (chopped_y_values
@@ -726,8 +725,8 @@ fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) ->
     let height_padding_for_arrow = block_height;
     let x_axis_padding = block_height;
     let height_graph: f32 =
-        GRAPH_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
-    let lowest_point_graph: f32 = GRAPH_WIDGET_HEIGHT - GRAPH_PADDING - x_axis_padding;
+        CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
+    let lowest_point_graph: f32 = CHART_WIDGET_HEIGHT - GRAPH_PADDING - x_axis_padding;
 
     //FORMULA: lowest_point-(y_min - current_y)/(max_y - min_y) * height_graph
     let calculate_graph_value =
@@ -824,8 +823,8 @@ impl canvas::Program<Message> for GraphWidget<'_> {
             .draw(renderer, bounds.size(), |frame| {
                 //TODO: Find right frame center to centrate "NO DATA" text
                 //FRAME CENTER
-                let center_x = GRAPH_WIDGET_WIDTH / 2.0 - INDENT;
-                let center_y = GRAPH_WIDGET_HEIGHT / 2.0;
+                let center_x = CHART_WIDGET_WIDTH / 2.0 - INDENT;
+                let center_y = CHART_WIDGET_HEIGHT / 2.0;
                 let center = Point {
                     x: center_x,
                     y: center_y,
@@ -947,26 +946,7 @@ impl canvas::Program<Message> for GraphWidget<'_> {
     }
 }
 
-pub fn graph_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
-    let default_padding = 30.0;
-    let title: Element<'a, Message> = format_button_text(iced::widget::text("PRs").size(40)).into();
-    let search_bar: Element<Message> = combo_box(
-        &app.exercise_manager.tracked_exercise_state,
-        "Search Exercise...",
-        Some(&app.exercise_manager.selected_exercise_name),
-        Message::SelectExercise,
-    )
-    .menu_style(bb_theme::combo_box::create_menu_style(
-        &app.mascot_manager.selected_mascot,
-    ))
-    .input_style(bb_theme::combo_box::create_text_input_style(
-        &app.mascot_manager.selected_mascot,
-    ))
-    .font(text_format::FIRA_SANS_EXTRABOLD)
-    .width(Length::Fixed(250.0))
-    .padding([8, 16])
-    .into();
-
+pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
     let mut counter = format_button_text(text!("{}", app.graph_widget_state.points_to_draw));
     counter = counter.size(19);
 
@@ -1003,45 +983,5 @@ pub fn graph_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         ))
         .width(Length::Fixed(100.0));
 
-    let graph_widget = GraphWidget::new(app);
-
-    let exercise_stats = exercise_stat_column(app)
-        .width(Length::Fixed(GRAPH_WIDGET_WIDTH))
-        .padding(Padding {
-            top: 0.0,
-            right: default_padding,
-            bottom: default_padding,
-            left: default_padding,
-        });
-
-    let header_row = Row::new()
-        .width(Length::Fixed(GRAPH_WIDGET_WIDTH))
-        .push(Space::with_width(Length::FillPortion(1)))
-        .push(title)
-        .push(Space::with_width(Length::FillPortion(1)))
-        .push(counter_with_buttons)
-        .push(Space::with_width(Length::FillPortion(3)))
-        .push(search_bar)
-        .push(Space::with_width(Length::FillPortion(1)))
-        .align_y(Vertical::Center);
-
-    let contents = Column::new()
-        .width(Length::Shrink)
-        .push(header_row)
-        .push(graph_widget.view())
-        .push(exercise_stats)
-        .padding(Padding {
-            top: default_padding / 2.0,
-            ..Default::default()
-        })
-        .align_x(Horizontal::Center);
-
-    container(contents)
-        .width(Length::Shrink)
-        .style(bb_theme::container::create_container_style(
-            ContainerStyle::Default,
-            None,
-            None,
-        ))
-        .into()
+    counter_with_buttons.into()
 }
