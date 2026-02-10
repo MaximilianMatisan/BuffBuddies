@@ -59,6 +59,7 @@ pub enum Message {
     SelectExercise(String),
     Graph(GraphMessage),
     AddUserAsFriend(String),
+    RemoveUserAsFriend(String),
     ViewProfile(UserType),
     ResetPopUp,
     Settings(SettingsMessage),
@@ -287,6 +288,10 @@ impl App {
                     Task::none()
                 }
             }
+            Message::RemoveUserAsFriend(username) => {
+                self.user_manager.remove_user_as_friend(&username);
+                Task::none() //TODO remove friend on server
+            }
             Message::ViewProfile(user_type) => {
                 match user_type {
                     UserType::Own => {
@@ -437,7 +442,7 @@ impl App {
                         self,
                         &self.user_manager.user_info,
                         &self.mascot_manager.owned_mascots,
-                        &self.user_manager.user_info.favorite_mascot,
+                        false,
                     )),
                     UserType::Other(username) => {
                         let viewed_profile = self.user_manager.get_user_by_username(username);
@@ -447,7 +452,7 @@ impl App {
                                 self,
                                 &profile.user_information,
                                 &profile.owned_mascots,
-                                &profile.user_information.favorite_mascot,
+                                profile.friends_with_active_user,
                             )
                         })
                     }
