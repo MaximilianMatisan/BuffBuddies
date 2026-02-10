@@ -10,18 +10,19 @@ use crate::client::gui::size::LARGE_PROFILE_PICTURE_DIMENSION;
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use crate::common::user_mod::user::UserInformation;
+use crate::common::user_mod::user::{ForeignUser, UserInformation};
 use iced::Element;
 use iced::widget::{Column, Container, Row, Space, column, container, image, row, text};
 use iced_core::Length;
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
+use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle};
 
 pub fn view_profile<'a>(
     app: &'a App,
     user: &'a UserInformation,
     owned_mascots: &[Mascot],
-    favorite_mascot: &Mascot,
+    friends_with_logged_in_user: bool,
 ) -> Element<'a, Message> {
     let profile_picture = container(
         image(&user.profile_picture_handle)
@@ -30,11 +31,26 @@ pub fn view_profile<'a>(
     )
     .padding([0, 40]);
 
-    let username: Element<Message> = text(&user.username)
-        .font(FIRA_SANS_EXTRABOLD)
-        .color(TEXT_COLOR)
-        .size(40)
-        .into();
+    let mut username = Row::new()
+        .push(
+            text(&user.username)
+                .font(FIRA_SANS_EXTRABOLD)
+                .color(TEXT_COLOR)
+                .size(40)
+        );
+
+    if friends_with_logged_in_user {
+        let delete_friend_button = create_text_button(
+            &user.favorite_mascot,
+            "Remove Friend".to_string(),
+            ButtonStyle::InactiveSolid,
+            None
+        ).on_press(Message::RemoveUserAsFriend(user.username.clone()));
+
+        username = username
+            .push(Space::with_width(Length::Fill))
+            .push(delete_friend_button).align_y(Vertical::Center);
+    }
 
     let description_container: Container<Message> =
         container(format_description_text(text(&user.description)))
@@ -125,7 +141,7 @@ pub fn view_profile<'a>(
         .spacing(INDENT);
 
     let favorite_mascot_image =
-        image(favorite_mascot.get_file_path()).height(PROFILE_STAT_CONTAINER_HEIGHT * 2.0 + INDENT);
+        image(user.favorite_mascot.get_file_path()).height(PROFILE_STAT_CONTAINER_HEIGHT * 2.0 + INDENT);
     let favorite_mascot_component = Column::new()
         .push(
             text("Favorite Mascot")
