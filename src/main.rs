@@ -27,13 +27,13 @@ fn input_launch_type() -> LaunchType {
     }
 }
 
-#[tokio::main]
-pub async fn main() -> iced::Result {
+pub fn main() -> iced::Result {
+    //TODO replace with 2 separate binaries in the future
     match input_launch_type() {
         LaunchType::Client => client_main(),
         LaunchType::Server => {
-            let server = server_main();
-            server.await;
+            let runtime = tokio::runtime::Runtime::new().unwrap();
+            runtime.block_on(server_main());
             Ok(())
         }
     }
