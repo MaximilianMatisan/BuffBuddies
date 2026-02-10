@@ -1,18 +1,12 @@
 use crate::client::backend::exercise_manager::ExerciseManager;
-use crate::client::gui::app::App;
-use crate::client::gui::bb_theme;
-use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
-use crate::client::gui::bb_theme::text_format::format_button_text;
+use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_theme::{color, text_format};
-use crate::client::gui::bb_widget::stats::exercise_stat_column;
+use crate::client::gui::bb_widget::chart::{CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::client::gui::user_interface::Message;
 use crate::common::exercise_mod::exercise;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::Element;
-use iced::widget::combo_box;
-use iced::widget::{Column, Row, Space, container};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::border::Radius;
 use iced_core::layout::{Limits, Node};
@@ -20,11 +14,9 @@ use iced_core::mouse::Cursor;
 use iced_core::renderer::{Quad, Style};
 use iced_core::widget::Tree;
 use iced_core::{
-    Border, Layout, Length, Padding, Point, Rectangle, Size, Text, Theme, Widget, renderer, text,
+    Border, Layout, Length, Point, Rectangle, Size, Text, Theme, Widget, renderer, text,
 };
 
-const PROGRESS_WIDGET_WIDTH: f32 = 700.0;
-const PROGRESS_WIDGET_HEIGHT: f32 = 500.0;
 const LINE_THICKNESS: f32 = 3.0;
 const MOUSE_HIGHLIGHT_LINE_THICKNESS: f32 = 3.0;
 const AXIS_FONT_SIZE: f32 = 12.0;
@@ -48,10 +40,10 @@ impl<'a, Renderer> ProgressWidget<'a, Renderer>
 where
     Renderer: text::Renderer<Font = iced::Font>,
 {
-    fn new(active_mascot: Mascot, exercise_manager: &'a ExerciseManager) -> Self {
+    pub fn new(active_mascot: Mascot, exercise_manager: &'a ExerciseManager) -> Self {
         ProgressWidget {
-            width: PROGRESS_WIDGET_WIDTH,
-            height: PROGRESS_WIDGET_HEIGHT,
+            width: CHART_WIDGET_WIDTH,
+            height: CHART_WIDGET_HEIGHT,
             active_mascot,
             exercise_manager,
             font: text_format::FIRA_SANS_EXTRABOLD,
@@ -63,69 +55,6 @@ where
     pub fn get_width(&self) -> f32 {
         self.width
     }
-}
-pub fn progress_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
-    let default_padding = 30.0;
-    let title: Element<'a, Message> =
-        format_button_text(iced::widget::text("Progress").size(40)).into();
-    let search_bar: Element<Message> = combo_box(
-        &app.exercise_manager.tracked_exercise_state,
-        "Search Exercise...",
-        Some(&app.exercise_manager.selected_exercise_name),
-        Message::SelectExercise,
-    )
-    .menu_style(bb_theme::combo_box::create_menu_style(
-        &app.mascot_manager.selected_mascot,
-    ))
-    .input_style(bb_theme::combo_box::create_text_input_style(
-        &app.mascot_manager.selected_mascot,
-    ))
-    .font(text_format::FIRA_SANS_EXTRABOLD)
-    .width(Length::Fixed(250.0))
-    .padding([8, 16])
-    .into();
-
-    let progress_widget =
-        ProgressWidget::new(app.mascot_manager.selected_mascot, &app.exercise_manager);
-
-    let exercise_stats = exercise_stat_column(app)
-        .width(Length::Fixed(progress_widget.get_width()))
-        .padding(Padding {
-            top: 0.0,
-            right: default_padding,
-            bottom: default_padding,
-            left: default_padding,
-        });
-
-    let header_row = Row::new()
-        .width(Length::Fixed(progress_widget.get_width()))
-        .push(Space::with_width(Length::FillPortion(1)))
-        .push(title)
-        .push(Space::with_width(Length::FillPortion(3)))
-        .push(search_bar)
-        .push(Space::with_width(Length::FillPortion(1)))
-        .align_y(Vertical::Center);
-
-    let contents = Column::new()
-        .width(Length::Shrink)
-        .push(header_row)
-        .push(Space::with_height(Length::Fixed(15.0)))
-        .push(progress_widget)
-        .push(exercise_stats)
-        .padding(Padding {
-            top: default_padding / 2.0,
-            ..Default::default()
-        })
-        .align_x(Horizontal::Center);
-
-    container(contents)
-        .width(Length::Shrink)
-        .style(bb_theme::container::create_container_style(
-            ContainerStyle::Default,
-            None,
-            None,
-        ))
-        .into()
 }
 impl<Message, Renderer> Widget<Message, Theme, Renderer> for ProgressWidget<'_, Renderer>
 where
