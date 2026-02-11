@@ -245,7 +245,7 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
     };
 
     let y_axis_arrow_padding =
-        (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+        (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 
     let range = match graph_widget_state.points_to_draw {
         ..=MAX_VERTICAL_LINES => graph_widget_state.points_to_draw,
