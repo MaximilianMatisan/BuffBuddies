@@ -534,5 +534,8 @@ pub fn client_main() -> iced::Result {
     };
     iced::application("BuffBuddies", App::update, App::view)
         .window(settings)
+        .font(include_bytes!(
+            "../../../assets/Fira_Sans/FiraSans-ExtraBold.ttf"
+        ))
         .run_with(|| (App::default(), Task::none()))
 }

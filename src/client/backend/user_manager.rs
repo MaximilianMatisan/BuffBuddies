@@ -160,7 +160,7 @@ impl UserManager {
             .collect()
     }
 
-    /// Returns whether deletion was successful or not
+    /// Returns whether adding a friend was successful or not
     pub fn add_user_as_friend(&mut self, username: &str) -> bool {
         let user_opt = self.get_user_by_username_mut(username);
 
