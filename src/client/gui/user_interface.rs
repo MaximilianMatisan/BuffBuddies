@@ -282,10 +282,15 @@ impl App {
                     GraphMessage::ToggleCursor => {
                         self.graph_widget_state.invert_visible_cursor_information()
                     }
+
+                    GraphMessage::ToggleVerticalLines => {
+                        self.graph_widget_state.invert_visible_vertical_lines()
+                    }
                     _other_key_enums => {}
                 };
                 Task::none()
             }
+
             Message::ChangeShownChartType(chart_type) => {
                 self.graph_widget_state.shown_chart_type = chart_type;
                 Task::none()

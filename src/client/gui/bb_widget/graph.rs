@@ -43,6 +43,7 @@ const FREQUENCY_OF_Y_AXIS_LABELS: u32 = 12;
 const AXIS_THICKNESS: f32 = 5.0;
 pub const MAX_AMOUNT_POINTS: u8 = 40;
 pub const MAX_X_LABELS: u8 = 11;
+pub const MAX_VERTICAL_LINES: u8 = 14;
 
 #[derive(Clone, Debug)]
 pub enum GraphMessage {
@@ -53,6 +54,7 @@ pub enum GraphMessage {
     UpdateAnimatedSelection(iced_anim::Event<f32>),
     ToggleDots,
     ToggleCursor,
+    ToggleVerticalLines,
 }
 
 #[derive(Default)]
@@ -61,6 +63,7 @@ pub struct GraphWidgetState {
     pub animation_progress: Animated<f32>,
     visible_points: bool,
     visible_cursor_information: bool,
+    visible_vertical_lines: bool,
     points_to_draw: u8,
     pub shown_chart_type: ChartTypes,
 }
@@ -77,6 +80,7 @@ impl GraphWidgetState {
             animation_progress: Animated::new(0.0, animation_motion),
             visible_points: true,
             visible_cursor_information: true,
+            visible_vertical_lines: true,
             points_to_draw: 9,
             shown_chart_type: ChartTypes::default(),
         }
@@ -86,6 +90,10 @@ impl GraphWidgetState {
     }
     pub fn invert_visible_cursor_information(&mut self) {
         self.visible_cursor_information = !self.visible_cursor_information
+    }
+
+    pub fn invert_visible_vertical_lines(&mut self) {
+        self.visible_vertical_lines = !self.visible_vertical_lines
     }
 
     pub(crate) fn increment_counter(&mut self) {
@@ -130,13 +138,14 @@ impl<'a> GraphWidget<'a> {
     }
 }
 
-fn draw_dashed_lines(animation_percentage: f32, frame: &mut Frame<Renderer>) {
-    let gradient_padding = GRAPH_PADDING + 6.0;
+fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Renderer>) {
+    let horizontal_gradient_padding = GRAPH_PADDING + 6.0;
+    let vertical_gradient_padding = GRAPH_PADDING + 10.0;
 
-    let gradient = Gradient::Linear(
+    let horizontal_gradient = Gradient::Linear(
         Linear::new(
             Point {
-                x: gradient_padding,
+                x: horizontal_gradient_padding,
                 y: frame.height() / 2.0,
             },
             Point {
@@ -173,44 +182,110 @@ fn draw_dashed_lines(animation_percentage: f32, frame: &mut Frame<Renderer>) {
         ]),
     );
 
-    let dashed_stroke = Stroke {
+    let vertical_gradient = Gradient::Linear(
+        Linear::new(
+            Point {
+                x: frame.width() / 2.0,
+                y: vertical_gradient_padding,
+            },
+            Point {
+                x: frame.width() / 2.0,
+                y: frame.height() - vertical_gradient_padding,
+            },
+        )
+        .add_stops([
+            // FADE IN
+            ColorStop {
+                offset: 0.0,
+                color: Color {
+                    a: 0.0,
+                    ..DASHED_LINES_COLOR
+                },
+            },
+            //ACTUAL COLOR
+            ColorStop {
+                offset: 0.1,
+                color: DASHED_LINES_COLOR,
+            },
+            ColorStop {
+                offset: 0.9,
+                color: DASHED_LINES_COLOR,
+            },
+            // FADE OUT
+            ColorStop {
+                offset: 1.0,
+                color: Color {
+                    a: 0.0,
+                    ..DASHED_LINES_COLOR
+                },
+            },
+        ]),
+    );
+
+    let hotizontal_dashed_stroke = Stroke {
         width: 2.0,
         line_cap: LineCap::Round,
         line_join: LineJoin::Round,
-        style: stroke::Style::Gradient(gradient),
+        style: stroke::Style::Gradient(horizontal_gradient),
         line_dash: LineDash {
             segments: &[2.0, 6.0], // LINE LENGTH , GAP LENGTH
             offset: 0,
         },
     };
 
+    let vertical_dashed_stroke = Stroke {
+        width: 2.0,
+        line_cap: LineCap::Round,
+        line_join: LineJoin::Round,
+        style: stroke::Style::Gradient(vertical_gradient),
+        line_dash: LineDash {
+            segments: &[2.0, 6.0], // LINE LENGTH , GAP LENGTH
+            offset: 0,
+        },
+    };
+
+    let y_axis_arrow_padding =
+        (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+
+    let range = match graph_widget_state.points_to_draw {
+        ..=MAX_VERTICAL_LINES => graph_widget_state.points_to_draw,
+        _ => MAX_VERTICAL_LINES,
+    };
+
+    //PADDING LEFT AND RIGHT: LEFT FOR Y_LABELS, RIGHT FOR FREE SPACE
+    let block_width = (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / range as f32; //division with 0 is not possible since limit is 1
     //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
     let block_height =
         (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 
-    let current_x = CHART_WIDGET_WIDTH - GRAPH_PADDING; //START OF GRAPH
-    let mut current_y = Point::ORIGIN.y + GRAPH_PADDING;
+    let mut current_x = CHART_WIDGET_WIDTH - GRAPH_PADDING; //START OF GRAPH
+    let mut current_y = Point::ORIGIN.y + GRAPH_PADDING + y_axis_arrow_padding;
 
     let mut draw_stroke = |start: Point, end: Point, stroke: Stroke| {
         frame.stroke(&Path::line(start, end), stroke);
     };
 
-    //VERTICAL LINE
-    let point_up = Point {
-        x: Point::ORIGIN.x + current_x,
-        y: Point::ORIGIN.y + GRAPH_PADDING,
-    };
+    //VERTICAL LINES
+    if graph_widget_state.visible_vertical_lines {
+        for _line in 1..=range {
+            let point_up = Point {
+                x: Point::ORIGIN.x + current_x,
+                y: Point::ORIGIN.y + GRAPH_PADDING,
+            };
 
-    let point_bottom = Point {
-        x: Point::ORIGIN.x + current_x,
-        y: (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) * animation_percentage + GRAPH_PADDING,
-    };
+            let point_bottom = Point {
+                x: Point::ORIGIN.x + current_x,
+                y: CHART_WIDGET_WIDTH - GRAPH_PADDING,
+            };
 
-    draw_stroke(point_up, point_bottom, dashed_stroke);
-
+            draw_stroke(point_up, point_bottom, vertical_dashed_stroke);
+            current_x -= block_width;
+        }
+    }
     //HORIZONTAL LINES
 
-    for _line in 1..=FREQUENCY_OF_Y_AXIS_LABELS {
+    for _line in 1..=FREQUENCY_OF_Y_AXIS_LABELS - 1 {
+        // -1 since we the dashed line at the height of the y-axis arrow should not be drawn
         let point_left = Point {
             x: Point::ORIGIN.x + GRAPH_PADDING,
             y: Point::ORIGIN.y + current_y,
@@ -221,7 +296,7 @@ fn draw_dashed_lines(animation_percentage: f32, frame: &mut Frame<Renderer>) {
             y: Point::ORIGIN.y + current_y,
         };
 
-        draw_stroke(point_left, point_right, dashed_stroke);
+        draw_stroke(point_left, point_right, hotizontal_dashed_stroke);
         current_y += block_height;
     }
 }
@@ -275,7 +350,7 @@ fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<
     );
 
     //ARROW - Y
-    let distance_from_tip = 10.0;
+    let distance_from_tip = 10.0 * animation_progress;
 
     let y_tip = Point {
         x: Point::ORIGIN.x + GRAPH_PADDING,
@@ -355,9 +430,7 @@ fn draw_connections(
     y_values: Vec<f32>,
     mascot: &Mascot,
 ) {
-
-
-    let points = calculate_points(graph_widget_state, y_values);
+    let mut points = calculate_points(graph_widget_state, y_values);
     let base_size_stroke = 1.5;
     let max_size_stroke = 4.2;
     let range_size_stroke = max_size_stroke - base_size_stroke;
@@ -378,7 +451,7 @@ fn draw_connections(
         width: (stroke_size + 2.0) * graph_widget_state.animation_progress.value(),
         line_cap: LineCap::Round,
         line_join: LineJoin::Round,
-        style: stroke::Style::Solid(Color{
+        style: stroke::Style::Solid(Color {
             r: 0.0,
             g: 0.0,
             b: 0.0,
@@ -387,6 +460,13 @@ fn draw_connections(
         line_dash: Default::default(),
     };
 
+    //first point connecting first point in points with the y-axis (same height as first point)
+    let point_on_y_axis = Point {
+        x: Point::ORIGIN.x + GRAPH_PADDING,
+        y: points[0].y, //it is sure that there is at least one point since the function doesn't get called if length() < 1
+    };
+
+    points.insert(0, point_on_y_axis);
 
     let point_tuples = points
         .iter()
@@ -404,24 +484,19 @@ fn draw_connections(
         })
         .collect::<Vec<(Point, Point)>>();
 
-    //draw start line (line should be at the same height of first point)
-    let point_on_y_axis = Point {
-        x: Point::ORIGIN.x + GRAPH_PADDING,
-        y: points[0].y, //it is sure that there is at least one point since the function doesn't get called if length() < 1
-    };
+    let shadow_offset = 5.0;
 
-    frame.stroke(
-        &Path::line(point_on_y_axis, points[0]), //it is sure that there is at least one point since the function doesn't get called if length() < 1
-        connection_stroke,
-    );
-
-    let shadow_point_tuples =
-    point_tuples
+    let shadow_point_tuples = point_tuples
         .iter()
         .map(|(p_start, p_end)| {
-            let shadow_offset = 5.0;
-            let shadow_start = Point{x: p_start.x + shadow_offset, y: p_start.y + shadow_offset};
-            let shadow_end = Point{x: p_end.x + shadow_offset, y: p_end.y + shadow_offset};
+            let shadow_start = Point {
+                x: p_start.x + shadow_offset,
+                y: p_start.y + shadow_offset,
+            };
+            let shadow_end = Point {
+                x: p_end.x + shadow_offset,
+                y: p_end.y + shadow_offset,
+            };
 
             (shadow_start, shadow_end)
         })
@@ -937,7 +1012,7 @@ impl canvas::Program<Message> for GraphWidget<'_> {
                         );
 
                         //DASHED LINES
-                        draw_dashed_lines(*self.graph_state.animation_progress.value(), frame);
+                        draw_dashed_lines(self.graph_state, frame);
 
                         //CONNECTIONS BETWEEN POINTS
                         draw_connections(
@@ -1034,6 +1109,14 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
     )
     .on_press(Message::Graph(GraphMessage::ToggleCursor));
 
+    let toggle_vertical_lines = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        "Toggle vertical lines".to_string(),
+        ButtonStyle::Active,
+        Some(10.0.into()),
+    )
+    .on_press(Message::Graph(GraphMessage::ToggleVerticalLines));
+
     let settings_row = Row::new()
         .width(Length::Fixed(CHART_WIDGET_WIDTH))
         .push(Space::with_width(Length::FillPortion(1)))
@@ -1042,6 +1125,8 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         .push(toggle_dots_button)
         .push(Space::with_width(Length::FillPortion(1)))
         .push(toggle_cursor_button)
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(toggle_vertical_lines)
         .push(Space::with_width(Length::FillPortion(9)))
         .align_y(Vertical::Bottom);
 
