@@ -73,6 +73,10 @@ impl MascotTrait for RareMascot {
             RareMascot::Whale => color!(30, 86, 141),
         }
     }
+
+    fn get_prize(&self) -> u32 {
+        50
+    }
 }
 
 impl RareMascot {

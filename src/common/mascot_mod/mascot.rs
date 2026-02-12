@@ -77,6 +77,13 @@ impl MascotTrait for Mascot {
             Mascot::Epic(epic_mascot) => epic_mascot.get_dark_color(),
         }
     }
+
+    fn get_prize(&self) -> u32 {
+        match self {
+            Mascot::Rare(rare_mascot) => rare_mascot.get_prize(),
+            Mascot::Epic(epic_mascot) => epic_mascot.get_prize(),
+        }
+    }
 }
 
 impl From<RareMascot> for Mascot {

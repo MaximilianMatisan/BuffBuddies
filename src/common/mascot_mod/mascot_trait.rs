@@ -6,4 +6,5 @@ pub trait MascotTrait {
     fn get_primary_color(&self) -> Color;
     fn get_secondary_color(&self) -> Color;
     fn get_dark_color(&self) -> Color;
+    fn get_prize(&self) -> u32;
 }
