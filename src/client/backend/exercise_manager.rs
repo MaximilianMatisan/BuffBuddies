@@ -173,7 +173,7 @@ impl ExerciseManager {
         &mut self,
         workout: &Vec<ExerciseCreate>,
         user_info: &mut UserInformation,
-    ) -> Result<(), ()> {
+    ) -> Result<bool, ()> {
         let mut first_workout_today: bool = true;
         let local_time = Local::now().date_naive();
         for exercise_data in &mut self.exercises {
@@ -206,7 +206,7 @@ impl ExerciseManager {
         self.update_selected_exercise(self.selected_exercise_name.clone());
         user_info.profile_stat_manager = ProfileStatManager::new(&self.exercises);
         self.tracked_exercise_state = get_combo_box_tracked_exercise_state(&self.exercises);
-        Ok(())
+        Ok(first_workout_today)
     }
 
     pub fn clear_workout(&mut self) {

@@ -536,7 +536,7 @@ pub async fn add_exercise_log(
     exercise_name: &str,
     reps: i64,
     weight: f32,
-    date: &str,
+    date: NaiveDate,
 ) -> Result<(), sqlx::Error> {
     let row = sqlx::query("SELECT id from exercise WHERE name = ?")
         .bind(exercise_name)
@@ -544,12 +544,12 @@ pub async fn add_exercise_log(
         .await?;
 
     let id: i64 = row.get("id");
-
+    let date_str = date.format("%d.%m.%y").to_string();
     sqlx::query(
         "INSERT INTO exerciseLog (date, username, reps, exercise_id, weight_in_kg)
             VALUES (?, ?, ?, ?, ?)",
     )
-    .bind(date)
+    .bind(date_str)
     .bind(username)
     .bind(reps)
     .bind(id)
@@ -752,13 +752,29 @@ pub async fn test_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         "Internal Rotation with Band",
         100,
         60.0,
-        "10.10.01",
+        NaiveDate::from_ymd_opt(2025, 10, 10).unwrap(),
     )
     .await?;
 
-    add_exercise_log(pool, "felix", "Incline Bench Pull", 100, 60.0, "10.10.01").await?;
+    add_exercise_log(
+        pool,
+        "felix",
+        "Incline Bench Pull",
+        100,
+        60.0,
+        NaiveDate::from_ymd_opt(2025, 10, 10).unwrap(),
+    )
+    .await?;
 
-    add_exercise_log(pool, "felix", "Incline Bench Pull", 100, 100.0, "11.11.01").await?;
+    add_exercise_log(
+        pool,
+        "felix",
+        "Incline Bench Pull",
+        100,
+        100.0,
+        NaiveDate::from_ymd_opt(2025, 10, 10).unwrap(),
+    )
+    .await?;
 
     let felix_foreign_user = get_single_foreign_user(pool, "robert", "felix").await?;
 

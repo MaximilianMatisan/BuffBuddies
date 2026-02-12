@@ -1,13 +1,18 @@
+use crate::server::database_mod::database::{
+    add_exercise_log, get_user_coin_balance, update_user_coin_balance,
+};
+use crate::server::jwt::user_authentication_request_path::UserAuthenticationRequestPath;
 use crate::server::server_main::ApiError;
 use axum::Json;
 use axum::extract::State;
+use chrono::Local;
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct WorkoutJson {
-    username: String,
     workout: Vec<ExerciseJson>,
+    first_workout: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -23,10 +28,27 @@ pub struct SetJson {
 }
 
 pub async fn save_workout(
-    State(_state): State<SqlitePool>,
+    user_authentication: UserAuthenticationRequestPath,
+    State(pool): State<SqlitePool>,
     Json(workout): Json<WorkoutJson>,
 ) -> Result<(), ApiError> {
-    //TODO add to database
-    println!("Workout received for: {}", workout.username);
+    for exercise in workout.workout {
+        for set in exercise.sets {
+            add_exercise_log(
+                &pool,
+                &user_authentication.username,
+                &exercise.name,
+                set.reps as i64,
+                set.weight,
+                Local::now().date_naive(),
+            )
+            .await?;
+        }
+    }
+    if workout.first_workout {
+        let current_coins = get_user_coin_balance(&pool, &user_authentication.username).await?;
+        update_user_coin_balance(&pool, &user_authentication.username, current_coins + 5).await?;
+    }
+    println!("{}: Workout received", user_authentication.username);
     Ok(())
 }

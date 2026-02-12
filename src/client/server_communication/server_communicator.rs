@@ -46,14 +46,13 @@ pub enum SaveWorkoutError {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct WorkoutJson {
-    username: String,
     workout: Vec<ExerciseJson>,
+    first_workout: bool,
 }
 
 impl WorkoutJson {
-    pub fn new(username: String, workout: Vec<ExerciseCreate>) -> Self {
+    pub fn new(workout: Vec<ExerciseCreate>, first_workout: bool) -> Self {
         WorkoutJson {
-            username,
             workout: {
                 let mut workout_json = Vec::new();
                 for exercise in workout {
@@ -61,6 +60,7 @@ impl WorkoutJson {
                 }
                 workout_json
             },
+            first_workout,
         }
     }
 }
@@ -88,8 +88,8 @@ impl From<ExerciseCreate> for ExerciseJson {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SetJson {
-    weight: Kg,
-    reps: Reps,
+    pub(crate) weight: Kg,
+    pub(crate) reps: Reps,
 }
 
 impl From<StrengthSet> for SetJson {
@@ -102,13 +102,15 @@ impl From<StrengthSet> for SetJson {
 }
 
 pub async fn save_workout(
-    username: String,
+    jwt: String,
     workout: Vec<ExerciseCreate>,
+    first_workout: bool,
 ) -> Result<(), SaveWorkoutError> {
-    let workout_json: WorkoutJson = WorkoutJson::new(username, workout);
+    let workout_json: WorkoutJson = WorkoutJson::new(workout, first_workout);
     let res = reqwest::Client::new()
         .post("http://127.0.0.1:3000/workout/save")
         .json(&workout_json)
+        .header("Authorization", format!("Token {jwt}"))
         .send()
         .await;
     match res {

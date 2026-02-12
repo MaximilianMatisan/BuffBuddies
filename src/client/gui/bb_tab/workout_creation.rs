@@ -99,6 +99,15 @@ impl WorkoutCreationMessage {
                 Task::none()
             }
             WorkoutCreationMessage::FinishExerciseEdit => {
+                if let Some(workout) = workout_in_creation {
+                    let mut filtered_sets = Vec::new();
+                    for set in &workout[exercise_in_edit_number.unwrap() - 1].sets {
+                        if set.reps > 0 && set.weight > 0.0 {
+                            filtered_sets.push(set.clone());
+                        }
+                    }
+                    workout[exercise_in_edit_number.unwrap() - 1].sets = filtered_sets;
+                }
                 *exercise_in_edit_number = None;
                 *exercise_in_edit_strings = None;
                 Task::none()
@@ -162,14 +171,29 @@ impl WorkoutCreationMessage {
                 Task::none()
             }
             WorkoutCreationMessage::FinishWorkoutCreation => {
+                if let Some(num) = exercise_in_edit_number {
+                    if let Some(workout) = workout_in_creation {
+                        let mut filtered_sets = Vec::new();
+                        for set in &workout[*num - 1].sets {
+                            if set.reps > 0 && set.weight > 0.0 {
+                                filtered_sets.push(set.clone());
+                            }
+                        }
+                        workout[*num - 1].sets = filtered_sets;
+                    }
+                }
+
                 let mut err: bool = false;
                 let mut workout_clone: Option<Vec<ExerciseCreate>> = None;
+                let mut first_workout = false;
                 if let Some(workout) = &app.exercise_manager.workout_in_creation {
                     workout_clone = Some(workout.clone());
-                    if let Err(()) = app
+                    if let Ok(first_work) = app
                         .exercise_manager
                         .save_workout(&workout.clone(), &mut app.user_manager.user_info)
                     {
+                        first_workout = first_work;
+                    } else {
                         err = true;
                         app.pop_up_manager.new_pop_up(
                             PopUpType::Minor,
@@ -183,11 +207,19 @@ impl WorkoutCreationMessage {
                 app.screen = Tab::Workout;
                 if let Some(workout) = workout_clone {
                     if !err {
-                        let name_clone = app.user_manager.user_info.username.clone().to_string();
                         let workout_clone = workout.clone();
-                        return Task::perform(save_workout(name_clone, workout_clone), |result| {
-                            Message::SaveWorkout(result)
-                        });
+                        if let Some(jwt) = &app.jsonwebtoken {
+                            return Task::perform(
+                                save_workout(jwt.clone(), workout_clone, first_workout),
+                                Message::SaveWorkout,
+                            );
+                        } else {
+                            app.pop_up_manager.new_pop_up(
+                                PopUpType::Minor,
+                                "Buying Mascot failed!".to_string(),
+                                "Log in to buy mascots!".to_string(),
+                            );
+                        }
                     }
                 }
                 Task::none()
