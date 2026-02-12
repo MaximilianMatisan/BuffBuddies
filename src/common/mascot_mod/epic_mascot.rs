@@ -66,6 +66,10 @@ impl MascotTrait for EpicMascot {
             EpicMascot::Reindeer => color!(134, 34, 16),
         }
     }
+
+    fn get_prize(&self) -> u32 {
+        100
+    }
 }
 
 impl EpicMascot {

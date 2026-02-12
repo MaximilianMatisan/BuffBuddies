@@ -2,7 +2,6 @@ use crate::client::backend::exercise_create::ExerciseCreate;
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::login::{RequestValidUserAnswer, RequestValidUserError};
-use crate::common::mascot_mod::mascot::Mascot;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -37,23 +36,6 @@ pub async fn valid_login(login_request: LoginRequest) -> Result<String, RequestV
             RequestValidUserAnswer::Valid(jwt) => Ok(jwt),
         },
         Err(_e) => Err(RequestValidUserError::ServerError),
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum SaveMascotError {
-    ServerError,
-}
-
-pub async fn save_mascot(mascot: Mascot) -> Result<Mascot, SaveMascotError> {
-    let res = reqwest::Client::new()
-        .post("http://127.0.0.1:3000/mascot/save")
-        .json(&mascot)
-        .send()
-        .await;
-    match res {
-        Ok(_) => Ok(mascot),
-        Err(_server_error) => Err(SaveMascotError::ServerError),
     }
 }
 

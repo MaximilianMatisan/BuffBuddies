@@ -21,19 +21,20 @@ use crate::client::gui::bb_widget::social_elements::profile_tab_button;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::{bb_theme, size};
 use crate::client::server_communication::exercise_communicator::ServerRequestError;
-use crate::client::server_communication::mascot_communicator::update_selected_mascot_on_server;
+use crate::client::server_communication::mascot_communicator::{
+    buy_mascot, update_selected_mascot_on_server,
+};
 use crate::client::server_communication::request_data::{
     LoginServerRequestData, request_login_data,
 };
-use crate::client::server_communication::server_communicator::{
-    SaveMascotError, SaveWorkoutError, save_mascot, valid_login,
-};
+use crate::client::server_communication::server_communicator::{SaveWorkoutError, valid_login};
 use crate::client::server_communication::user_communicator::{
     add_foreign_user_as_friend_on_server, remove_foreign_user_as_friend_on_server,
 };
 use crate::common::login::RequestValidUserError;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::common::user_mod::friend_request::FriendRequest;
 use crate::common::user_mod::user::UserType;
@@ -51,7 +52,7 @@ pub enum Message {
     Select(Tab),
     Activity(ActivityMessage),
     BuyMascot(MascotRarity),
-    SaveMascot(Result<Mascot, SaveMascotError>),
+    SaveMascot(Result<Mascot, ServerRequestError>),
     SelectMascot(Mascot),
     TryRegister,
     TryLogin,
@@ -126,7 +127,16 @@ impl App {
                         }
                     };
                     if let Some(mascot) = mascot_maybe {
-                        Task::perform(save_mascot(mascot), Message::SaveMascot)
+                        if let Some(jwt) = &self.jsonwebtoken {
+                            Task::perform(buy_mascot(jwt.clone(), mascot), Message::SaveMascot)
+                        } else {
+                            self.pop_up_manager.new_pop_up(
+                                PopUpType::Minor,
+                                "Buying Mascot failed!".to_string(),
+                                "Log in to buy mascots!".to_string(),
+                            );
+                            Task::none()
+                        }
                     } else {
                         Task::none()
                     }
@@ -141,10 +151,7 @@ impl App {
             }
             Message::SaveMascot(Ok(mascot)) => {
                 self.loading = false;
-                match mascot {
-                    Mascot::Epic(_) => self.user_manager.user_info.coin_balance -= 100,
-                    Mascot::Rare(_) => self.user_manager.user_info.coin_balance -= 50,
-                }
+                self.user_manager.user_info.coin_balance -= mascot.get_prize();
                 self.mascot_manager.add_mascot(mascot);
                 Task::none()
             }

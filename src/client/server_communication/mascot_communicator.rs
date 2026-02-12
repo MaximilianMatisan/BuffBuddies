@@ -43,3 +43,16 @@ pub async fn update_selected_mascot_on_server(
 
     Ok(())
 }
+
+pub async fn buy_mascot(jwt: String, mascot: Mascot) -> Result<Mascot, ServerRequestError> {
+    let res = reqwest::Client::new()
+        .post("http://127.0.0.1:3000/mascot/buy")
+        .header("Authorization", format!("Token {jwt}"))
+        .json(&mascot)
+        .send()
+        .await;
+    match res {
+        Ok(_) => Ok(mascot),
+        Err(_server_error) => Err(ServerRequestError::CouldNotSendData),
+    }
+}
