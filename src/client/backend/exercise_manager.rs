@@ -216,7 +216,9 @@ impl ExerciseManager {
     }
 
     pub fn start_workout(&mut self) {
-        self.workout_in_creation = Some(Vec::new());
+        if self.workout_in_creation.is_none() {
+            self.workout_in_creation = Some(Vec::new());
+        }
     }
 
     pub fn get_last_done_set(&self, exercise: &String) -> Option<StrengthSet> {

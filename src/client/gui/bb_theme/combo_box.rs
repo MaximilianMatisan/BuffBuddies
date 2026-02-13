@@ -7,11 +7,14 @@ use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::overlay::menu;
 use iced::widget::text_input::Status;
 use iced::widget::{combo_box, text_input};
-use iced_core::{Background, Border, Theme};
+use iced_core::{Background, Border, Color, Theme};
 
-pub fn create_text_input_style(mascot: &Mascot) -> impl Fn(&Theme, Status) -> text_input::Style {
-    |_theme: &Theme, _status: Status| text_input::Style {
-        background: Background::Color(color::BACKGROUND_COLOR),
+pub fn create_text_input_style(
+    mascot: &Mascot,
+    background_color: Color,
+) -> impl Fn(&Theme, Status) -> text_input::Style {
+    move |_theme: &Theme, _status: Status| text_input::Style {
+        background: Background::Color(background_color),
         border: Border {
             color: Default::default(),
             width: 0.0,
