@@ -306,7 +306,7 @@ impl App {
             }
             Message::Circle(circle_message) => {
                 match circle_message {
-                    CircleMessage::UpdateAnimation(event) => {
+                    CircleMessage::UpdateCirlceAnimation(event) => {
                         self.circle_widget_state.animation_progress.update(event);
                         self.circle_widget_state.update_circle();
                         Task::none()
