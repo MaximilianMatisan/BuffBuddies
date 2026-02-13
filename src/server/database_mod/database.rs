@@ -135,6 +135,19 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     .execute(pool)
     .await?;
 
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS weightLog (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL,
+        username TEXT NOT NULL,
+        weight FLOAT NOT NULL,
+
+        FOREIGN KEY (username) REFERENCES users(username)
+    );",
+    )
+    .execute(pool)
+    .await?;
+
     Ok(())
 }
 
@@ -292,6 +305,81 @@ pub async fn update_user_description(
         .await?;
 
     Ok(())
+}
+#[allow(dead_code)]
+pub async fn add_weight_log(
+    pool: &SqlitePool,
+    username: &str,
+    weight: f32,
+    date: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "INSERT INTO weightLog (date, username, weight)
+         VALUES (?, ?, ?)",
+    )
+    .bind(date)
+    .bind(username)
+    .bind(weight)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+#[allow(dead_code)]
+pub async fn add_preset_to_user(
+    pool: &SqlitePool,
+    username: &str,
+    preset_id: i64,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "INSERT INTO user_preset (username, preset_id, times_preset_trained)
+                VALUES (?, ?,?)",
+    )
+    .bind(username)
+    .bind(preset_id)
+    .bind(0)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+#[allow(dead_code)]
+pub async fn increment_preset_trained_from_user(
+    pool: &SqlitePool,
+    username: &str,
+    preset_id: i64,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "UPDATE user_preset
+         SET times_preset_trained = times_preset_trained + 1
+         WHERE username = ? AND preset_id = ?",
+    )
+    .bind(username)
+    .bind(preset_id)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+#[allow(dead_code)]
+pub async fn get_preset_trained_from_user(
+    pool: &SqlitePool,
+    username: &str,
+    preset_id: i64,
+) -> Result<i64, sqlx::Error> {
+    let times_preset_trained_row = sqlx::query(
+        "SELECT times_preset_trained FROM user_preset WHERE username = ? AND preset_id = ? ",
+    )
+    .bind(username)
+    .bind(preset_id)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(match times_preset_trained_row {
+        Some(row) => row.get("times_preset_trained"),
+        None => 0,
+    })
 }
 
 pub async fn add_friend(
