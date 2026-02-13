@@ -84,7 +84,7 @@ pub fn exercise_stat_column(app: &App) -> Column<Message> {
     lines
 }
 
-const PROFILE_STAT_CONTAINER_WIDTH: f32 = 165.0;
+const PROFILE_STAT_CONTAINER_WIDTH: f32 = 150.0;
 pub const PROFILE_STAT_CONTAINER_HEIGHT: f32 = 180.0;
 
 pub fn profile_stat_container<'a>(
