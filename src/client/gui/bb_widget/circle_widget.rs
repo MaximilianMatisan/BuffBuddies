@@ -225,7 +225,7 @@ fn draw_circle_text(frame: &mut Frame, circle_widget: &CircleWidget) {
     draw_text(
         frame,
         String::from("workouts"),
-        FONT_SIZE_DESCRIPTION + 4.0,
+        FONT_SIZE_DESCRIPTION + 4.0, //MIDDLE TEXT SHOULD BE A LITTLE BIT BIGGER THAN THE LOWER TEXT
         circle_center,
     );
 
