@@ -40,7 +40,7 @@ fn general_exercise_info_element<'a>(
     show_extended: bool,
 ) -> Container<'a, Message> {
     let title_color = if exercise.is_tracked() {
-        active_mascot.get_primary_color()
+        active_mascot.get_secondary_color()
     } else {
         TEXT_COLOR
     };
