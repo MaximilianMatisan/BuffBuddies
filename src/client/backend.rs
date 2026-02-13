@@ -7,5 +7,5 @@ pub mod exercise_manager;
 pub mod image_manager;
 pub mod mascot_manager;
 pub mod user_manager;
-pub mod workout_preset_manager;
 pub mod widget_state_manager;
+pub mod workout_preset_manager;
