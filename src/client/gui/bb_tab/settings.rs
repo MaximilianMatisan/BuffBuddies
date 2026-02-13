@@ -349,7 +349,10 @@ impl SettingsMessage {
                         .unwrap_or(existing_user_info.height);
                     pending_info.height = new_height_integer;
                 }
-                app.widget_manager.bmi_widget_state.animation_progress.settle_at(0.0);
+                app.widget_manager
+                    .bmi_widget_state
+                    .animation_progress
+                    .settle_at(0.0);
             }
             SettingsMessage::EditWeight(new_weight) => {
                 if let Some((pending_info, pending_user_info_strings)) = pending_user_info_changes {
@@ -377,7 +380,10 @@ impl SettingsMessage {
                     let new_weight_float_shortened = (new_weight_float * 10.0).round() / 10.0;
                     pending_info.weight = new_weight_float_shortened;
                 }
-                app.widget_manager.bmi_widget_state.animation_progress.settle_at(0.0);
+                app.widget_manager
+                    .bmi_widget_state
+                    .animation_progress
+                    .settle_at(0.0);
             }
             SettingsMessage::EditWeeklyWorkoutGoal(new_goal) => {
                 if let Some((pending_info, pending_user_info_strings)) = pending_user_info_changes {

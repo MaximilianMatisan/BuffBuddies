@@ -14,6 +14,7 @@ use crate::client::gui::bb_theme::custom_button::{
 };
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
+use crate::client::gui::bb_widget::bmi_calculator::BMIMessage;
 use crate::client::gui::bb_widget::chart::ChartTypes;
 use crate::client::gui::bb_widget::circle_widget::CircleMessage;
 use crate::client::gui::bb_widget::graph::{GraphMessage, MAX_AMOUNT_POINTS};
@@ -47,7 +48,6 @@ use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
 use std::sync::Arc;
-use crate::client::gui::bb_widget::bmi_calculator::BMIMessage;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -66,7 +66,7 @@ pub enum Message {
     Graph(GraphMessage),
     ChangeShownChartType(ChartTypes),
     Circle(CircleMessage),
-    BMI(BMIMessage),
+    Bmi(BMIMessage),
     AddUserAsFriend(String),
     RemoveUserAsFriend(String),
     ViewProfile(UserType),
@@ -336,7 +336,7 @@ impl App {
                 }
             },
 
-            Message::BMI(bmi_message) => match bmi_message {
+            Message::Bmi(bmi_message) => match bmi_message {
                 BMIMessage::UpdateBMIAnimation(event) => {
                     self.widget_manager
                         .bmi_widget_state
@@ -512,6 +512,7 @@ impl App {
         let tab_window: Option<Element<Message>> = match self.screen {
             Tab::Home => Some(self.homescreen()),
             Tab::Workout => Some(self.workout_screen()),
+            Tab::Health => Some(self.health_screen()),
             Tab::Social => Some(self.social_screen()),
             Tab::Mascot => Some(self.mascot_screen()),
             Tab::Settings => Some(self.settings_screen()),
