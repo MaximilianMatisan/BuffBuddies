@@ -15,6 +15,7 @@ use crate::client::gui::bb_theme::custom_button::{
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
 use crate::client::gui::bb_widget::chart::ChartTypes;
+use crate::client::gui::bb_widget::circle_widget::CircleMessage;
 use crate::client::gui::bb_widget::graph::{GraphMessage, MAX_AMOUNT_POINTS};
 use crate::client::gui::bb_widget::pop_up::view_pop_up;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
@@ -46,7 +47,6 @@ use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
 use std::sync::Arc;
-use crate::client::gui::bb_widget::circle_widget::CircleMessage;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -304,15 +304,13 @@ impl App {
                 self.graph_widget_state.shown_chart_type = chart_type;
                 Task::none()
             }
-            Message::Circle(circle_message) => {
-                match circle_message {
-                    CircleMessage::UpdateCirlceAnimation(event) => {
-                        self.circle_widget_state.animation_progress.update(event);
-                        self.circle_widget_state.update_circle();
-                        Task::none()
-                    }
+            Message::Circle(circle_message) => match circle_message {
+                CircleMessage::UpdateCirlceAnimation(event) => {
+                    self.circle_widget_state.animation_progress.update(event);
+                    self.circle_widget_state.update_circle();
+                    Task::none()
                 }
-            }
+            },
 
             Message::AddUserAsFriend(username) => {
                 self.user_manager.add_user_as_friend(&username);

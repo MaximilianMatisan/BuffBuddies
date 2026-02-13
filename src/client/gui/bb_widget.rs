@@ -1,5 +1,7 @@
 pub mod activity_widget;
+mod canvas_utils;
 pub mod chart;
+pub mod circle_widget;
 pub mod general_exercise_info_elements;
 pub mod graph;
 pub mod new_widget;
@@ -10,5 +12,3 @@ pub mod social_elements;
 pub mod stats;
 pub mod widget_utils;
 pub mod workout;
-pub mod circle_widget;
-mod canvas_utils;
