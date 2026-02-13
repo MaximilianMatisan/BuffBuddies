@@ -1,3 +1,4 @@
+use std::cmp::max;
 use iced::mouse;
 use iced::widget::canvas;
 use iced::widget::canvas::{Cache, Frame, Geometry, Path, event};
@@ -187,7 +188,7 @@ fn draw_bmi_arcs(
             let start_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(index,DegreeOffsetType::Start);
             let end_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(index,DegreeOffsetType::End);
 
-            (*color,start_angle,end_angle)
+            (*color,start_angle * bmi_widget_state.animation_progress.value(),end_angle * bmi_widget_state.animation_progress.value())
 
         })
             .collect();
@@ -226,7 +227,7 @@ fn fill_bmi_arcs(
                  end_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(index,DegreeOffsetType::End);
             }
 
-            (*color,start_angle,end_angle)
+            (*color,start_angle * bmi_widget.bmi_widget_state.animation_progress.value() ,end_angle * bmi_widget.bmi_widget_state.animation_progress.value())
 
         })
             .collect();
@@ -353,7 +354,13 @@ fn calculate_degree_offset(arc_number: usize, degree_offset_type: DegreeOffsetTy
     let drawn_arcs: f32 = match degree_offset_type {
         DegreeOffsetType::Start => arc_number as f32,
         DegreeOffsetType::End => arc_number as f32 + 1.0,
-        DegreeOffsetType::ProportionalEnd(proportion) => arc_number as f32 + proportion
+        DegreeOffsetType::ProportionalEnd(proportion) => {
+            if proportion > 1.0 {
+                arc_number as f32 + 1.0
+            } else {
+                arc_number as f32 + proportion
+            }
+        }
     };
 
     start_offset + drawn_arcs * degrees_pro_arc + BMI_PADDING_BETWEEN_INNER_ARCS * arc_number as f32
