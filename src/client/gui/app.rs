@@ -7,12 +7,6 @@ use crate::client::backend::user_manager::UserManager;
 use crate::client::backend::workout_preset_manager::WorkoutPresetManager;
 use crate::client::backend::widget_state_manager::WidgetManager;
 use crate::client::gui::bb_tab::tab::Tab;
-use crate::client::gui::bb_widget::activity_widget::activity::{
-    ActivityWidget, calculate_activity_data,
-};
-use crate::client::gui::bb_widget::bmi_calculator::BMIWidgetState;
-use crate::client::gui::bb_widget::circle_widget::CircleWidgetState;
-use crate::client::gui::bb_widget::graph::GraphWidgetState;
 use crate::client::server_communication::request_data::LoginServerRequestData;
 use crate::common::mascot_mod::mascot::Mascot;
 
@@ -35,7 +29,7 @@ pub struct App {
 impl Default for App {
     fn default() -> Self {
         let exercise_manager = ExerciseManager::default();
-        let default_mascot = Mascot::default();
+        let _default_mascot = Mascot::default();
         App {
             jsonwebtoken: None,
             loading: false,
