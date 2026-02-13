@@ -1,4 +1,5 @@
 use crate::client::gui::app::App;
+use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
 use crate::client::gui::bb_theme::container::{
@@ -26,13 +27,29 @@ use iced::widget::{
     Button, Column, Container, Row, Space, TextInput, combo_box, container, image, text, text_input,
 };
 use iced::{Element, Task};
+use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
 
 const SETTINGS_TEXT_INPUT_WIDTH: f32 = 250.0;
 impl App {
     pub fn settings_screen(&self) -> Element<Message> {
-        settings_user_info_preview(self).map(Message::Settings)
+        let user_info_container = settings_user_info_preview(self).map(Message::Settings);
+        let log_out_button =
+            log_out_button(&self.mascot_manager.selected_mascot).map(Message::Settings);
+
+        let content = Column::new()
+            .push(user_info_container)
+            .push(log_out_button)
+            .spacing(INDENT);
+
+        let padded_content: Element<Message> = Row::new()
+            .push(Space::with_width(Length::FillPortion(1)))
+            .push(content)
+            .push(Space::with_width(Length::FillPortion(1)))
+            .into();
+
+        padded_content
     }
 }
 fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
@@ -65,13 +82,7 @@ fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
             ..Default::default()
         });
 
-    let user_info_element: Element<SettingsMessage> = Row::new()
-        .push(Space::with_width(Length::FillPortion(1)))
-        .push(user_info_container)
-        .push(Space::with_width(Length::FillPortion(1)))
-        .into();
-
-    user_info_element
+    user_info_container.into()
 }
 fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
     let user_info = &app.user_manager.user_info;
@@ -262,6 +273,24 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
 
     username_and_data_column
 }
+fn log_out_button(active_mascot: &Mascot) -> Element<SettingsMessage> {
+    let log_out_button_text = text("Log out")
+        .font(FIRA_SANS_EXTRABOLD)
+        .color(color::ERROR_COLOR);
+
+    let row = Row::new()
+        .push(Space::with_width(INDENT))
+        .push(image(Handle::from_path("assets/images/log-out.png")).height(20))
+        .push(Space::with_width(LARGE_INDENT))
+        .push(log_out_button_text)
+        .align_y(Vertical::Center)
+        .padding(5);
+
+    create_element_button(active_mascot, row.into(), ButtonStyle::InactiveTab, None)
+        .on_press(SettingsMessage::LogOut)
+        .width(Length::Fill)
+        .into()
+}
 
 #[derive(Debug, Clone)]
 pub enum SettingsMessage {
@@ -274,6 +303,7 @@ pub enum SettingsMessage {
     EditMascot(Mascot),
     SavePendingUserInfoChanges,
     DiscardPendingUserInfoChanges,
+    LogOut,
 }
 impl SettingsMessage {
     pub fn update(self, app: &mut App, opt_jwt: Option<String>) -> Task<Message> {
@@ -350,6 +380,7 @@ impl SettingsMessage {
                     let new_goal_integer: u32 = pending_user_info_strings
                         .weekly_workout_goal
                         .parse()
+                        .map(|num: u32| if num == 0 { 1 } else { num })
                         .unwrap_or(existing_user_info.weekly_workout_goal);
                     pending_info.weekly_workout_goal = new_goal_integer;
                 }
@@ -385,6 +416,9 @@ impl SettingsMessage {
             }
             SettingsMessage::DiscardPendingUserInfoChanges => {
                 app.user_manager.pending_user_info_changes = None;
+            }
+            SettingsMessage::LogOut => {
+                *app = App::default();
             }
         }
         Task::none()
