@@ -143,7 +143,7 @@ impl canvas::Program<Message> for BMIWidget<'_> {
                     draw_bmi_arcs(frame, circle_center, self.bmi_widget_state);
 
                     //FILL BMI ARCS
-                    //fill_bmi_arcs(frame, circle_center, self);
+                    fill_bmi_arcs(frame, circle_center, self);
 
                     //DRAW TEXT BMI VALUE
                     draw_bmi_text(frame, self)
@@ -207,21 +207,44 @@ fn fill_bmi_arcs(
     center_of_circle: Point,
     bmi_widget: &BMIWidget
 ) {
-    let start_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(0, DegreeOffsetType::Start);
 
-    let end_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(0, DegreeOffsetType::End);
+    let (index_last_arc, (start_range,end_range)) = translate_bmi_to_arc(bmi_widget.bmi_value);
 
-    let arc_path = &create_arc_path(center_of_circle, BMI_CIRCLE_RADIUS, start_angle, end_angle);
+    let chopped_colors = &BMIWidget::colors()[..=index_last_arc];
 
-    frame.stroke(
-        arc_path,
-        generate_stroke(20.0, color!(255,255,255)),
-    );
+
+    let colors_with_angles: Vec<(Color,f32,f32)> =
+        chopped_colors.iter().enumerate().map(|(index,color)|{
+
+            let start_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(index,DegreeOffsetType::Start);
+            let end_angle: f32;
+
+            if (index == index_last_arc) {
+                let proportion = (bmi_widget.bmi_value - start_range) /  (end_range - start_range);
+                end_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(index,DegreeOffsetType::ProportionalEnd(proportion));
+            } else {
+                 end_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(index,DegreeOffsetType::End);
+            }
+
+            (*color,start_angle,end_angle)
+
+        })
+            .collect();
+
+    for (color, start_angle, end_angle) in colors_with_angles {
+
+        let arc_path = &create_arc_path(center_of_circle, BMI_CIRCLE_RADIUS, start_angle, end_angle);
+
+        frame.stroke(
+            arc_path,
+            generate_stroke(20.0, color),
+        );
+    }
 }
 
 fn draw_bmi_text(frame: &mut Frame, bmi_widget: &BMIWidget) {
     let circle_center = frame.center();
-    let text_padding = BMI_FONT_SIZE_RESULT + 2.0;
+    let text_padding = BMI_FONT_SIZE_RESULT;
 
     //BMI VALUE
     draw_text(
@@ -235,17 +258,39 @@ fn draw_bmi_text(frame: &mut Frame, bmi_widget: &BMIWidget) {
     );
 
     //WEIGHT CLASS
-    let weight_class = translate_bmi_to_class(bmi_widget.bmi_value);
+    let (weight_class_name,font_scaling) = translate_bmi_to_class(bmi_widget.bmi_value);
 
-    draw_text(
-        frame,
-        weight_class,
-        BMI_FONT_SIZE_DESCRIPTION,
-        Point {
-            x: circle_center.x,
-            y: circle_center.y + text_padding / 2.0,
-        },
-    );
+
+    if font_scaling == 1.0 {
+        draw_text(
+            frame,
+            weight_class_name,
+            BMI_FONT_SIZE_DESCRIPTION,
+            Point {
+                x: circle_center.x,
+                y: circle_center.y + text_padding / 2.0,
+            },
+        );
+    } else {
+
+        let offset = BMI_FONT_SIZE_DESCRIPTION * font_scaling;
+        let mut counter = 0.0;
+
+        for word in weight_class_name.split(" ") {
+            draw_text(
+                frame,
+                word.to_string(),
+                BMI_FONT_SIZE_DESCRIPTION * font_scaling,
+                Point {
+                    x: circle_center.x,
+                    y: circle_center.y + text_padding / 2.0 + counter * offset,
+                },
+            );
+
+            counter += 1.0;
+        }
+    }
+
 }
 
 //LOGIC
@@ -262,21 +307,35 @@ fn calculate_bmi(user_information: &UserInformation) -> f32 {
 
 }
 
-fn translate_bmi_to_class (bmi_value: f32) -> String {
+///returns the class name with the scaling you should use for the font_size
+fn translate_bmi_to_class (bmi_value: f32) -> (String, f32) {
 
-    let weight_class = match bmi_value {
-        ..16.0 => "Severely underweight",
-        16.0 ..18.5 => "Underweight",
-        18.5 ..25.0 => "Normal",
-        25.0 ..30.0 => "Overweight",
-        _ => "Severely overweight",
+    let (weight_class,font_scaling) = match bmi_value {
+        ..16.0 => ("Severely underweight",0.7),
+        16.0 ..18.5 => ("Underweight",1.0),
+        18.5 ..25.0 => ("Normal", 1.0),
+        25.0 ..30.0 => ("Overweight" ,1.0),
+        _ => ("Severely overweight", 0.7),
     };
-    weight_class.to_string()
+    (weight_class.to_string(), font_scaling)
+}
+
+///returns (arc index, (bmi_start of arc,bmi_end of arc)
+fn translate_bmi_to_arc (bmi_value: f32) -> (usize,(f32,f32)) {
+
+    match bmi_value {
+        ..16.0 =>       (0, (0.0,16.0)),
+        16.0 ..18.5 =>  (1, (16.0,18.5)),
+        18.5 ..25.0 =>  (2, (18.5,25.0)),
+        25.0 ..30.0 =>  (3, (25.0,30.0)),
+        _ =>               (4, (30.0,40.0)),
+    }
 }
 
 enum DegreeOffsetType {
     Start,
-    End
+    End,
+    ProportionalEnd(f32)
 }
 fn calculate_degree_offset(arc_number: usize, degree_offset_type: DegreeOffsetType) -> f32 {
     //The circle should have a bigger gap between the lowest to gaps
@@ -291,10 +350,11 @@ fn calculate_degree_offset(arc_number: usize, degree_offset_type: DegreeOffsetTy
     let degrees_pro_arc = sum_total_degrees_arcs / AMOUNT_ARCS as f32;
 
     //FORMULA: start-offset + the amount degrees that have already been drawn (all the arcs + all the paddings between the arcs)
-    let drawn_arcs = match degree_offset_type {
-        DegreeOffsetType::Start => arc_number,
-        DegreeOffsetType::End => arc_number + 1
+    let drawn_arcs: f32 = match degree_offset_type {
+        DegreeOffsetType::Start => arc_number as f32,
+        DegreeOffsetType::End => arc_number as f32 + 1.0,
+        DegreeOffsetType::ProportionalEnd(proportion) => arc_number as f32 + proportion
     };
 
-    start_offset + drawn_arcs as f32 * degrees_pro_arc + BMI_PADDING_BETWEEN_INNER_ARCS * arc_number as f32
+    start_offset + drawn_arcs * degrees_pro_arc + BMI_PADDING_BETWEEN_INNER_ARCS * arc_number as f32
 }
