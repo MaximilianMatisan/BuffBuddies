@@ -5,10 +5,12 @@ use crate::client::backend::mascot_manager::MascotManager;
 use crate::client::backend::pop_up_manager::PopUpManager;
 use crate::client::backend::user_manager::UserManager;
 use crate::client::backend::workout_preset_manager::WorkoutPresetManager;
+use crate::client::backend::widget_state_manager::WidgetManager;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_widget::activity_widget::activity::{
     ActivityWidget, calculate_activity_data,
 };
+use crate::client::gui::bb_widget::bmi_calculator::BMIWidgetState;
 use crate::client::gui::bb_widget::circle_widget::CircleWidgetState;
 use crate::client::gui::bb_widget::graph::GraphWidgetState;
 use crate::client::server_communication::request_data::LoginServerRequestData;
@@ -20,9 +22,7 @@ pub struct App {
     pub jsonwebtoken: Option<String>,
     pub loading: bool,
     pub screen: Tab,
-    pub activity_widget: ActivityWidget,
-    pub graph_widget_state: GraphWidgetState,
-    pub circle_widget_state: CircleWidgetState,
+    pub widget_manager: WidgetManager,
     pub login_state: LoginState,
     pub mascot_manager: MascotManager,
     pub exercise_manager: ExerciseManager,
@@ -41,16 +41,11 @@ impl Default for App {
             loading: false,
             screen: Tab::Home,
             login_state: LoginState::default(),
-            activity_widget: ActivityWidget::new(
-                default_mascot,
-                calculate_activity_data(&exercise_manager.exercises),
-            ),
             user_manager: UserManager::new(&exercise_manager.exercises),
             mascot_manager: MascotManager::default(),
+            widget_manager: WidgetManager::new(),
             exercise_manager,
             workout_preset_manager: WorkoutPresetManager::default(),
-            graph_widget_state: GraphWidgetState::new(),
-            circle_widget_state: CircleWidgetState::new(),
             image_manager: ImageManager::default(),
             pop_up_manager: PopUpManager::default(),
         }
@@ -71,7 +66,7 @@ impl App {
                 .0
                 .clone(),
         );
-        self.activity_widget.update_data(
+        self.widget_manager.activity_widget.update_data(
             self.mascot_manager.selected_mascot,
             self.user_manager
                 .user_info

@@ -41,7 +41,7 @@ impl<'a> CircleWidget<'a> {
     pub(crate) fn new(app: &'a App) -> Self {
         CircleWidget {
             active_mascot: app.mascot_manager.selected_mascot,
-            circle_widget_state: &app.circle_widget_state,
+            circle_widget_state: &app.widget_manager.circle_widget_state,
             completed_exercises: 2,
             total_exercises: app.user_manager.user_info.weekly_workout_goal, //CANNOT BE ZERO OR ELSE APP CRASHES
         }

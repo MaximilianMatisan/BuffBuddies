@@ -9,7 +9,7 @@ use iced_core::Length;
 
 impl App {
     pub fn homescreen(&self) -> Element<Message> {
-        let activity_widget: Element<Message> = self.activity_widget.view(self);
+        let activity_widget: Element<Message> = self.widget_manager.activity_widget.view(self);
         let chart_widget = chart_environment_widget(self);
 
         let chart_widget = Row::new()

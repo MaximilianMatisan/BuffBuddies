@@ -122,7 +122,7 @@ impl<'a> GraphWidget<'a> {
         GraphWidget {
             active_mascot: app.mascot_manager.selected_mascot,
             exercise_manager: &app.exercise_manager,
-            graph_state: &app.graph_widget_state,
+            graph_state: &app.widget_manager.graph_widget_state,
         }
     }
 
@@ -1058,7 +1058,10 @@ impl canvas::Program<Message> for GraphWidget<'_> {
 }
 
 pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
-    let mut counter = format_button_text(text!("{}", app.graph_widget_state.points_to_draw));
+    let mut counter = format_button_text(text!(
+        "{}",
+        app.widget_manager.graph_widget_state.points_to_draw
+    ));
     counter = counter.size(19);
 
     let increment_button = create_text_button(
@@ -1104,7 +1107,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         ))
         .width(Length::Fixed(100.0));
 
-    let button_style_dots_button = match app.graph_widget_state.visible_points {
+    let button_style_dots_button = match app.widget_manager.graph_widget_state.visible_points {
         true => ButtonStyle::Active,
         _ => ButtonStyle::InactiveTab,
     };
@@ -1117,7 +1120,11 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
     )
     .on_press(Message::Graph(GraphMessage::ToggleDots));
 
-    let button_style_cursor_button = match app.graph_widget_state.visible_cursor_information {
+    let button_style_cursor_button = match app
+        .widget_manager
+        .graph_widget_state
+        .visible_cursor_information
+    {
         true => ButtonStyle::Active,
         _ => ButtonStyle::InactiveTab,
     };
@@ -1130,10 +1137,11 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
     )
     .on_press(Message::Graph(GraphMessage::ToggleCursor));
 
-    let button_style_vertical_lines_button = match app.graph_widget_state.visible_vertical_lines {
-        true => ButtonStyle::Active,
-        _ => ButtonStyle::InactiveTab,
-    };
+    let button_style_vertical_lines_button =
+        match app.widget_manager.graph_widget_state.visible_vertical_lines {
+            true => ButtonStyle::Active,
+            _ => ButtonStyle::InactiveTab,
+        };
 
     let toggle_vertical_lines = create_text_button(
         &app.mascot_manager.selected_mascot,
