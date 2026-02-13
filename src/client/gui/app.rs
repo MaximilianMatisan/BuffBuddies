@@ -4,6 +4,7 @@ use crate::client::backend::login_state::LoginState;
 use crate::client::backend::mascot_manager::MascotManager;
 use crate::client::backend::pop_up_manager::PopUpManager;
 use crate::client::backend::user_manager::UserManager;
+use crate::client::backend::workout_preset_manager::WorkoutPresetManager;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_widget::activity_widget::activity::{
     ActivityWidget, calculate_activity_data,
@@ -25,6 +26,7 @@ pub struct App {
     pub login_state: LoginState,
     pub mascot_manager: MascotManager,
     pub exercise_manager: ExerciseManager,
+    pub workout_preset_manager: WorkoutPresetManager,
     pub user_manager: UserManager,
     pub image_manager: ImageManager,
     pub pop_up_manager: PopUpManager,
@@ -46,6 +48,7 @@ impl Default for App {
             user_manager: UserManager::new(&exercise_manager.exercises),
             mascot_manager: MascotManager::default(),
             exercise_manager,
+            workout_preset_manager: WorkoutPresetManager::default(),
             graph_widget_state: GraphWidgetState::new(),
             circle_widget_state: CircleWidgetState::new(),
             image_manager: ImageManager::default(),
