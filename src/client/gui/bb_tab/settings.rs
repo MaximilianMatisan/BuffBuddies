@@ -1,6 +1,6 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color;
-use crate::client::gui::bb_theme::color::TEXT_COLOR;
+use crate::client::gui::bb_theme::color::{BACKGROUND_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
 use crate::client::gui::bb_theme::container::{
     ContainerStyle, DEFAULT_TEXT_CONTAINER_PADDING, create_container_style,
@@ -181,7 +181,10 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     )
     .font(FIRA_SANS_EXTRABOLD)
     .width(SETTINGS_TEXT_INPUT_WIDTH)
-    .input_style(create_text_input_style(&app.mascot_manager.selected_mascot))
+    .input_style(create_text_input_style(
+        &app.mascot_manager.selected_mascot,
+        BACKGROUND_COLOR,
+    ))
     .menu_style(create_menu_style(&app.mascot_manager.selected_mascot));
 
     let height_text_input = text_input("Enter your height in cm", &pending_info_strings.height)
@@ -204,7 +207,10 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     )
     .font(FIRA_SANS_EXTRABOLD)
     .width(SETTINGS_TEXT_INPUT_WIDTH)
-    .input_style(create_text_input_style(&app.mascot_manager.selected_mascot))
+    .input_style(create_text_input_style(
+        &app.mascot_manager.selected_mascot,
+        BACKGROUND_COLOR,
+    ))
     .menu_style(create_menu_style(&app.mascot_manager.selected_mascot))
     .into();
 
@@ -232,7 +238,10 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
 
     for (description_text, mut text_input) in text_input_data_fields {
         text_input = text_input
-            .style(create_text_input_style(&app.mascot_manager.selected_mascot))
+            .style(create_text_input_style(
+                &app.mascot_manager.selected_mascot,
+                BACKGROUND_COLOR,
+            ))
             .font(FIRA_SANS_EXTRABOLD)
             .width(SETTINGS_TEXT_INPUT_WIDTH);
         user_data_column = user_data_column.push(descriptor_space_fill_element_row(

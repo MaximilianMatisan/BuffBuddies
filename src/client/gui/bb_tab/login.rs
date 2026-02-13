@@ -1,6 +1,5 @@
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color;
-use crate::client::gui::bb_theme::color::{ERROR_COLOR, TEXT_COLOR};
+use crate::client::gui::bb_theme::color::{BACKGROUND_COLOR, ERROR_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::combo_box::create_text_input_style;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
@@ -29,14 +28,20 @@ pub fn view_login(app: &App) -> Element<'_, Message> {
 
     let username_field: Element<Message> =
         text_input("Enter username...", &app.login_state.username)
-            .style(create_text_input_style(&app.mascot_manager.selected_mascot))
+            .style(create_text_input_style(
+                &app.mascot_manager.selected_mascot,
+                BACKGROUND_COLOR,
+            ))
             .font(FIRA_SANS_EXTRABOLD)
             .on_input(Message::UsernameEntered)
             .into();
 
     let password_field: Element<Message> =
         text_input("Enter password...", &app.login_state.password)
-            .style(create_text_input_style(&app.mascot_manager.selected_mascot))
+            .style(create_text_input_style(
+                &app.mascot_manager.selected_mascot,
+                BACKGROUND_COLOR,
+            ))
             .font(FIRA_SANS_EXTRABOLD)
             .on_input(Message::PasswordEntered)
             .on_submit(Message::TryLogin)
@@ -91,7 +96,7 @@ pub fn view_login(app: &App) -> Element<'_, Message> {
         .height(Fill)
         .style(|_theme: &Theme| container::Style {
             text_color: None,
-            background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
+            background: Some(iced::Background::Color(BACKGROUND_COLOR)),
             border: Default::default(),
             shadow: Default::default(),
         })

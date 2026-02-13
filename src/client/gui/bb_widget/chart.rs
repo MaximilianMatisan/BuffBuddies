@@ -1,5 +1,6 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
+use crate::client::gui::bb_theme::color::BACKGROUND_COLOR;
 use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, DEFAULT_BUTTON_RADIUS, create_text_button,
@@ -53,6 +54,7 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
     ))
     .input_style(bb_theme::combo_box::create_text_input_style(
         &app.mascot_manager.selected_mascot,
+        BACKGROUND_COLOR,
     ))
     .font(text_format::FIRA_SANS_EXTRABOLD)
     .width(Length::Fixed(250.0))

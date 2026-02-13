@@ -2,8 +2,11 @@ use crate::client::backend::exercise_create::ExerciseCreate;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::tab::Tab;
+use crate::client::gui::bb_theme::color::{BACKGROUND_COLOR, CONTAINER_COLOR};
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
+use crate::client::gui::bb_theme::container::{
+    ContainerStyle, DEFAULT_CONTAINER_RADIUS, create_container_style,
+};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, format_button_text, format_description_text,
@@ -316,7 +319,7 @@ pub fn view_exercise_edit<'a>(
         counter += 1;
     }
 
-    let new_set_text = format_button_text(text("+")).size(30).center();
+    let new_set_text = format_button_text(text("+")).size(23).center();
 
     let new_set_text_centered = container(new_set_text).center_x(Fill);
 
@@ -324,9 +327,10 @@ pub fn view_exercise_edit<'a>(
         &app.mascot_manager.selected_mascot,
         new_set_text_centered.into(),
         ButtonStyle::ActiveTab,
-        None,
+        Some(DEFAULT_CONTAINER_RADIUS.into()),
     )
     .width(Fill)
+    .height(40)
     .on_press(Message::WorkoutCreation(WorkoutCreationMessage::AddSet))
     .into();
 
@@ -467,7 +471,7 @@ pub fn view_set_no_edit(set: &StrengthSet, number: SetNumber) -> Element<Message
         .push(kg)
         .push(reps)
         .spacing(10)
-        .height(30)
+        .height(40)
         .into();
 
     container(set_row)
@@ -490,25 +494,33 @@ pub fn view_set_edit(number: SetNumber, app: &App) -> Element<Message> {
     if let Some(exercise_string) = &app.exercise_manager.exercise_in_edit_strings {
         kg = container(
             text_input("Enter weight...", &exercise_string.sets[number - 1].kg)
-                .style(create_text_input_style(&app.mascot_manager.selected_mascot))
+                .style(create_text_input_style(
+                    &app.mascot_manager.selected_mascot,
+                    CONTAINER_COLOR,
+                ))
                 .font(FIRA_SANS_EXTRABOLD)
                 .on_input(move |new_kg| -> Message {
                     Message::WorkoutCreation(WorkoutCreationMessage::EditKg(number, new_kg))
                 })
                 .align_x(Alignment::Center)
-                .width(60),
+                .width(60)
+                .line_height(LineHeight::Absolute(20.into())),
         )
         .center(FillPortion(1))
         .into();
         reps = container(
             text_input("Enter reps...", &exercise_string.sets[number - 1].reps)
-                .style(create_text_input_style(&app.mascot_manager.selected_mascot))
+                .style(create_text_input_style(
+                    &app.mascot_manager.selected_mascot,
+                    CONTAINER_COLOR,
+                ))
                 .font(FIRA_SANS_EXTRABOLD)
                 .on_input(move |new_reps| -> Message {
                     Message::WorkoutCreation(WorkoutCreationMessage::EditReps(number, new_reps))
                 })
                 .align_x(Alignment::Center)
-                .width(60),
+                .width(60)
+                .line_height(LineHeight::Absolute(20.into())),
         )
         .center(FillPortion(1))
         .into();
@@ -535,7 +547,7 @@ pub fn view_set_edit(number: SetNumber, app: &App) -> Element<Message> {
             .push(kg)
             .push(reps)
             .spacing(10)
-            .height(30),
+            .height(40),
         Row::new()
             .push(Space::with_width(FillPortion(15)))
             .push(delete_button)
@@ -579,6 +591,7 @@ impl App {
         .menu_style(create_menu_style(&self.mascot_manager.selected_mascot))
         .input_style(create_text_input_style(
             &self.mascot_manager.selected_mascot,
+            BACKGROUND_COLOR,
         ))
         .font(FIRA_SANS_EXTRABOLD)
         .line_height(LineHeight::Absolute(Pixels(30.0)))
