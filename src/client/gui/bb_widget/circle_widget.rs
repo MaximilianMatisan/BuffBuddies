@@ -1,7 +1,7 @@
 use std::time::Duration;
 use iced::alignment;
 use iced::mouse;
-use iced::widget::canvas::{Cache, Geometry, LineCap, Path, Stroke, stroke, LineJoin, LineDash, event};
+use iced::widget::canvas::{Cache, Geometry, LineCap, Path, Stroke, stroke, LineJoin, LineDash, event, Frame};
 use iced::widget::{canvas, container, text};
 use iced::{
     Degrees, Element, Fill, Font, Radians, Rectangle, Renderer, Size, Subscription, Theme,
@@ -14,33 +14,47 @@ use iced_core::{color, renderer, Point};
 use iced_core::alignment::{Horizontal, Vertical};
 use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color::CONTAINER_COLOR;
+use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, HIGHLIGHTED_CONTAINER_COLOR};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
+use crate::client::gui::bb_widget::canvas_utils::generate_stroke;
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 
 const CIRCLE_WIDGET_WIDTH: f32 = 300.0;
 const CIRCLE_WIDGET_HEIGHT: f32 = 300.0;
+const CIRCLE_RADIUS: f32  = 80.0;
+
+const PADDING_BETWEEN_ARCS: f32 = 25.0;
+
+// Arc angles are defined as clockwise rotations starting from the positive X-axis.
+// For our use case, it is more intuitive to measure angles clockwise from the positive Y-axis
+// This offset converts between the two coordinate systems.
+const DEGREE_START_TRANSLATION: f32 = -90.0;
 
 
 pub struct CircleWidget<'a> {
     active_mascot: Mascot,
     exercise_manager: &'a ExerciseManager,
     circle_widget_state: &'a CircleWidgetState,
+    completed_exercises: u32,
+    total_exercises: u32
 }
 
 #[derive(Clone, Debug)]
 pub enum  CircleMessage{
-    UpdateAnimation(Event<f32>)
+    UpdateCirlceAnimation(Event<f32>)
 }
 
 impl<'a> CircleWidget<'a> {
     pub(crate) fn new(app: &'a App) -> Self {
+
         CircleWidget {
             active_mascot: app.mascot_manager.selected_mascot,
             exercise_manager: &app.exercise_manager,
             circle_widget_state: &app.circle_widget_state,
+            completed_exercises: 3,
+            total_exercises: app.user_manager.user_info.weekly_workout_goal  //CANNOT BE ZERO OR ELSE APP CRASHES
         }
     }
     pub(crate) fn view (self) -> Element<'a, Message> {
@@ -50,7 +64,7 @@ impl<'a> CircleWidget<'a> {
         let canvas = canvas(self).width(CIRCLE_WIDGET_WIDTH).height(CIRCLE_WIDGET_HEIGHT);
 
         Animation::new(draw_percentage, canvas)
-            .on_update(|event| Message::Circle(CircleMessage::UpdateAnimation(event)))
+            .on_update(|event| Message::Circle(CircleMessage::UpdateCirlceAnimation(event)))
             .into()
 
     }
@@ -101,7 +115,7 @@ impl canvas::Program<Message> for CircleWidget<'_> {
         match event {
 
             _ => (event::Status::Ignored,
-                Some(crate::client::gui::user_interface::Message::Circle(CircleMessage::UpdateAnimation(
+                Some(crate::client::gui::user_interface::Message::Circle(CircleMessage::UpdateCirlceAnimation(
                     iced_anim::Event::Target(1.0)
 
             ))))
@@ -120,61 +134,25 @@ impl canvas::Program<Message> for CircleWidget<'_> {
 
         let circle_widget = self.circle_widget_state.circle.draw(renderer, bounds.size(), |frame| {
 
+            let circle_center = frame.center();
 
-            let mut center = frame.center();
-            center.y += 10.0;
+            //DRAW BACKGORUND
+            draw_background(frame);
 
-            let radius = 80.0;
-
-            let background = Path::rectangle(Point::ORIGIN,
-            Size {
-                width: frame.width(),
-                height: frame.height(),
-            }
-            );
-
-            frame.fill(&background,CONTAINER_COLOR);
+            //DRAW ARC SHOWING COMPLETED EXERCISES
+            draw_arc_completed_exercises(frame, circle_center, self);
 
 
-            //DONE EXERCISES
-            frame.stroke(&Path::new(|builder| {
-                builder.arc(Arc {
-                    center,
-                    radius,
-                    start_angle: Degrees(0.0 - 90.0).into(),
-                    end_angle: Degrees(80.0 * self.circle_widget_state.animation_progress.value() - 90.0).into(),
-                });
-            }), Stroke {
-                width: 20.0,
-                line_cap: LineCap::Round,
-                line_join: LineJoin::Round,
-                style: stroke::Style::Solid(self.active_mascot.get_primary_color()),
-                line_dash: Default::default(),
-            });
+            //DRAW ARC SHOWING UNCOMPLETED EXERCISES
+            draw_arc_not_completed_exercises(frame,circle_center,self);
 
 
-
-            //REMAINING EXERCISES
-
-            frame.stroke(&Path::new(|builder| {
-                builder.arc(Arc {
-                    center,
-                    radius,
-                    start_angle: Degrees(110.0 * self.circle_widget_state.animation_progress.value() - 90.0 ).into(),
-                    end_angle: Degrees(330.0  - 90.0).into(),
-                });
-            }), Stroke {
-                width: 20.0,
-                line_cap: LineCap::Round,
-                line_join: LineJoin::Round,
-                style: stroke::Style::Solid(color!(128, 128, 128)),
-                line_dash: Default::default()
-            });
+            //DRAW TEXT COMPLETED/TOTAL EXERCISES
 
             frame.fill_text(canvas::Text {
-                content: String::from("1/4"),
+                content: format!("{}/{}",self.completed_exercises,self.total_exercises),
                 size: 30.0.into(),
-                position: center,
+                position: circle_center,
                 color: color!(255,255,255),
                 font: FIRA_SANS_EXTRABOLD,
                 horizontal_alignment: Horizontal::Center,
@@ -189,8 +167,8 @@ impl canvas::Program<Message> for CircleWidget<'_> {
                 size: 20.0.into(),
                 position:
                 Point{
-                    x: center.x,
-                    y: center.y - radius - 32.0,
+                    x: circle_center.x,
+                    y: circle_center.y - CIRCLE_RADIUS - 32.0,
                 },
                 color: color!(255,255,255),
                 font: FIRA_SANS_EXTRABOLD,
@@ -203,5 +181,63 @@ impl canvas::Program<Message> for CircleWidget<'_> {
         });
         
         vec![circle_widget]
+    }
+}
+fn draw_background(frame: &mut Frame) {
+
+    let background_size = Path::rectangle(
+        Point::ORIGIN, //START
+
+        Size {
+            width: frame.width(),
+            height: frame.height(),
+        },
+    );
+
+    //DRAW BACKGORUND
+    frame.fill(&background_size, CONTAINER_COLOR);
+}
+
+fn draw_arc_completed_exercises(frame: &mut Frame, center_of_circle: Point, circle_widget: &CircleWidget ) {
+
+    if circle_widget.completed_exercises > 0 {
+        let arc_path = &Path::new(|builder| {
+            builder.arc(Arc {
+                center: center_of_circle,
+                radius: CIRCLE_RADIUS,
+                start_angle: Degrees(DEGREE_START_TRANSLATION + PADDING_BETWEEN_ARCS / 2.0 * circle_widget.circle_widget_state.animation_progress.value()).into(),
+                end_angle: Degrees(DEGREE_START_TRANSLATION + (convert_done_exercises_in_degrees(circle_widget.completed_exercises, circle_widget.total_exercises) - PADDING_BETWEEN_ARCS / 2.0) * circle_widget.circle_widget_state.animation_progress.value()).into(),
+            });
+        });
+
+        frame.stroke(arc_path, generate_stroke(20.0, circle_widget.active_mascot.get_primary_color()));
+    }
+}
+
+fn draw_arc_not_completed_exercises(frame: &mut Frame, center_of_circle: Point, circle_widget: &CircleWidget ) {
+
+    if circle_widget.total_exercises > circle_widget.completed_exercises {
+        let arc_path = &Path::new(|builder| {
+            builder.arc(Arc {
+                center: center_of_circle,
+                radius: CIRCLE_RADIUS,
+                start_angle: Degrees(DEGREE_START_TRANSLATION + (convert_done_exercises_in_degrees(circle_widget.completed_exercises, circle_widget.total_exercises) + PADDING_BETWEEN_ARCS / 2.0) * circle_widget.circle_widget_state.animation_progress.value()
+                ).into(),
+                end_angle: Degrees(DEGREE_START_TRANSLATION + (360.0 - PADDING_BETWEEN_ARCS / 2.0) * circle_widget.circle_widget_state.animation_progress.value()).into(),
+            });
+        });
+
+        frame.stroke(arc_path, generate_stroke(20.0, circle_widget.active_mascot.get_secondary_color()));
+    }
+}
+
+//LOGIC
+
+fn convert_done_exercises_in_degrees(completed_exercises: u32, total_exercises: u32 ) -> f32 {
+    let ratio = completed_exercises as f32 /total_exercises as f32;
+
+    match ratio {
+        ..=1.0 => ratio * 360.0,
+        _ =>  360.0
     }
 }

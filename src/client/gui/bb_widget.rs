@@ -11,3 +11,4 @@ pub mod stats;
 pub mod widget_utils;
 pub mod workout;
 pub mod circle_widget;
+mod canvas_utils;
