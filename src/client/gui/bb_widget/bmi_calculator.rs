@@ -184,8 +184,8 @@ fn draw_bmi_arcs(
     let colors_with_angles: Vec<(Color,f32,f32)> =
         not_filled_colors.iter().enumerate().map(|(index,color)|{
 
-            let start_angle = BMI_DEGREE_START_TRANSLATION + calculate_start_degree_offset_arc(index);
-            let end_angle = BMI_DEGREE_START_TRANSLATION + calculate_end_degree_offset_arc(index);
+            let start_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(index,DegreeOffsetType::Start);
+            let end_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(index,DegreeOffsetType::End);
 
             (*color,start_angle,end_angle)
 
@@ -207,9 +207,9 @@ fn fill_bmi_arcs(
     center_of_circle: Point,
     bmi_widget: &BMIWidget
 ) {
-    let start_angle = BMI_DEGREE_START_TRANSLATION + calculate_start_degree_offset_arc(0);
+    let start_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(0, DegreeOffsetType::Start);
 
-    let end_angle = BMI_DEGREE_START_TRANSLATION + calculate_end_degree_offset_arc(0);
+    let end_angle = BMI_DEGREE_START_TRANSLATION + calculate_degree_offset(0, DegreeOffsetType::End);
 
     let arc_path = &create_arc_path(center_of_circle, BMI_CIRCLE_RADIUS, start_angle, end_angle);
 
@@ -273,19 +273,12 @@ fn translate_bmi_to_class (bmi_value: f32) -> String {
     };
     weight_class.to_string()
 }
-fn calculate_start_degree_offset_arc (arc_number: usize) -> f32 { //OFFSET FROM NEGATIVE Y-AXIS
-    let start_offset = BMI_PADDING_BETWEEN_LAST_ARCS / 2.0;
-    let sum_total_degrees_arcs = 360.0 - BMI_PADDING_BETWEEN_LAST_ARCS - BMI_PADDING_BETWEEN_INNER_ARCS * 4.0;
-    let degrees_pro_arc = sum_total_degrees_arcs / AMOUNT_ARCS as f32;
 
-    start_offset + arc_number as f32 * degrees_pro_arc + BMI_PADDING_BETWEEN_INNER_ARCS * arc_number as f32
-
-
-
+enum DegreeOffsetType {
+    Start,
+    End
 }
-
-fn calculate_end_degree_offset_arc (arc_number: usize) -> f32 { //OFFSET FROM NEGATIVE Y-AXIS
-
+fn calculate_degree_offset(arc_number: usize, degree_offset_type: DegreeOffsetType) -> f32 {
     //The circle should have a bigger gap between the lowest to gaps
     //To keep it symmetrical -> division by 2
     let start_offset = BMI_PADDING_BETWEEN_LAST_ARCS / 2.0;
@@ -298,5 +291,10 @@ fn calculate_end_degree_offset_arc (arc_number: usize) -> f32 { //OFFSET FROM NE
     let degrees_pro_arc = sum_total_degrees_arcs / AMOUNT_ARCS as f32;
 
     //FORMULA: start-offset + the amount degrees that have already been drawn (all the arcs + all the paddings between the arcs)
-    start_offset + (arc_number + 1) as f32 * degrees_pro_arc + BMI_PADDING_BETWEEN_INNER_ARCS * arc_number as f32
+    let drawn_arcs = match degree_offset_type {
+        DegreeOffsetType::Start => arc_number,
+        DegreeOffsetType::End => arc_number + 1
+    };
+
+    start_offset + drawn_arcs as f32 * degrees_pro_arc + BMI_PADDING_BETWEEN_INNER_ARCS * arc_number as f32
 }
