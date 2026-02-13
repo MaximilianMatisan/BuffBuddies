@@ -61,7 +61,7 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
     .padding([8, 16])
     .into();
 
-    let chart: Element<'a, Message> = match app.graph_widget_state.shown_chart_type {
+    let chart: Element<'a, Message> = match app.widget_manager.graph_widget_state.shown_chart_type {
         ChartTypes::Progress => {
             let progress: Element<Message> =
                 ProgressWidget::new(app.mascot_manager.selected_mascot, &app.exercise_manager)
@@ -123,10 +123,11 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
 }
 
 fn chart_type_buttons(app: &App) -> Row<Message> {
-    let (line_button_style, bar_button_style) = match app.graph_widget_state.shown_chart_type {
-        ChartTypes::Graph => (ButtonStyle::Active, ButtonStyle::InactiveTab),
-        ChartTypes::Progress => (ButtonStyle::InactiveTab, ButtonStyle::Active),
-    };
+    let (line_button_style, bar_button_style) =
+        match app.widget_manager.graph_widget_state.shown_chart_type {
+            ChartTypes::Graph => (ButtonStyle::Active, ButtonStyle::InactiveTab),
+            ChartTypes::Progress => (ButtonStyle::InactiveTab, ButtonStyle::Active),
+        };
 
     let line_button = create_text_button(
         &app.mascot_manager.selected_mascot,

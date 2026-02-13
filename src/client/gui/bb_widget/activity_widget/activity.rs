@@ -205,7 +205,7 @@ impl ActivityWidget {
 
         let widget_offset_container = container(
             row![
-                app.activity_widget.clone(), //TODO ohne clone?
+                app.widget_manager.activity_widget.clone(), //TODO ohne clone?
                 time_offset_buttons
             ]
             .spacing(10)

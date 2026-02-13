@@ -79,7 +79,7 @@ pub fn view_profile<'a>(
             .width(Length::Fill)
             .height(LARGE_PROFILE_PICTURE_DIMENSION);
 
-    let activity_widget = app.activity_widget.view(app);
+    let activity_widget = app.widget_manager.activity_widget.view(app);
 
     let streak_stat = profile_stat_container(
         Handle::from_path("assets/images/stats/flame.png"),

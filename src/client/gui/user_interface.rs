@@ -81,7 +81,7 @@ impl App {
         match message {
             Message::Select(Tab::Exit) => iced::exit(),
             Message::Select(tab) => {
-                self.activity_widget.update_data(
+                self.widget_manager.activity_widget.update_data(
                     self.mascot_manager.selected_mascot,
                     self.user_manager
                         .user_info
@@ -169,7 +169,9 @@ impl App {
             Message::SelectMascot(mascot) => {
                 let active_mascot = &mut self.mascot_manager.selected_mascot;
                 *active_mascot = mascot;
-                self.activity_widget.update_active_mascot(*active_mascot);
+                self.widget_manager
+                    .activity_widget
+                    .update_active_mascot(*active_mascot);
 
                 if let Some(jwt) = self.jsonwebtoken.clone() {
                     Task::perform(update_selected_mascot_on_server(jwt, mascot), |result| {
@@ -180,7 +182,9 @@ impl App {
                     Task::none()
                 }
             }
-            Message::Activity(activity_message) => self.activity_widget.update(activity_message),
+            Message::Activity(activity_message) => {
+                self.widget_manager.activity_widget.update(activity_message)
+            }
             Message::TryRegister => {
                 self.login_state.state = LoginStates::LoggedIn;
                 Task::none()
@@ -259,13 +263,20 @@ impl App {
                     GraphMessage::GraphCursorMoved(_point) => {}
 
                     GraphMessage::GraphKeyPressed(Key::Character(char)) => match char.as_str() {
-                        "h" => self.graph_widget_state.invert_visible_points(),
-                        "c" => self.graph_widget_state.invert_visible_cursor_information(),
+                        "h" => self
+                            .widget_manager
+                            .graph_widget_state
+                            .invert_visible_points(),
+                        "c" => self
+                            .widget_manager
+                            .graph_widget_state
+                            .invert_visible_cursor_information(),
                         _ => {}
                     },
                     GraphMessage::IncrementCounter => {
-                        if self.graph_widget_state.get_counter() < MAX_AMOUNT_POINTS {
-                            self.graph_widget_state.increment_counter();
+                        if self.widget_manager.graph_widget_state.get_counter() < MAX_AMOUNT_POINTS
+                        {
+                            self.widget_manager.graph_widget_state.increment_counter();
                         } else {
                             self.pop_up_manager.new_pop_up(
                                 PopUpType::Minor,
@@ -277,37 +288,48 @@ impl App {
                         }
                     }
                     GraphMessage::DecrementCounter => {
-                        if self.graph_widget_state.get_counter() > 1 {
-                            self.graph_widget_state.decrement_counter();
+                        if self.widget_manager.graph_widget_state.get_counter() > 1 {
+                            self.widget_manager.graph_widget_state.decrement_counter();
                         }
                     }
                     GraphMessage::UpdateAnimatedSelection(event) => {
-                        self.graph_widget_state.animation_progress.update(event);
-                        self.graph_widget_state.update_graph();
+                        self.widget_manager
+                            .graph_widget_state
+                            .animation_progress
+                            .update(event);
+                        self.widget_manager.graph_widget_state.update_graph();
                     }
 
-                    GraphMessage::ToggleDots => self.graph_widget_state.invert_visible_points(),
+                    GraphMessage::ToggleDots => self
+                        .widget_manager
+                        .graph_widget_state
+                        .invert_visible_points(),
 
-                    GraphMessage::ToggleCursor => {
-                        self.graph_widget_state.invert_visible_cursor_information()
-                    }
+                    GraphMessage::ToggleCursor => self
+                        .widget_manager
+                        .graph_widget_state
+                        .invert_visible_cursor_information(),
 
-                    GraphMessage::ToggleVerticalLines => {
-                        self.graph_widget_state.invert_visible_vertical_lines()
-                    }
+                    GraphMessage::ToggleVerticalLines => self
+                        .widget_manager
+                        .graph_widget_state
+                        .invert_visible_vertical_lines(),
                     _other_key_enums => {}
                 };
                 Task::none()
             }
 
             Message::ChangeShownChartType(chart_type) => {
-                self.graph_widget_state.shown_chart_type = chart_type;
+                self.widget_manager.graph_widget_state.shown_chart_type = chart_type;
                 Task::none()
             }
             Message::Circle(circle_message) => match circle_message {
                 CircleMessage::UpdateCircleAnimation(event) => {
-                    self.circle_widget_state.animation_progress.update(event);
-                    self.circle_widget_state.update_circle();
+                    self.widget_manager
+                        .circle_widget_state
+                        .animation_progress
+                        .update(event);
+                    self.widget_manager.circle_widget_state.update_circle();
                     Task::none()
                 }
             },
@@ -343,7 +365,7 @@ impl App {
             Message::ViewProfile(user_type) => {
                 match user_type {
                     UserType::Own => {
-                        self.activity_widget.update_data(
+                        self.widget_manager.activity_widget.update_data(
                             self.user_manager.user_info.favorite_mascot,
                             self.user_manager
                                 .user_info
@@ -356,7 +378,7 @@ impl App {
                     UserType::Other(username) => {
                         let opt_user = self.user_manager.get_user_by_username(&username);
                         if let Some(user) = opt_user {
-                            self.activity_widget.update_data(
+                            self.widget_manager.activity_widget.update_data(
                                 user.user_information.favorite_mascot,
                                 user.user_information
                                     .profile_stat_manager

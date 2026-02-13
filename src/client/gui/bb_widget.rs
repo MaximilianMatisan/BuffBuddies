@@ -1,4 +1,5 @@
 pub mod activity_widget;
+pub mod bmi_calculator;
 mod canvas_utils;
 pub mod chart;
 pub mod circle_widget;
