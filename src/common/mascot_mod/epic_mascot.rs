@@ -49,21 +49,21 @@ impl MascotTrait for EpicMascot {
         match self {
             EpicMascot::Capybara => color!(174, 87, 171),
             EpicMascot::Shark => color!(145, 140, 134),
-            EpicMascot::Reindeer => color!(234, 35, 0),
+            EpicMascot::Reindeer => color!(225, 81, 55),
         }
     }
     fn get_secondary_color(&self) -> Color {
         match self {
             EpicMascot::Capybara => color!(212, 156, 210),
             EpicMascot::Shark => color!(200, 196, 185),
-            EpicMascot::Reindeer => color!(244, 99, 86),
+            EpicMascot::Reindeer => color!(255, 118, 106),
         }
     }
     fn get_dark_color(&self) -> Color {
         match self {
             EpicMascot::Capybara => color!(102, 52, 91),
             EpicMascot::Shark => color!(113, 103, 93),
-            EpicMascot::Reindeer => color!(134, 34, 16),
+            EpicMascot::Reindeer => color!(155, 64, 48),
         }
     }
 

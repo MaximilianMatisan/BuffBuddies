@@ -49,7 +49,7 @@ impl MascotTrait for RareMascot {
         }
     }
 
-    fn get_primary_color(&self) -> Color {
+     fn get_primary_color(&self) -> Color {
         match self {
             RareMascot::Duck => color!(240, 147, 67),
             RareMascot::Dog => color!(166, 95, 35),

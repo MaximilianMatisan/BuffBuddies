@@ -47,6 +47,7 @@ use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
 use std::sync::Arc;
+use crate::client::gui::bb_widget::bmi_calculator::BMIMessage;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -65,6 +66,7 @@ pub enum Message {
     Graph(GraphMessage),
     ChangeShownChartType(ChartTypes),
     Circle(CircleMessage),
+    BMI(BMIMessage),
     AddUserAsFriend(String),
     RemoveUserAsFriend(String),
     ViewProfile(UserType),
@@ -330,6 +332,17 @@ impl App {
                         .animation_progress
                         .update(event);
                     self.widget_manager.circle_widget_state.update_circle();
+                    Task::none()
+                }
+            },
+
+            Message::BMI(bmi_message) => match bmi_message {
+                BMIMessage::UpdateBMIAnimation(event) => {
+                    self.widget_manager
+                        .bmi_widget_state
+                        .animation_progress
+                        .update(event);
+                    self.widget_manager.bmi_widget_state.update_circle();
                     Task::none()
                 }
             },
