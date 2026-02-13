@@ -21,7 +21,7 @@ use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_s
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button};
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::chart::{CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH, ChartTypes};
-use crate::client::gui::bb_widget::widget_utils::INDENT;
+use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;
 use crate::common::exercise_mod::exercise::ExerciseDataPoints;
 use crate::common::exercise_mod::weight::Kg;
@@ -32,6 +32,7 @@ use iced::widget::{Column, Row, Space, container};
 use iced::widget::{canvas, row, text};
 use iced_anim::{Animated, Animation, Motion};
 use iced_core::alignment::{Horizontal, Vertical};
+use iced_core::border::Radius;
 use iced_core::gradient::ColorStop;
 use iced_core::keyboard::Key;
 use iced_core::mouse::Cursor;
@@ -1064,7 +1065,12 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         &app.mascot_manager.selected_mascot,
         "+".to_string(),
         ButtonStyle::Active,
-        Some(10.0.into()),
+        Some(Radius {
+            top_left: 0.0,
+            top_right: 10.0,
+            bottom_right: 10.0,
+            bottom_left: 0.0,
+        }),
     )
     .on_press(Message::Graph(GraphMessage::IncrementCounter));
 
@@ -1072,7 +1078,12 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         &app.mascot_manager.selected_mascot,
         "-".to_string(),
         ButtonStyle::Active,
-        Some(10.0.into()),
+        Some(Radius {
+            top_left: 10.0,
+            top_right: 0.0,
+            bottom_right: 0.0,
+            bottom_left: 10.0,
+        }),
     )
     .on_press(Message::Graph(GraphMessage::DecrementCounter));
 
@@ -1087,39 +1098,54 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
 
     let counter_with_buttons = container(row_counter_with_buttons)
         .style(create_container_style(
-            ContainerStyle::Highlighted,
+            ContainerStyle::Light,
             Some(10.into()),
             None,
         ))
         .width(Length::Fixed(100.0));
 
+    let button_style_dots_button = match app.graph_widget_state.visible_points {
+        true => ButtonStyle::Active,
+        _ => ButtonStyle::InactiveTab,
+    };
+
     let toggle_dots_button = create_text_button(
         &app.mascot_manager.selected_mascot,
-        "Toggle dots".to_string(),
-        ButtonStyle::Active,
+        "Dots".to_string(),
+        button_style_dots_button,
         Some(10.0.into()),
     )
     .on_press(Message::Graph(GraphMessage::ToggleDots));
 
+    let button_style_cursor_button = match app.graph_widget_state.visible_cursor_information {
+        true => ButtonStyle::Active,
+        _ => ButtonStyle::InactiveTab,
+    };
+
     let toggle_cursor_button = create_text_button(
         &app.mascot_manager.selected_mascot,
-        "Toggle cursor".to_string(),
-        ButtonStyle::Active,
+        "Cursor".to_string(),
+        button_style_cursor_button,
         Some(10.0.into()),
     )
     .on_press(Message::Graph(GraphMessage::ToggleCursor));
 
+    let button_style_vertical_lines_button = match app.graph_widget_state.visible_vertical_lines {
+        true => ButtonStyle::Active,
+        _ => ButtonStyle::InactiveTab,
+    };
+
     let toggle_vertical_lines = create_text_button(
         &app.mascot_manager.selected_mascot,
-        "Toggle vertical lines".to_string(),
-        ButtonStyle::Active,
+        "Vertical lines".to_string(),
+        button_style_vertical_lines_button,
         Some(10.0.into()),
     )
     .on_press(Message::Graph(GraphMessage::ToggleVerticalLines));
 
     let settings_row = Row::new()
         .width(Length::Fixed(CHART_WIDGET_WIDTH))
-        .push(Space::with_width(Length::FillPortion(1)))
+        .push(Space::with_width(Length::Fixed(LARGE_INDENT)))
         .push(counter_with_buttons)
         .push(Space::with_width(Length::FillPortion(1)))
         .push(toggle_dots_button)
@@ -1127,7 +1153,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         .push(toggle_cursor_button)
         .push(Space::with_width(Length::FillPortion(1)))
         .push(toggle_vertical_lines)
-        .push(Space::with_width(Length::FillPortion(9)))
+        .push(Space::with_width(Length::FillPortion(15)))
         .align_y(Vertical::Bottom);
 
     let settings_row_with_padding = Column::new()
