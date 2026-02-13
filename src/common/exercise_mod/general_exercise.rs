@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumString};
 
+pub type Id = u32;
+
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct GeneralExerciseInfo {
-    pub id: u32,
+    pub id: Id,
     pub name: String,
     pub force: ExerciseForce,
     pub level: ExerciseLevel,
