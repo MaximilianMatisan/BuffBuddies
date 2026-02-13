@@ -1,8 +1,7 @@
 use iced::mouse;
 use iced::widget::canvas;
-use iced::widget::canvas::path::Arc;
 use iced::widget::canvas::{Cache, Frame, Geometry, Path, event};
-use iced::{Degrees, Element, Rectangle, Renderer, Size, Theme};
+use iced::{Element, Rectangle, Renderer, Size, Theme};
 use iced_anim::{Animated, Animation, Event, Motion};
 use iced_core::Point;
 use std::time::Duration;
@@ -10,7 +9,7 @@ use std::time::Duration;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::CONTAINER_COLOR;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
-use crate::client::gui::bb_widget::canvas_utils::{draw_text, generate_stroke};
+use crate::client::gui::bb_widget::canvas_utils::{create_arc_path, draw_text, generate_stroke};
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
@@ -19,7 +18,7 @@ const CIRCLE_WIDGET_WIDTH: f32 = 250.0;
 const CIRCLE_WIDGET_HEIGHT: f32 = 250.0;
 const CIRCLE_RADIUS: f32 = 90.0;
 const PADDING_BETWEEN_ARCS: f32 = 25.0;
-const FONT_SIZE_RATIO: f32 = 21.0;
+const FONT_SIZE_RATIO: f32 = 24.0;
 const FONT_SIZE_DESCRIPTION: f32 = 17.0;
 // Arc angles are defined as clockwise rotations starting from the positive X-axis.
 // For our use case, it is more intuitive to measure angles clockwise from the positive Y-axis
@@ -35,7 +34,7 @@ pub struct CircleWidget<'a> {
 
 #[derive(Clone, Debug)]
 pub enum CircleMessage {
-    UpdateCirlceAnimation(Event<f32>),
+    UpdateCircleAnimation(Event<f32>),
 }
 
 impl<'a> CircleWidget<'a> {
@@ -55,7 +54,7 @@ impl<'a> CircleWidget<'a> {
             .height(CIRCLE_WIDGET_HEIGHT);
 
         Animation::new(draw_percentage, canvas)
-            .on_update(|event| Message::Circle(CircleMessage::UpdateCirlceAnimation(event)))
+            .on_update(|event| Message::Circle(CircleMessage::UpdateCircleAnimation(event)))
             .into()
     }
 }
@@ -105,7 +104,7 @@ impl canvas::Program<Message> for CircleWidget<'_> {
         (
             event::Status::Ignored,
             Some(crate::client::gui::user_interface::Message::Circle(
-                CircleMessage::UpdateCirlceAnimation(iced_anim::Event::Target(1.0)),
+                CircleMessage::UpdateCircleAnimation(iced_anim::Event::Target(1.0)),
             )),
         )
     }
@@ -134,37 +133,7 @@ impl canvas::Program<Message> for CircleWidget<'_> {
                     draw_arc_not_completed_exercises(frame, circle_center, self);
 
                     //DRAW TEXT COMPLETED/TOTAL EXERCISES
-                    let text_padding = 5.0;
-                    let content_text =
-                        format!("{} / {}", self.completed_exercises, self.total_exercises);
-
-                    draw_text(
-                        frame,
-                        content_text,
-                        FONT_SIZE_RATIO
-                            * (self.circle_widget_state.animation_progress.value() + 0.1),
-                        Point {
-                            x: circle_center.x,
-                            y: circle_center.y - FONT_SIZE_RATIO - text_padding,
-                        },
-                    );
-
-                    draw_text(
-                        frame,
-                        String::from("workouts"),
-                        FONT_SIZE_RATIO,
-                        circle_center,
-                    );
-
-                    draw_text(
-                        frame,
-                        String::from("this week"),
-                        FONT_SIZE_DESCRIPTION,
-                        Point {
-                            x: circle_center.x,
-                            y: circle_center.y + FONT_SIZE_RATIO + text_padding,
-                        },
-                    );
+                    draw_circle_text(frame, self)
                 });
 
         vec![circle_widget]
@@ -180,7 +149,6 @@ fn draw_background(frame: &mut Frame) {
         DEFAULT_CONTAINER_RADIUS.into(),
     );
 
-    //DRAW BACKGORUND
     frame.fill(&background_size, CONTAINER_COLOR);
 }
 
@@ -190,27 +158,18 @@ fn draw_arc_completed_exercises(
     circle_widget: &CircleWidget,
 ) {
     if circle_widget.completed_exercises > 0 {
-        let arc_path = &Path::new(|builder| {
-            builder.arc(Arc {
-                center: center_of_circle,
-                radius: CIRCLE_RADIUS,
-                start_angle: Degrees(
-                    DEGREE_START_TRANSLATION
-                        + PADDING_BETWEEN_ARCS / 2.0
-                            * circle_widget.circle_widget_state.animation_progress.value(),
-                )
-                .into(),
-                end_angle: Degrees(
-                    DEGREE_START_TRANSLATION
-                        + (convert_done_exercises_in_degrees(
-                            circle_widget.completed_exercises,
-                            circle_widget.total_exercises,
-                        ) - PADDING_BETWEEN_ARCS / 2.0)
-                            * circle_widget.circle_widget_state.animation_progress.value(),
-                )
-                .into(),
-            });
-        });
+        let start_angle = DEGREE_START_TRANSLATION
+            + PADDING_BETWEEN_ARCS / 2.0
+                * circle_widget.circle_widget_state.animation_progress.value();
+
+        let end_angle = DEGREE_START_TRANSLATION
+            + (convert_done_exercises_in_degrees(
+                circle_widget.completed_exercises,
+                circle_widget.total_exercises,
+            ) - PADDING_BETWEEN_ARCS / 2.0)
+                * circle_widget.circle_widget_state.animation_progress.value();
+
+        let arc_path = &create_arc_path(center_of_circle, CIRCLE_RADIUS, start_angle, end_angle);
 
         frame.stroke(
             arc_path,
@@ -225,33 +184,60 @@ fn draw_arc_not_completed_exercises(
     circle_widget: &CircleWidget,
 ) {
     if circle_widget.total_exercises > circle_widget.completed_exercises {
-        let arc_path = &Path::new(|builder| {
-            builder.arc(Arc {
-                center: center_of_circle,
-                radius: CIRCLE_RADIUS,
-                start_angle: Degrees(
-                    DEGREE_START_TRANSLATION
-                        + (convert_done_exercises_in_degrees(
-                            circle_widget.completed_exercises,
-                            circle_widget.total_exercises,
-                        ) + PADDING_BETWEEN_ARCS / 2.0)
-                            * circle_widget.circle_widget_state.animation_progress.value(),
-                )
-                .into(),
-                end_angle: Degrees(
-                    DEGREE_START_TRANSLATION
-                        + (360.0 - PADDING_BETWEEN_ARCS / 2.0)
-                            * circle_widget.circle_widget_state.animation_progress.value(),
-                )
-                .into(),
-            });
-        });
+        let start_angle = DEGREE_START_TRANSLATION
+            + (convert_done_exercises_in_degrees(
+                circle_widget.completed_exercises,
+                circle_widget.total_exercises,
+            ) + PADDING_BETWEEN_ARCS / 2.0)
+                * circle_widget.circle_widget_state.animation_progress.value();
+
+        let end_angle = DEGREE_START_TRANSLATION
+            + (360.0 - PADDING_BETWEEN_ARCS / 2.0)
+                * circle_widget.circle_widget_state.animation_progress.value();
+
+        let arc_path = &create_arc_path(center_of_circle, CIRCLE_RADIUS, start_angle, end_angle);
 
         frame.stroke(
             arc_path,
             generate_stroke(20.0, circle_widget.active_mascot.get_secondary_color()),
         );
     }
+}
+
+fn draw_circle_text(frame: &mut Frame, circle_widget: &CircleWidget) {
+    let circle_center = frame.center();
+    let text_padding = 5.0;
+    let content_text = format!(
+        "{} / {}",
+        circle_widget.completed_exercises, circle_widget.total_exercises
+    );
+
+    draw_text(
+        frame,
+        content_text,
+        FONT_SIZE_RATIO,
+        Point {
+            x: circle_center.x,
+            y: circle_center.y - FONT_SIZE_RATIO - text_padding,
+        },
+    );
+
+    draw_text(
+        frame,
+        String::from("workouts"),
+        FONT_SIZE_DESCRIPTION + 4.0,
+        circle_center,
+    );
+
+    draw_text(
+        frame,
+        String::from("this week"),
+        FONT_SIZE_DESCRIPTION,
+        Point {
+            x: circle_center.x,
+            y: circle_center.y + FONT_SIZE_RATIO + text_padding,
+        },
+    );
 }
 
 //LOGIC
