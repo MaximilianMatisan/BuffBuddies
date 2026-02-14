@@ -336,7 +336,7 @@ impl App {
                 }
             },
 
-            Message::Bmi(bmi_message) =>  BMIMessage::update_bmi_message(bmi_message,self),
+            Message::Bmi(bmi_message) => BMIMessage::update_bmi_message(bmi_message, self),
 
             Message::AddUserAsFriend(username) => {
                 self.user_manager.add_user_as_friend(&username);
