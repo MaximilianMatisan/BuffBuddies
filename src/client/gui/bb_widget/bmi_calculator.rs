@@ -1,7 +1,7 @@
-use iced::{mouse, Task};
 use iced::widget::canvas;
 use iced::widget::canvas::{Cache, Frame, Geometry, Path, event};
 use iced::{Element, Rectangle, Renderer, Size, Theme};
+use iced::{Task, mouse};
 use iced_anim::{Animated, Animation, Event, Motion};
 use iced_core::{Color, Point, color};
 use std::time::Duration;
@@ -18,12 +18,12 @@ use crate::common::user_mod::user::UserInformation;
 
 const BMI_WIDGET_WIDTH: f32 = 250.0;
 const BMI_WIDGET_HEIGHT: f32 = 250.0;
-const BMI_CIRCLE_RADIUS: f32 = 90.0;
+const BMI_CIRCLE_RADIUS: f32 = 80.0;
 const AMOUNT_ARCS: usize = 5;
 const BMI_PADDING_BETWEEN_INNER_ARCS: f32 = 17.0;
 const BMI_PADDING_BETWEEN_LAST_ARCS: f32 = 44.0;
-const BMI_FONT_SIZE_RESULT: f32 = 36.0;
-const BMI_FONT_SIZE_DESCRIPTION: f32 = 26.0;
+const BMI_FONT_SIZE_RESULT: f32 = 34.0;
+const BMI_FONT_SIZE_DESCRIPTION: f32 = 24.0;
 // Arc angles are defined as clockwise rotations starting from the positive X-axis.
 // For our use case, it is more intuitive to measure angles clockwise from the negative Y-axis
 // This offset converts between the two coordinate systems.
@@ -40,19 +40,18 @@ pub enum BMIMessage {
 }
 
 impl BMIMessage {
-    pub fn update_bmi_message(self,app: &mut App) -> Task<Message> {
+    pub fn update_bmi_message(self, app: &mut App) -> Task<Message> {
         match self {
             BMIMessage::UpdateBMIAnimation(event) => {
-                    app.widget_manager
-                        .bmi_widget_state
-                        .animation_progress
-                        .update(event);
-                    app.widget_manager.bmi_widget_state.update_circle();
-                    Task::none()
-                }
+                app.widget_manager
+                    .bmi_widget_state
+                    .animation_progress
+                    .update(event);
+                app.widget_manager.bmi_widget_state.update_circle();
+                Task::none()
             }
         }
-
+    }
 }
 
 impl<'a> BMIWidget<'a> {
@@ -152,6 +151,9 @@ impl canvas::Program<Message> for BMIWidget<'_> {
                 //DRAW BACKGORUND
                 draw_background(frame);
 
+                //DRAW TEXT BMI VALUE
+                draw_bmi_title(frame);
+
                 //DRAW BMI ARCS
                 draw_bmi_arcs(frame, circle_center, self.bmi_widget_state);
 
@@ -176,6 +178,16 @@ fn draw_background(frame: &mut Frame) {
     );
 
     frame.fill(&background_size, CONTAINER_COLOR);
+}
+
+fn draw_bmi_title(frame: &mut Frame) {
+    let padding_x = 42.0;
+    let padding_y = 50.0 / 1.5; //BMI 3 letters so less padding needed than x does
+    let position = Point {
+        x: Point::ORIGIN.x + padding_x,
+        y: Point::ORIGIN.y + padding_y,
+    };
+    draw_text(frame, "BMI".to_string(), 30.0, position)
 }
 
 fn draw_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget_state: &BMIWidgetState) {
@@ -262,24 +274,23 @@ fn draw_bmi_text(frame: &mut Frame, bmi_widget: &BMIWidget) {
     //WEIGHT CLASS
     let (weight_class_name, font_scaling) = translate_bmi_to_class(bmi_widget.bmi_value);
 
-        let offset = BMI_FONT_SIZE_DESCRIPTION * font_scaling + 2.0;
-        let mut counter = 0.0;
+    let offset = BMI_FONT_SIZE_DESCRIPTION * font_scaling + 2.0;
+    let mut counter = 0.0;
 
-        for word in weight_class_name.split(" ") {
-            draw_text(
-                frame,
-                word.to_string(),
-                BMI_FONT_SIZE_DESCRIPTION * font_scaling,
-                Point {
-                    x: circle_center.x,
-                    y: circle_center.y + text_padding / 2.0 + counter * offset,
-                },
-            );
+    for word in weight_class_name.split(" ") {
+        draw_text(
+            frame,
+            word.to_string(),
+            BMI_FONT_SIZE_DESCRIPTION * font_scaling,
+            Point {
+                x: circle_center.x,
+                y: circle_center.y + text_padding / 2.0 + counter * offset,
+            },
+        );
 
-            counter += 1.0;
-        }
+        counter += 1.0;
     }
-
+}
 
 //LOGIC
 
