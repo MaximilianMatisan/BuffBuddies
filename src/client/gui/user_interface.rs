@@ -336,16 +336,7 @@ impl App {
                 }
             },
 
-            Message::Bmi(bmi_message) => match bmi_message {
-                BMIMessage::UpdateBMIAnimation(event) => {
-                    self.widget_manager
-                        .bmi_widget_state
-                        .animation_progress
-                        .update(event);
-                    self.widget_manager.bmi_widget_state.update_circle();
-                    Task::none()
-                }
-            },
+            Message::Bmi(bmi_message) =>  BMIMessage::update_bmi_message(bmi_message,self),
 
             Message::AddUserAsFriend(username) => {
                 self.user_manager.add_user_as_friend(&username);

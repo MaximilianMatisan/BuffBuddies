@@ -1,4 +1,4 @@
-use iced::mouse;
+use iced::{mouse, Task};
 use iced::widget::canvas;
 use iced::widget::canvas::{Cache, Frame, Geometry, Path, event};
 use iced::{Element, Rectangle, Renderer, Size, Theme};
@@ -37,6 +37,22 @@ pub struct BMIWidget<'a> {
 #[derive(Clone, Debug)]
 pub enum BMIMessage {
     UpdateBMIAnimation(Event<f32>),
+}
+
+impl BMIMessage {
+    pub fn update_bmi_message(self,app: &mut App) -> Task<Message> {
+        match self {
+            BMIMessage::UpdateBMIAnimation(event) => {
+                    app.widget_manager
+                        .bmi_widget_state
+                        .animation_progress
+                        .update(event);
+                    app.widget_manager.bmi_widget_state.update_circle();
+                    Task::none()
+                }
+            }
+        }
+
 }
 
 impl<'a> BMIWidget<'a> {
@@ -246,18 +262,7 @@ fn draw_bmi_text(frame: &mut Frame, bmi_widget: &BMIWidget) {
     //WEIGHT CLASS
     let (weight_class_name, font_scaling) = translate_bmi_to_class(bmi_widget.bmi_value);
 
-    if font_scaling == 1.0 {
-        draw_text(
-            frame,
-            weight_class_name,
-            BMI_FONT_SIZE_DESCRIPTION,
-            Point {
-                x: circle_center.x,
-                y: circle_center.y + text_padding / 2.0,
-            },
-        );
-    } else {
-        let offset = BMI_FONT_SIZE_DESCRIPTION * font_scaling;
+        let offset = BMI_FONT_SIZE_DESCRIPTION * font_scaling + 2.0;
         let mut counter = 0.0;
 
         for word in weight_class_name.split(" ") {
@@ -274,7 +279,7 @@ fn draw_bmi_text(frame: &mut Frame, bmi_widget: &BMIWidget) {
             counter += 1.0;
         }
     }
-}
+
 
 //LOGIC
 
@@ -285,14 +290,14 @@ fn calculate_bmi(user_information: &UserInformation) -> f32 {
 
     let bmi_value = weight / (height * height);
 
-    (bmi_value * 10.0).ceil() / 10.0
+    (bmi_value * 10.0).round() / 10.0
 }
 
 ///returns the class name with the scaling you should use for the font_size
 fn translate_bmi_to_class(bmi_value: f32) -> (String, f32) {
     let (weight_class, font_scaling) = match bmi_value {
         ..16.0 => ("Severely underweight", 0.7),
-        16.0..18.5 => ("Underweight", 1.0),
+        16.0..18.5 => ("Underweight", 0.9),
         18.5..25.0 => ("Normal", 1.0),
         25.0..30.0 => ("Overweight", 1.0),
         _ => ("Severely overweight", 0.7),

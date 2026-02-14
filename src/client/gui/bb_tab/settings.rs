@@ -401,6 +401,10 @@ impl SettingsMessage {
                         .unwrap_or(existing_user_info.weekly_workout_goal);
                     pending_info.weekly_workout_goal = new_goal_integer;
                 }
+                app.widget_manager
+                    .circle_widget_state
+                    .animation_progress
+                    .settle_at(0.0);
             }
             SettingsMessage::EditDescription(new_description) => {
                 let cut_description = new_description
