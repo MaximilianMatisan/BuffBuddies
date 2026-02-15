@@ -13,3 +13,4 @@ pub mod social_elements;
 pub mod stats;
 pub mod widget_utils;
 pub mod workout;
+pub mod progress_bar;

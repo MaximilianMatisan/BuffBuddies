@@ -5,6 +5,7 @@ use crate::client::gui::bb_widget::activity_widget::activity::{
 use crate::client::gui::bb_widget::bmi_calculator::BMIWidgetState;
 use crate::client::gui::bb_widget::circle_widget::CircleWidgetState;
 use crate::client::gui::bb_widget::graph::GraphWidgetState;
+use crate::client::gui::bb_widget::progress_bar::{ProgressBarState, ProgressBarWidget};
 use crate::common::mascot_mod::mascot::Mascot;
 
 pub struct WidgetManager {
@@ -12,6 +13,7 @@ pub struct WidgetManager {
     pub graph_widget_state: GraphWidgetState,
     pub circle_widget_state: CircleWidgetState,
     pub bmi_widget_state: BMIWidgetState,
+    pub progress_bar_state: ProgressBarState
 }
 
 impl WidgetManager {
@@ -27,6 +29,7 @@ impl WidgetManager {
             graph_widget_state: GraphWidgetState::new(),
             circle_widget_state: CircleWidgetState::new(),
             bmi_widget_state: BMIWidgetState::new(),
+            progress_bar_state: ProgressBarState::new(),
         }
     }
 }
