@@ -14,7 +14,6 @@ pub struct App {
     /// Every connection to the server after the login has to contain this jwt in its json header
     /// to qualify as a valid request. E.g. see user_communicator::get_user_information_from_server
     pub jsonwebtoken: Option<String>,
-    pub loading: bool,
     pub screen: Tab,
     pub widget_manager: WidgetManager,
     pub login_state: LoginState,
@@ -32,7 +31,6 @@ impl Default for App {
         let _default_mascot = Mascot::default();
         App {
             jsonwebtoken: None,
-            loading: false,
             screen: Tab::Home,
             login_state: LoginState::default(),
             user_manager: UserManager::new(&exercise_manager.exercises),
