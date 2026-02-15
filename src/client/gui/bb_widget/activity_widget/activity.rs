@@ -43,7 +43,7 @@ pub type AmountOfSets = u32;
 pub struct ActivityWidget {
     width: f32,
     height: f32,
-    current_scope: DateScope,
+    pub(crate) current_scope: DateScope,
     current_offset: Offset,
     activity: ActivityData,
     active_mascot: Mascot,
