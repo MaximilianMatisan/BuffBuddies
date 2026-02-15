@@ -104,7 +104,6 @@ impl App {
                     MascotRarity::Rare => self.user_manager.user_info.coin_balance >= 50,
                     MascotRarity::Epic => self.user_manager.user_info.coin_balance >= 100,
                 } {
-                    self.loading = true;
                     let mut mascot_maybe: Option<Mascot> = None;
                     match rarity {
                         MascotRarity::Rare => {
@@ -154,13 +153,11 @@ impl App {
                 }
             }
             Message::SaveMascot(Ok(mascot)) => {
-                self.loading = false;
                 self.user_manager.user_info.coin_balance -= mascot.get_prize();
                 self.mascot_manager.add_mascot(mascot);
                 Task::none()
             }
             Message::SaveMascot(Err(_err)) => {
-                self.loading = false;
                 self.pop_up_manager.new_pop_up(
                     PopUpType::Minor,
                     "Server error!".to_string(),
@@ -199,13 +196,11 @@ impl App {
                     }
                     //TODO check with server database
                     Ok(login_request) => {
-                        self.loading = true; //TODO do we need this?
                         Task::perform(valid_login(login_request), Message::RequestValidUser)
                     }
                 }
             }
             Message::RequestValidUser(Ok(jwt)) => {
-                self.loading = false;
                 self.jsonwebtoken = Some(jwt);
                 self.login_state.state = LoginStates::FetchingLoginData;
                 Task::perform(
@@ -243,7 +238,6 @@ impl App {
                         println!("Server had err during user login check")
                     }
                 }
-                self.loading = false;
                 Task::none()
             }
             Message::UsernameEntered(new_username) => {

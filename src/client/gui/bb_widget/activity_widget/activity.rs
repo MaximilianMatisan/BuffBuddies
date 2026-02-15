@@ -35,9 +35,9 @@ pub type ActivityData = HashMap<NaiveDate, AmountOfSets>;
 
 #[derive(Debug, Clone)]
 pub struct SquareDimensions {
-    pub(crate) side_length: f32,
-    pub(crate) spacing: f32,
-    pub(crate) max_squares_per_col: u32,
+    pub side_length: f32,
+    pub spacing: f32,
+    pub max_squares_per_col: u32,
 }
 
 pub type AmountOfSets = u32;
@@ -58,7 +58,7 @@ pub enum ActivityMessage {
     TimeOffset(Offset),
 }
 
-impl ActivityWidget {
+impl<'a> ActivityWidget {
     pub fn new(active_mascot: Mascot, activity: ActivityData) -> Self {
         let mut activity_widget = ActivityWidget {
             width: 0.0,
@@ -140,10 +140,34 @@ impl ActivityWidget {
         self.height = self.compute_widget_height();
         Task::none()
     }
-    pub fn view<'a>(&self, app: &'a App) -> Element<'a, Message> {
+    pub fn view(&self, app: &'a App) -> Element<'a, Message> {
+        let time_scope_buttons = self.view_time_scope_buttons();
+        let time_offset_buttons = self.view_time_offset_buttons();
+
+        let widget_offset_button_container = container(
+            row![
+                app.widget_manager.activity_widget.clone(), //TODO ohne clone?
+                time_offset_buttons
+            ]
+            .spacing(10)
+            .align_y(Vertical::Center),
+        )
+        .style(bb_theme::container::create_container_style(
+            ContainerStyle::Default,
+            None,
+            None,
+        ))
+        .padding(INDENT);
+
+        row![widget_offset_button_container, time_scope_buttons]
+            .align_y(Vertical::Center)
+            .into()
+    }
+
+    fn view_time_scope_buttons(&self) -> Column<'a, Message> {
         let mut time_scope_buttons: Column<Message> = Column::new();
 
-        let time_scope_border_radius = Radius {
+        let time_scope_button_border_radius = Radius {
             top_left: 0.0,
             top_right: DEFAULT_BUTTON_RADIUS,
             bottom_right: DEFAULT_BUTTON_RADIUS,
@@ -167,14 +191,17 @@ impl ActivityWidget {
                     &self.active_mascot,
                     time.to_string(),
                     style_of_button,
-                    Some(time_scope_border_radius),
+                    Some(time_scope_button_border_radius),
                 )
                 .width(width_of_button)
                 .height(DEFAULT_NAVIGATION_BUTTON_HEIGHT)
                 .on_press(Message::Activity(ActivityMessage::TimeScope(time))),
             );
         }
+        time_scope_buttons.spacing(INDENT)
+    }
 
+    fn view_time_offset_buttons(&self) -> Column<'a, Message> {
         let mut time_offset_buttons: Column<Message> = Column::new();
 
         let offset_button_width = match self.current_scope {
@@ -202,25 +229,27 @@ impl ActivityWidget {
             );
         }
         time_offset_buttons = time_offset_buttons.spacing(INDENT);
-
-        let widget_offset_container = container(
-            row![
-                app.widget_manager.activity_widget.clone(), //TODO ohne clone?
-                time_offset_buttons
-            ]
-            .spacing(10)
-            .align_y(Vertical::Center),
-        )
-        .style(bb_theme::container::create_container_style(
-            ContainerStyle::Default,
-            None,
-            None,
-        ))
-        .padding(INDENT);
-
-        row![widget_offset_container, time_scope_buttons.spacing(10)]
-            .align_y(Vertical::Center)
-            .into()
+        time_offset_buttons
+    }
+    fn get_gui_square_border_of_date(&self, date: &NaiveDate) -> Border {
+            let activity_border = match self.activity.get(&date) {
+                _ if *date == self.today => Border {
+                    color: Color::WHITE,
+                    width: 2.0,
+                    radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
+                },
+                None | Some(0) => Border {
+                    color: color::HIGHLIGHTED_CONTAINER_COLOR,
+                    width: 1.0,
+                    radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
+                },
+                Some(_) => Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
+                    radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
+                },
+            };
+            activity_border
     }
 }
 
@@ -265,23 +294,8 @@ where
                 Some(_) => self.active_mascot.get_primary_color(),
             };
 
-            let activity_border = match self.activity.get(&date_iterator) {
-                _ if date_iterator == self.today => Border {
-                    color: Color::WHITE,
-                    width: 2.0,
-                    radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
-                },
-                None | Some(0) => Border {
-                    color: color::HIGHLIGHTED_CONTAINER_COLOR,
-                    width: 1.0,
-                    radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
-                },
-                Some(_) => Border {
-                    color: Color::TRANSPARENT,
-                    width: 0.0,
-                    radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
-                },
-            };
+            let activity_border = self.get_gui_square_border_of_date(&date_iterator);
+
             let days_from_start = (date_iterator - self.start_date()).num_days() as u32;
             let index = days_from_start + first_weekday;
 
