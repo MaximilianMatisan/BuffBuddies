@@ -1,4 +1,5 @@
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
+use crate::client::server_communication::server_communicator::SetJson;
 use crate::common::exercise_mod::exercise::Exercise;
 use crate::common::exercise_mod::general_exercise::{
     ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Muscle,
@@ -8,6 +9,7 @@ use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::user_mod::user::{ForeignUser, Gender, UserInformation};
+use crate::server::routes::workout::ExerciseJson;
 use chrono::NaiveDate;
 use sqlx::Row;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions};
@@ -89,6 +91,7 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     reps INTEGER NOT NULL,
     exercise_id INTEGER NOT NULL,
     weight_in_kg FLOAT NOT NULL,
+    workout_id INTEGER NOT NULL,
     FOREIGN KEY (exercise_id) REFERENCES exercise(id),
     FOREIGN KEY (username) REFERENCES users(username)
     );",
@@ -526,6 +529,9 @@ pub async fn reset_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("DROP TABLE IF EXISTS users")
         .execute(pool)
         .await?;
+    sqlx::query("DROP TABLE IF EXISTS weightLog")
+        .execute(pool)
+        .await?;
 
     init_db(pool).await?;
 
@@ -625,6 +631,7 @@ pub async fn add_exercise_log(
     reps: i64,
     weight: f32,
     date: NaiveDate,
+    workout_id: u32,
 ) -> Result<(), sqlx::Error> {
     let row = sqlx::query("SELECT id from exercise WHERE name = ?")
         .bind(exercise_name)
@@ -634,16 +641,67 @@ pub async fn add_exercise_log(
     let id: i64 = row.get("id");
     let date_str = date.format("%d.%m.%y").to_string();
     sqlx::query(
-        "INSERT INTO exerciseLog (date, username, reps, exercise_id, weight_in_kg)
-            VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO exerciseLog (date, username, reps, exercise_id, weight_in_kg, workout_id)
+            VALUES (?, ?, ?, ?, ?, ?)",
     )
     .bind(date_str)
     .bind(username)
     .bind(reps)
     .bind(id)
     .bind(weight)
+    .bind(workout_id)
     .execute(pool)
     .await?;
+
+    Ok(())
+}
+
+#[allow(dead_code)]
+pub async fn add_workout_to_exercise_log(
+    pool: &SqlitePool,
+    username: &str,
+    workout: Vec<ExerciseJson>,
+    date: NaiveDate,
+) -> Result<(), sqlx::Error> {
+    let mut transaction = pool.begin().await?;
+
+    let max_id_row = sqlx::query("SELECT MAX(workout_id) as max_id FROM exerciseLog")
+        .fetch_optional(&mut *transaction)
+        .await?;
+
+    let string_date = date.format("%d.%m.%y").to_string();
+
+    let mut next_id: i64 = match max_id_row {
+        Some(r) => r.get("max_id"),
+        None => 1,
+    };
+
+    next_id += 1;
+
+    for exercises in workout {
+        let exercise_id_row = sqlx::query("SELECT id FROM exercise WHERE name = ?")
+            .bind(&exercises.name)
+            .fetch_one(pool)
+            .await?;
+        let exercise_id: i64 = exercise_id_row.get("id");
+
+        for set in exercises.sets {
+            sqlx::query(
+                "INSERT INTO exerciseLog (date, username, reps, exercise_id, weight_in_kg, workout_id)
+             VALUES (?, ?, ?, ?, ?, ?)"
+            )
+                .bind(&string_date)
+                .bind(username.to_string())
+                .bind(set.reps)
+                .bind(exercise_id)
+                .bind(set.weight)
+                .bind(next_id)
+                .execute(&mut *transaction)
+                .await?;
+        }
+    }
+
+    transaction.commit().await?;
 
     Ok(())
 }
@@ -841,6 +899,7 @@ pub async fn test_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         100,
         60.0,
         NaiveDate::from_ymd_opt(2025, 10, 10).unwrap(),
+        1,
     )
     .await?;
 
@@ -851,6 +910,7 @@ pub async fn test_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         100,
         60.0,
         NaiveDate::from_ymd_opt(2025, 10, 10).unwrap(),
+        1,
     )
     .await?;
 
@@ -861,6 +921,7 @@ pub async fn test_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         100,
         100.0,
         NaiveDate::from_ymd_opt(2025, 10, 10).unwrap(),
+        1,
     )
     .await?;
 
@@ -938,6 +999,35 @@ pub async fn test_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     println!("Level of general exercise was success!");
     assert_eq!(incline_bench_pull_info.category, ExerciseCategory::Strength);
     println!("Category of general exercise was success!");
+
+    let leg_day = vec![
+        ExerciseJson {
+            name: "Smith Machine Bench Press".to_string(),
+            sets: vec![
+                SetJson {
+                    weight: 420.5,
+                    reps: 12,
+                },
+                SetJson {
+                    weight: 1000.5,
+                    reps: 10,
+                },
+            ],
+        },
+        ExerciseJson {
+            name: "Reverse Triceps Bench Press".to_string(),
+            sets: vec![SetJson {
+                weight: 2.0,
+                reps: 8,
+            }],
+        },
+    ];
+
+    let test_date = NaiveDate::from_ymd_opt(2006, 4, 26).unwrap();
+
+    add_workout_to_exercise_log(pool, "robert", leg_day, test_date).await?;
+
+    println!("adding leg_day workout to exerciseLog was success");
 
     Ok(())
 }
