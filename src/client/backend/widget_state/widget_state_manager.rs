@@ -1,4 +1,5 @@
 use crate::client::backend::exercise_manager::ExerciseManager;
+use crate::client::backend::widget_state::progress_bar_manager::ProgressBarStateManager;
 use crate::client::gui::bb_widget::activity_widget::activity::{
     ActivityWidget, calculate_activity_data,
 };
@@ -13,7 +14,7 @@ pub struct WidgetManager {
     pub graph_widget_state: GraphWidgetState,
     pub circle_widget_state: CircleWidgetState,
     pub bmi_widget_state: BMIWidgetState,
-    pub progress_bar_state: ProgressBarState
+    pub progress_bar_state_manager: ProgressBarStateManager
 }
 
 impl WidgetManager {
@@ -29,7 +30,7 @@ impl WidgetManager {
             graph_widget_state: GraphWidgetState::new(),
             circle_widget_state: CircleWidgetState::new(),
             bmi_widget_state: BMIWidgetState::new(),
-            progress_bar_state: ProgressBarState::new(),
+            progress_bar_state_manager: ProgressBarStateManager::new(),
         }
     }
 }

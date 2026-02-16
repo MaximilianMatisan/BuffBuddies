@@ -17,6 +17,7 @@ use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::common::user_mod::user::UserInformation;
 use iced::advanced::text::{Renderer as TextRenderer, Text};
 use iced_core::alignment::{Horizontal, Vertical};
+use strum_macros::Display;
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 
 const PROGRESS_BAR_WIDGET_WIDTH: f32 = 700.0;
@@ -31,18 +32,42 @@ const PROGRESS_BAR_TITLE_FONT_SIZE: f32 = 24.0;
 //-------Variables used my multiple methods
 static Y_POSITION_BAR: f32 = PADDING_Y + PROGRESS_BAR_TITLE_FONT_SIZE + (PROGRESS_BAR_WIDGET_HEIGHT - PADDING_Y - PROGRESS_BAR_TITLE_FONT_SIZE) / 2.0;
 
-pub struct ProgressBarWidget<'a> {
-    progress_bar_state : &'a ProgressBarState,
-    title: String,
-    current_value: f32,
-    goal_value: f32,
-    unit: String
-
-}
-
 #[derive(Clone, Debug)]
 pub enum ProgressBarMessage {
     UpdateProgressBarAnimation(Event<f32>),
+}
+
+#[derive(Display)]
+pub enum ProgressBarType {
+    Water,
+    Steps,
+    Sleep
+}
+
+impl ProgressBarType {
+    fn get_unit(&self) -> String {
+        match self {
+            ProgressBarType::Water => "L".to_string(),
+            ProgressBarType::Steps => "".to_string(),
+            ProgressBarType::Sleep => "h".to_string()
+        }
+    }
+
+    fn get_completed_bar_color (&self) -> Color {
+        match self {
+            ProgressBarType::Water => (RareMascot::Whale.get_primary_color()),
+            ProgressBarType::Steps => RareMascot::Chameleon.get_primary_color(),
+            ProgressBarType::Sleep => EpicMascot::Capybara.get_primary_color()
+        }
+    }
+
+    fn get_remaining_bar_color (&self) -> Color {
+        match self {
+            ProgressBarType::Water => (RareMascot::Whale.get_secondary_color()),
+            ProgressBarType::Steps => RareMascot::Chameleon.get_secondary_color(),
+            ProgressBarType::Sleep => EpicMascot::Capybara.get_secondary_color()
+        }
+    }
 }
 
 impl ProgressBarMessage {
@@ -50,24 +75,29 @@ impl ProgressBarMessage {
         match self {
             ProgressBarMessage::UpdateProgressBarAnimation(event) => {
                 app.widget_manager
-                    .progress_bar_state
+                    .progress_bar_state_manager
+                    .water_progress_bar_state
                     .animation_progress
                     .update(event);
-                app.widget_manager.progress_bar_state.update_circle();
+
+                app.widget_manager.progress_bar_state_manager.water_progress_bar_state.update_progress_bar();
                 Task::none()
             }
         }
     }
 }
 
+pub struct ProgressBarWidget<'a> {
+    progress_bar_state : &'a ProgressBarState,
+    progress_bar_type: ProgressBarType
+
+}
+
 impl<'a> ProgressBarWidget<'a> {
-    pub(crate) fn new(app: &'a App) -> Self {
+    pub(crate) fn new(progress_bar_state: &'a ProgressBarState,progress_bar_type: ProgressBarType) -> Self {
         ProgressBarWidget {
-            progress_bar_state: &app.widget_manager.progress_bar_state,
-            title: "Water".to_string(),
-            current_value: 1.0,
-            goal_value: 3.5,
-            unit: "L".to_string(),
+            progress_bar_state: &progress_bar_state,
+            progress_bar_type
         }
     }
     pub(crate) fn view(self) -> Element<'a, Message> {
@@ -86,16 +116,18 @@ impl<'a> ProgressBarWidget<'a> {
 pub struct ProgressBarState {
     progress_bar: Cache,
     pub animation_progress: Animated<f32>,
+    current_value: f32,
+    goal_value: f32
 }
 
 impl ProgressBarState {
-    pub(crate) fn update_circle(&self) {
+    pub(crate) fn update_progress_bar(&self) {
         self.progress_bar.clear();
     }
 }
 
 impl ProgressBarState {
-    pub fn new() -> Self {
+    pub fn new(current_value: f32 ,goal_value: f32) -> Self {
         let animation_motion = Motion {
             response: Duration::from_millis(3000),
             damping: Motion::SMOOTH.damping(),
@@ -104,13 +136,15 @@ impl ProgressBarState {
         Self {
             progress_bar: Cache::default(),
             animation_progress: Animated::new(0.0, animation_motion),
+            current_value,
+            goal_value //TODO: Make sure it's not 0 to avoid division by 0
         }
     }
 }
 
 impl Default for ProgressBarState {
     fn default() -> Self {
-        Self::new()
+        Self::new(0.0,1.0)
     }
 }
 
@@ -124,7 +158,7 @@ impl canvas::Program<Message> for ProgressBarWidget<'_> {
         _bounds: Rectangle,
         _cursor: iced_core::mouse::Cursor,
     ) -> (iced::event::Status, std::option::Option<Message>) {
-        self.progress_bar_state.update_circle();
+        self.progress_bar_state.update_progress_bar();
 
         (
             event::Status::Ignored,
@@ -185,10 +219,9 @@ fn draw_progress_bar_title(frame: &mut Frame,  progress_bar_widget: &ProgressBar
         y: Point::ORIGIN.y + PADDING_Y,
     };
 
-    //draw_text(frame, progress_bar_widget.title.clone(), PROGRESS_BAR_TITLE_FONT_SIZE, position_title)
 
     frame.fill_text(canvas::Text {
-        content: progress_bar_widget.title.clone(),
+        content: progress_bar_widget.progress_bar_type.to_string(),
         size: PROGRESS_BAR_TITLE_FONT_SIZE.into(),
         position: position_title,
         color: TEXT_COLOR,
@@ -209,18 +242,18 @@ fn draw_bar_completion(frame: &mut Frame, progress_bar_widget: &ProgressBarWidge
 
     let end_point =
         Point{
-            x: Point::ORIGIN.x + PADDING_X + calculate_length_completion_bar(progress_bar_widget),
+            x: Point::ORIGIN.x + PADDING_X + calculate_length_completion_bar(progress_bar_widget.progress_bar_state),
             y: Point::ORIGIN.y + Y_POSITION_BAR,
         };
 
-    frame.stroke(&Path::line(start_point,end_point),generate_stroke(BAR_THICKNESS, RareMascot::Whale.get_primary_color()))
+    frame.stroke(&Path::line(start_point,end_point),generate_stroke(BAR_THICKNESS,progress_bar_widget.progress_bar_type.get_completed_bar_color()))
 
 }
 fn draw_bar_remaining(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget) {
-    if progress_bar_widget.current_value < progress_bar_widget.goal_value {
+    if progress_bar_widget.progress_bar_state.current_value < progress_bar_widget.progress_bar_state.goal_value {
         let start_point =
             Point {
-                x: Point::ORIGIN.x + PADDING_X + calculate_length_completion_bar(progress_bar_widget) + PADDING_BETWEEN_BARS / 2.0,
+                x: Point::ORIGIN.x + PADDING_X + calculate_length_completion_bar(progress_bar_widget.progress_bar_state) + PADDING_BETWEEN_BARS / 2.0,
                 y: Point::ORIGIN.y + Y_POSITION_BAR,
             };
 
@@ -230,13 +263,13 @@ fn draw_bar_remaining(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget
                 y: Point::ORIGIN.y + Y_POSITION_BAR,
             };
 
-        frame.stroke(&Path::line(start_point, end_point), generate_stroke(BAR_THICKNESS, RareMascot::Whale.get_secondary_color()))
+        frame.stroke(&Path::line(start_point, end_point), generate_stroke(BAR_THICKNESS, progress_bar_widget.progress_bar_type.get_remaining_bar_color()))
     }
 }
 
 fn draw_progress_bar_values_text(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget) {
 
-    let values_text = format!("{}/{} {}", progress_bar_widget.current_value, progress_bar_widget.goal_value, progress_bar_widget.unit);
+    let values_text = format!("{}/{} {}", progress_bar_widget.progress_bar_state.current_value, progress_bar_widget.progress_bar_state.goal_value, progress_bar_widget.progress_bar_type.get_unit());
 
     let position_values = Point{
         x: Point::ORIGIN.x + PROGRESS_BAR_WIDGET_WIDTH - PADDING_X,
@@ -259,10 +292,10 @@ fn draw_progress_bar_values_text(frame: &mut Frame, progress_bar_widget: &Progre
 
 //LOGIC
 
-fn calculate_length_completion_bar(progress_bar_widget: &ProgressBarWidget) -> f32 {
+fn calculate_length_completion_bar(progress_bar_state: &ProgressBarState) -> f32 {
 
     let total_possible_bar_length = PROGRESS_BAR_WIDGET_WIDTH - PADDING_X * 2.0;
-    let percentage = progress_bar_widget.current_value / progress_bar_widget.goal_value;
+    let percentage = progress_bar_state.current_value / progress_bar_state.goal_value;
     let padding_to_other_bar = match percentage {
         1.0 => 0.0,
         0.0 => 0.0,

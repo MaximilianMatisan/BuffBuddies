@@ -4,7 +4,7 @@ use crate::client::backend::login_state::LoginState;
 use crate::client::backend::mascot_manager::MascotManager;
 use crate::client::backend::pop_up_manager::PopUpManager;
 use crate::client::backend::user_manager::UserManager;
-use crate::client::backend::widget_state_manager::WidgetManager;
+use crate::client::backend::widget_state::widget_state_manager::WidgetManager;
 use crate::client::backend::workout_preset_manager::WorkoutPresetManager;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::server_communication::request_data::LoginServerRequestData;
