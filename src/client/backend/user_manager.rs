@@ -7,6 +7,7 @@ use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::common::user_mod::user::{
     ForeignUser, Gender, UserInformation, UserInformationStrings, UserType,
 };
+use crate::common::user_mod::user_goals::UserGoals;
 use iced::widget::combo_box;
 use strum::IntoEnumIterator;
 
@@ -39,10 +40,10 @@ impl UserManager {
                 weight: 75.0,
                 height: 187,
                 gender: Gender::Male,
-                weekly_workout_goal: 5,
                 weekly_workout_streak: 12,
                 coin_balance: 12381,
                 favorite_mascot: Mascot::Rare(RareMascot::Chameleon),
+                user_goals: UserGoals::default(),
                 profile_stat_manager: ProfileStatManager::new(&user1_exercises),
             },
             selected_mascot: Mascot::Rare(RareMascot::Chameleon),
@@ -66,10 +67,10 @@ impl UserManager {
                 weight: 70.0,
                 height: 178,
                 gender: Gender::Male,
-                weekly_workout_goal: 7,
                 weekly_workout_streak: 19,
                 coin_balance: 2972,
                 favorite_mascot: Mascot::Rare(RareMascot::Whale),
+                user_goals: UserGoals::default(),
                 profile_stat_manager: ProfileStatManager::new(&user2_exercises),
             },
             selected_mascot: Mascot::Rare(RareMascot::Duck),
@@ -89,10 +90,10 @@ impl UserManager {
                 weight: 68.0,
                 height: 188,
                 gender: Gender::Male,
-                weekly_workout_goal: 5,
                 weekly_workout_streak: 9,
                 coin_balance: 90,
                 favorite_mascot: Mascot::Epic(EpicMascot::Capybara),
+                user_goals: UserGoals::default(),
                 profile_stat_manager: ProfileStatManager::new(&user3_exercises),
             },
             selected_mascot: Mascot::Rare(RareMascot::Dog),
@@ -112,10 +113,10 @@ impl UserManager {
                 weight: 100.0,
                 height: 150,
                 gender: Gender::Male,
-                weekly_workout_goal: 1,
                 weekly_workout_streak: 2,
                 coin_balance: 200,
                 favorite_mascot: Mascot::Epic(EpicMascot::Shark),
+                user_goals: UserGoals::default(),
                 profile_stat_manager: ProfileStatManager::new(&user4_exercises),
             },
             selected_mascot: Mascot::Rare(RareMascot::Duck),
