@@ -43,7 +43,7 @@ impl<'a> CircleWidget<'a> {
             active_mascot: app.mascot_manager.selected_mascot,
             circle_widget_state: &app.widget_manager.circle_widget_state,
             completed_exercises: 2,
-            total_exercises: app.user_manager.user_info.weekly_workout_goal, //CANNOT BE ZERO OR ELSE APP CRASHES
+            total_exercises: app.user_manager.user_info.user_goals.weekly_workouts, //CANNOT BE ZERO OR ELSE APP CRASHES
         }
     }
     pub(crate) fn view(self) -> Element<'a, Message> {

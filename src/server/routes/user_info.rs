@@ -47,13 +47,6 @@ pub async fn update_user_info(
     database::update_user_weight(&pool, &user_authentication.username, new_user_info.weight)
         .await?;
 
-    database::update_user_weekly_workout_goal(
-        &pool,
-        &user_authentication.username,
-        new_user_info.weekly_workout_goal,
-    )
-    .await?;
-
     database::update_user_description(
         &pool,
         &user_authentication.username,

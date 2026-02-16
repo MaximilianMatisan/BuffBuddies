@@ -2,6 +2,7 @@ use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::common::exercise_mod::exercise::Exercise;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::user_mod::user_goals::UserGoals;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter, EnumString};
 
@@ -28,10 +29,10 @@ pub struct UserInformation {
     pub weight: Kg,
     pub height: u32,
     pub gender: Gender,
-    pub weekly_workout_goal: u32,
     pub weekly_workout_streak: u32,
     pub coin_balance: u32,
     pub favorite_mascot: Mascot,
+    pub user_goals: UserGoals,
     //Doesn't include "new" data only for performance, doesn't need to be in db
     pub profile_stat_manager: ProfileStatManager,
 }
@@ -44,10 +45,10 @@ impl UserInformation {
             weight: 60.0,
             height: 170,
             gender: Gender::Male,
-            weekly_workout_goal: 4,
             weekly_workout_streak: 0,
             coin_balance: 400,
             favorite_mascot: Mascot::default(),
+            user_goals: UserGoals::default(),
             profile_stat_manager: ProfileStatManager::new(exercise_data),
         }
     }

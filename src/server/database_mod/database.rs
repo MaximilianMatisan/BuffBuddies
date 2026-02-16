@@ -9,6 +9,7 @@ use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::user_mod::user::{ForeignUser, Gender, UserInformation};
+use crate::common::user_mod::user_goals::UserGoals;
 use crate::server::routes::workout::ExerciseJson;
 use chrono::NaiveDate;
 use sqlx::Row;
@@ -29,7 +30,6 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         "CREATE TABLE IF NOT EXISTS users (
     username TEXT PRIMARY KEY,
     user_password TEXT NOT NULL,
-    weekly_workout_goal INTEGER NOT NULL,
     weekly_workout_streak INTEGER NOT NULL,
     coin_balance INTEGER NOT NULL,
     weight FLOAT NOT NULL,
@@ -151,6 +151,23 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     .execute(pool)
     .await?;
 
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS user_goals (
+    username TEXT NOT NULL,
+    weekly_workouts INTEGER NOT NULL,
+    weight FLOAT NOT NULL,
+    water FLOAT NOT NULL,
+    steps INTEGER NOT NULL,
+    sleep FLOAT NOT NULL,
+
+    PRIMARY KEY (username),
+
+    FOREIGN KEY (username) REFERENCES users(username)
+);",
+    )
+    .execute(pool)
+    .await?;
+
     Ok(())
 }
 
@@ -159,11 +176,10 @@ pub async fn add_user(
     username: &str,
     password: &str,
 ) -> Result<(), sqlx::Error> {
-    sqlx::query("INSERT INTO users (username, user_password, weekly_workout_goal, weekly_workout_streak, coin_balance, weight, height, gender, favorite_mascot, selected_mascot, profile_picture)
+    sqlx::query("INSERT INTO users (username, user_password, weekly_workout_streak, coin_balance, weight, height, gender, favorite_mascot, selected_mascot, profile_picture)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         .bind(username)
         .bind(password)
-        .bind(0)
         .bind(0)
         .bind(0)
         .bind(0)
@@ -236,19 +252,6 @@ pub async fn update_user_height(
 ) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE users SET height = ? WHERE username = ?")
         .bind(new_height)
-        .bind(username)
-        .execute(pool)
-        .await?;
-    Ok(())
-}
-#[allow(dead_code)]
-pub async fn update_user_weekly_workout_goal(
-    pool: &SqlitePool,
-    username: &str,
-    new_goal: u32,
-) -> Result<(), sqlx::Error> {
-    sqlx::query("UPDATE users SET weekly_workout_goal = ? WHERE username = ?")
-        .bind(new_goal)
         .bind(username)
         .execute(pool)
         .await?;
@@ -568,18 +571,6 @@ pub async fn get_user_gender(pool: &SqlitePool, username: &str) -> Result<Gender
     Ok(exercise_force)
 }
 #[allow(dead_code)]
-pub async fn get_user_weekly_workout_goal(
-    pool: &SqlitePool,
-    username: &str,
-) -> Result<u32, sqlx::Error> {
-    let row = sqlx::query("SELECT weekly_workout_goal FROM users WHERE username = ?")
-        .bind(username)
-        .fetch_one(pool)
-        .await?;
-
-    Ok(row.get("weekly_workout_goal"))
-}
-#[allow(dead_code)]
 pub async fn get_user_weekly_workout_streak(
     pool: &SqlitePool,
     username: &str,
@@ -796,10 +787,10 @@ pub async fn get_single_foreign_user(
                 "Female" => Gender::Female,
                 _ => Gender::Male,
             },
-            weekly_workout_goal: row.get::<i64, _>("weekly_workout_goal") as u32,
             weekly_workout_streak: row.get::<i64, _>("weekly_workout_streak") as u32,
             coin_balance: row.get::<i64, _>("coin_balance") as u32,
             favorite_mascot: mascot_from_string(row.get("favorite_mascot")),
+            user_goals: UserGoals::default(), //TODO get
             profile_stat_manager: ProfileStatManager::new(&exercise_stats),
         },
         selected_mascot: mascot_from_string(row.get("selected_mascot")),
@@ -1178,10 +1169,10 @@ pub async fn get_user_information(
             "Female" => Gender::Female,
             _ => Gender::Male,
         },
-        weekly_workout_goal: row.get::<i64, _>("weekly_workout_goal") as u32,
         weekly_workout_streak: row.get::<i64, _>("weekly_workout_streak") as u32,
         coin_balance: row.get::<i64, _>("coin_balance") as u32,
         favorite_mascot: mascot_from_string(row.get("favorite_mascot")),
+        user_goals: UserGoals::default(), //TODO get
         profile_stat_manager: ProfileStatManager::new(&exercise_stats),
     })
 }

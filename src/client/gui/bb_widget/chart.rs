@@ -10,7 +10,7 @@ use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::graph::{GraphWidget, view_graph_widget_settings};
 use crate::client::gui::bb_widget::progress::ProgressWidget;
 use crate::client::gui::bb_widget::stats::exercise_stat_column;
-use crate::client::gui::bb_widget::widget_utils::INDENT;
+use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;
 use crate::client::gui::user_interface::Message::ChangeShownChartType;
 use iced::Element;
@@ -40,7 +40,6 @@ impl ChartTypes {
 }
 
 pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
-    let default_padding = 30.0;
     let title: Element<'a, Message> =
         format_button_text(iced::widget::text("Progress").size(40)).into();
     let search_bar: Element<Message> = combo_box(
@@ -85,9 +84,9 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .width(Length::Fixed(CHART_WIDGET_WIDTH))
         .padding(Padding {
             top: 0.0,
-            right: default_padding,
-            bottom: default_padding,
-            left: default_padding,
+            right: LARGE_INDENT,
+            bottom: LARGE_INDENT,
+            left: LARGE_INDENT,
         });
 
     let header_row = Row::new()
@@ -107,7 +106,7 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .push(chart)
         .push(exercise_stats)
         .padding(Padding {
-            top: default_padding / 2.0,
+            top: LARGE_INDENT / 2.0,
             ..Default::default()
         })
         .align_x(Horizontal::Center);

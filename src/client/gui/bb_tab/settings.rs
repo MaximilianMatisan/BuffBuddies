@@ -143,7 +143,7 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
         ))
         .push(descriptor_space_fill_text_row(
             "Weekly workout goal:",
-            user_info.weekly_workout_goal.to_string(),
+            user_info.user_goals.weekly_workouts.to_string(),
         ))
         .push(description)
         .width(Length::FillPortion(15));
@@ -325,7 +325,7 @@ impl SettingsMessage {
                     UserInformationStrings::new(
                         existing_user_info.weight.to_string(),
                         existing_user_info.height.to_string(),
-                        existing_user_info.weekly_workout_goal.to_string(),
+                        existing_user_info.user_goals.weekly_workouts.to_string(),
                     ),
                 ));
             }
@@ -398,8 +398,8 @@ impl SettingsMessage {
                         .weekly_workout_goal
                         .parse()
                         .map(|num: u32| if num == 0 { 1 } else { num })
-                        .unwrap_or(existing_user_info.weekly_workout_goal);
-                    pending_info.weekly_workout_goal = new_goal_integer;
+                        .unwrap_or(existing_user_info.user_goals.weekly_workouts);
+                    pending_info.user_goals.weekly_workouts = new_goal_integer;
                 }
                 app.widget_manager
                     .circle_widget_state

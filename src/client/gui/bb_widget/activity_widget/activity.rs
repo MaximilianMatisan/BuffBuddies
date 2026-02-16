@@ -232,24 +232,24 @@ impl<'a> ActivityWidget {
         time_offset_buttons
     }
     fn get_gui_square_border_of_date(&self, date: &NaiveDate) -> Border {
-            let activity_border = match self.activity.get(&date) {
-                _ if *date == self.today => Border {
-                    color: Color::WHITE,
-                    width: 2.0,
-                    radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
-                },
-                None | Some(0) => Border {
-                    color: color::HIGHLIGHTED_CONTAINER_COLOR,
-                    width: 1.0,
-                    radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
-                },
-                Some(_) => Border {
-                    color: Color::TRANSPARENT,
-                    width: 0.0,
-                    radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
-                },
-            };
-            activity_border
+        let activity_border = match self.activity.get(date) {
+            _ if *date == self.today => Border {
+                color: Color::WHITE,
+                width: 2.0,
+                radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
+            },
+            None | Some(0) => Border {
+                color: color::HIGHLIGHTED_CONTAINER_COLOR,
+                width: 1.0,
+                radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
+            },
+            Some(_) => Border {
+                color: Color::TRANSPARENT,
+                width: 0.0,
+                radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
+            },
+        };
+        activity_border
     }
 }
 
