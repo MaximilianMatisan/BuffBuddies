@@ -35,6 +35,10 @@ use strum::IntoEnumIterator;
 
 const SETTINGS_ENTRY_SPACING: f32 = 3.0;
 const SETTINGS_TEXT_INPUT_WIDTH: f32 = 250.0;
+const TITLE_SIZE: f32 = 30.0;
+static USER_DATA_TITLE: &str = "General info";
+static GOAL_DATA_TITLE: &str = "Goals";
+
 impl App {
     pub fn settings_screen(&self) -> Element<Message> {
         let user_info_container = settings_user_info_preview(self).map(Message::Settings);
@@ -127,7 +131,7 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
             None,
             None,
         ))
-        .width(SETTINGS_TEXT_INPUT_WIDTH)
+        .width(Length::Shrink)
         .padding(DEFAULT_TEXT_CONTAINER_PADDING); //[top/bottom, left/right]
 
     let description = Row::new()
@@ -135,7 +139,7 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
         .push(Space::with_width(Length::Fill))
         .push(description_text_container);
 
-    let user_data_title = format_button_text(text("General info")).size(30);
+    let user_data_title = format_button_text(text(USER_DATA_TITLE)).size(TITLE_SIZE);
 
     let user_data_column = Column::new()
         .push(user_data_title)
@@ -166,7 +170,7 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
     username_and_data_column
 }
 fn preview_goals_column(app: &App) -> Column<SettingsMessage> {
-    let goal_title = format_button_text(text("Goals")).size(30);
+    let goal_title = format_button_text(text(GOAL_DATA_TITLE)).size(TITLE_SIZE);
 
     let mut goal_previews = Column::new().push(goal_title);
 
@@ -186,7 +190,7 @@ fn edit_goals_column(app: &App) -> Column<SettingsMessage> {
         return Column::new();
     };
 
-    let goal_title = format_button_text(text("Goals")).size(30);
+    let goal_title = format_button_text(text(GOAL_DATA_TITLE)).size(TITLE_SIZE);
 
     let mut contents = Column::new()
         .spacing(SETTINGS_ENTRY_SPACING)
@@ -240,7 +244,7 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
         return Column::new();
     };
 
-    let user_data_title = format_button_text(text("General info")).size(30);
+    let user_data_title = format_button_text(text(USER_DATA_TITLE)).size(TITLE_SIZE);
 
     //Username should currently not be changeable
     let username = text(&pending_info.username)
@@ -471,34 +475,12 @@ impl SettingsMessage {
             }
             SettingsMessage::IncrementGoalValue(goal_type) => {
                 if let Some((pending_info, _)) = pending_user_info_changes {
-                    let pending_goals = &mut pending_info.user_goals;
-
-                    let inc_val = goal_type.get_increment_decrement_step();
-                    match goal_type {
-                        GoalType::WeeklyWorkouts => {
-                            pending_goals.weekly_workouts += inc_val as u32;
-                        }
-                        GoalType::Weight => pending_goals.weight += inc_val,
-                        GoalType::Water => pending_goals.water += inc_val,
-                        GoalType::Steps => pending_goals.steps += inc_val as u32,
-                        GoalType::Sleep => pending_goals.sleep += inc_val,
-                    }
+                    pending_info.user_goals.update_user_goals(&goal_type, true);
                 }
             }
             SettingsMessage::DecrementGoalValue(goal_type) => {
                 if let Some((pending_info, _)) = pending_user_info_changes {
-                    let pending_goals = &mut pending_info.user_goals;
-
-                    let inc_val = goal_type.get_increment_decrement_step();
-                    match goal_type {
-                        GoalType::WeeklyWorkouts => {
-                            pending_goals.weekly_workouts -= inc_val as u32;
-                        }
-                        GoalType::Weight => pending_goals.weight -= inc_val,
-                        GoalType::Water => pending_goals.water -= inc_val,
-                        GoalType::Steps => pending_goals.steps -= inc_val as u32,
-                        GoalType::Sleep => pending_goals.sleep -= inc_val,
-                    }
+                    pending_info.user_goals.update_user_goals(&goal_type, false);
                 }
             }
             SettingsMessage::SavePendingUserInfoChanges => {

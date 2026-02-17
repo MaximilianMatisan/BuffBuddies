@@ -54,6 +54,8 @@ pub async fn update_user_info(
     )
     .await?;
 
+    //TODO database::update_user_goals(&pool, &user_authenticator.name, new_user_info.user_goals)
+
     println!(
         "{}: Updated UserInformation was saved in the database!",
         user_authentication.username

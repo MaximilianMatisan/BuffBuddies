@@ -154,10 +154,10 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS user_goals (
     username TEXT NOT NULL,
-    weekly_workouts INTEGER NOT NULL,
+    weekly_workouts FLOAT NOT NULL,
     weight FLOAT NOT NULL,
     water FLOAT NOT NULL,
-    steps INTEGER NOT NULL,
+    steps FLOAT NOT NULL,
     sleep FLOAT NOT NULL,
 
     PRIMARY KEY (username),
@@ -190,6 +190,9 @@ pub async fn add_user(
         .bind("")
         .execute(pool)
         .await?;
+
+    //TODO create default user_mascot entry
+    //TODO create default user_goals entry
 
     Ok(())
 }
