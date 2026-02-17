@@ -49,6 +49,7 @@ use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
 use std::sync::Arc;
+use crate::client::gui::bb_tab::health::HealthTabMessage;
 use crate::client::gui::bb_widget::progress_bar::ProgressBarMessage;
 
 #[derive(Debug, Clone)]
@@ -70,6 +71,7 @@ pub enum Message {
     Circle(CircleMessage),
     Bmi(BMIMessage),
     ProgressBar(ProgressBarMessage),
+    HealthTab(HealthTabMessage),
     AddUserAsFriend(String),
     RemoveUserAsFriend(String),
     ViewProfile(UserType),
@@ -338,6 +340,7 @@ impl App {
 
             Message::Bmi(bmi_message) => BMIMessage::update_bmi_message(bmi_message, self),
             Message::ProgressBar(progress_bar_message ) => ProgressBarMessage::update_progress_bar_message(progress_bar_message,self),
+            Message::HealthTab(health_message) => HealthTabMessage::update_health_tab(health_message,self),
 
             Message::AddUserAsFriend(username) => {
                 self.user_manager.add_user_as_friend(&username);

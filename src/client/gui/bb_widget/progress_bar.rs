@@ -1,14 +1,14 @@
-use iced::widget::{canvas, ProgressBar};
+use iced::widget::{canvas, container, text, Column, Row, Space};
 use iced::widget::canvas::{Cache, Frame, Geometry, Path, event};
 use iced::{Element, Rectangle, Renderer, Size, Theme};
 use iced::{Task, mouse};
 use iced_anim::{Animated, Animation, Event, Motion};
-use iced_core::{Color, Point, color};
+use iced_core::{Color, Point, color, Length};
 use std::time::Duration;
 
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, TEXT_COLOR};
-use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
+use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle, DEFAULT_CONTAINER_RADIUS};
 use crate::client::gui::bb_widget::canvas_utils::{create_arc_path, draw_text, generate_stroke};
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
@@ -17,13 +17,22 @@ use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::common::user_mod::user::UserInformation;
 use iced::advanced::text::{Renderer as TextRenderer, Text};
 use iced_core::alignment::{Horizontal, Vertical};
+use iced_core::border::Radius;
 use strum_macros::Display;
+use crate::client::gui::bb_tab::tab::Tab;
+use crate::client::gui::bb_theme::custom_button::{create_text_button, DEFAULT_BUTTON_RADIUS};
+use crate::client::gui::bb_theme::custom_button::ButtonStyle::{Active, InactiveSolid, InactiveTab};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
+use crate::client::gui::bb_widget::chart::ChartTypes;
+use crate::client::gui::bb_widget::widget_utils::INDENT;
+use crate::client::gui::user_interface::Message::{ChangeShownChartType, ProgressBar, Select};
+use crate::common::mascot_mod::mascot::Mascot;
 
-const PROGRESS_BAR_WIDGET_WIDTH: f32 = 700.0;
+const PROGRESS_BAR_WIDTH: f32 = 700.0;
 const PROGRESS_BAR_WIDGET_HEIGHT: f32 = 83.0;
-const PADDING_X: f32 = 31.0;
 const PADDING_Y: f32 = 15.0;
+const PADDING_X: f32 = 31.0;
+const ROUNDED_CORNERS_PADDING: f32 = 6.5;
 const BAR_THICKNESS: f32 = 15.0;
 const PADDING_BETWEEN_BARS: f32 = 40.0;
 const PROGRESS_BAR_FONT_SIZE_STATS: f32 = 26.0;
@@ -31,13 +40,15 @@ const PROGRESS_BAR_TITLE_FONT_SIZE: f32 = 24.0;
 
 //-------Variables used my multiple methods
 static Y_POSITION_BAR: f32 = PADDING_Y + PROGRESS_BAR_TITLE_FONT_SIZE + (PROGRESS_BAR_WIDGET_HEIGHT - PADDING_Y - PROGRESS_BAR_TITLE_FONT_SIZE) / 2.0;
-
+static PROGRESS_BAR_WIDGET_WIDTH: f32 = PROGRESS_BAR_WIDTH + ROUNDED_CORNERS_PADDING * 2.0;
 #[derive(Clone, Debug)]
 pub enum ProgressBarMessage {
+    IncrementCurrentValue(ProgressBarType),
+    DecrementCurrentValue(ProgressBarType),
     UpdateProgressBarAnimation(Event<f32>),
 }
 
-#[derive(Display)]
+#[derive(Debug,Display, Clone)]
 pub enum ProgressBarType {
     Water,
     Steps,
@@ -83,6 +94,24 @@ impl ProgressBarMessage {
                 app.widget_manager.progress_bar_state_manager.water_progress_bar_state.update_progress_bar();
                 Task::none()
             }
+
+            ProgressBarMessage::IncrementCurrentValue(progress_bar_type) => {
+                match progress_bar_type {
+                    ProgressBarType::Water => app.widget_manager.progress_bar_state_manager.water_progress_bar_state.increment(progress_bar_type),
+                    ProgressBarType::Steps => app.widget_manager.progress_bar_state_manager.steps_progress_bar_state.increment(progress_bar_type),
+                    ProgressBarType::Sleep => app.widget_manager.progress_bar_state_manager.sleep_progress_bar_state.increment(progress_bar_type)
+                };
+                Task::none()
+            }
+
+            ProgressBarMessage::DecrementCurrentValue(progress_bar_type) => {
+                match progress_bar_type {
+                    ProgressBarType::Water => app.widget_manager.progress_bar_state_manager.water_progress_bar_state.decrement(progress_bar_type),
+                    ProgressBarType::Steps => app.widget_manager.progress_bar_state_manager.steps_progress_bar_state.decrement(progress_bar_type),
+                    ProgressBarType::Sleep => app.widget_manager.progress_bar_state_manager.sleep_progress_bar_state.decrement(progress_bar_type)
+                };
+                Task::none()
+            }
         }
     }
 }
@@ -104,8 +133,8 @@ impl<'a> ProgressBarWidget<'a> {
         let draw_percentage = &self.progress_bar_state.animation_progress;
 
         let canvas = canvas(self)
-            .width(PROGRESS_BAR_WIDGET_WIDTH)
-            .height(PROGRESS_BAR_WIDGET_HEIGHT);
+            .width(PROGRESS_BAR_WIDTH)
+            .height(BAR_THICKNESS);
 
         Animation::new(draw_percentage, canvas)
             .on_update(|event| Message::ProgressBar(ProgressBarMessage::UpdateProgressBarAnimation(event)))
@@ -113,11 +142,34 @@ impl<'a> ProgressBarWidget<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct ProgressBarState {
     progress_bar: Cache,
     pub animation_progress: Animated<f32>,
     current_value: f32,
     goal_value: f32
+}
+
+impl ProgressBarState {
+    pub(crate) fn increment(& mut self,progress_bar_type: ProgressBarType)  {
+        let value_to_increment = match progress_bar_type {
+            ProgressBarType::Water => 0.25,
+            ProgressBarType::Steps => 250.0,
+            ProgressBarType::Sleep => 0.5
+        };
+
+        self.current_value += value_to_increment;
+    }
+
+    pub(crate) fn decrement (& mut self,progress_bar_type: ProgressBarType)  {
+        let value_to_increment = match progress_bar_type {
+            ProgressBarType::Water =>  - 0.25,
+            ProgressBarType::Steps => - 250.0,
+            ProgressBarType::Sleep => - 0.5
+        };
+
+        self.current_value += value_to_increment;
+    }
 }
 
 impl ProgressBarState {
@@ -181,11 +233,6 @@ impl canvas::Program<Message> for ProgressBarWidget<'_> {
             .progress_bar
             .draw(renderer, bounds.size(), |frame| {
 
-                //DRAW BACKGORUND
-                draw_background(frame);
-
-                //DRAW TEXT BMI VALUE
-                draw_progress_bar_title(frame,self);
 
                 //DRAW BAR REPRESENTING COMPLETED PERCENTAGE
                 draw_bar_completion(frame, self);
@@ -193,57 +240,24 @@ impl canvas::Program<Message> for ProgressBarWidget<'_> {
                 //DRAW BAR REPRESENTING UNCOMPLETED PERCENTAGE
                 draw_bar_remaining(frame, self);
 
-                //DRAW TEXT BMI VALUE
-                draw_progress_bar_values_text(frame, self)
             });
 
         vec![progress_bar_geometry]
     }
 }
-fn draw_background(frame: &mut Frame) {
-    let background_size = Path::rounded_rectangle(
-        Point::ORIGIN, //START
-        Size {
-            width: frame.width(),
-            height: frame.height(),
-        },
-        DEFAULT_CONTAINER_RADIUS.into(),
-    );
 
-    frame.fill(&background_size, CONTAINER_COLOR);
-}
-
-fn draw_progress_bar_title(frame: &mut Frame,  progress_bar_widget: &ProgressBarWidget) {
-    let position_title = Point{
-        x: Point::ORIGIN.x + PADDING_X,
-        y: Point::ORIGIN.y + PADDING_Y,
-    };
-
-
-    frame.fill_text(canvas::Text {
-        content: progress_bar_widget.progress_bar_type.to_string(),
-        size: PROGRESS_BAR_TITLE_FONT_SIZE.into(),
-        position: position_title,
-        color: TEXT_COLOR,
-        font: FIRA_SANS_EXTRABOLD,
-        horizontal_alignment: Horizontal::Left,
-        vertical_alignment: Vertical::Top,
-        line_height: Default::default(),
-        shaping: iced_core::text::Shaping::Advanced,
-    });
-}
 
 fn draw_bar_completion(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget) {
     let start_point =
         Point{
-            x: Point::ORIGIN.x + PADDING_X,
-            y: Point::ORIGIN.y + Y_POSITION_BAR,
+            x: Point::ORIGIN.x + ROUNDED_CORNERS_PADDING,
+            y: Point::ORIGIN.y + frame.center().y ,
         };
 
     let end_point =
         Point{
-            x: Point::ORIGIN.x + PADDING_X + calculate_length_completion_bar(progress_bar_widget.progress_bar_state),
-            y: Point::ORIGIN.y + Y_POSITION_BAR,
+            x: Point::ORIGIN.x + calculate_length_completion_bar(progress_bar_widget.progress_bar_state),
+            y: Point::ORIGIN.y + frame.center().y,
         };
 
     frame.stroke(&Path::line(start_point,end_point),generate_stroke(BAR_THICKNESS,progress_bar_widget.progress_bar_type.get_completed_bar_color()))
@@ -253,48 +267,26 @@ fn draw_bar_remaining(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget
     if progress_bar_widget.progress_bar_state.current_value < progress_bar_widget.progress_bar_state.goal_value {
         let start_point =
             Point {
-                x: Point::ORIGIN.x + PADDING_X + calculate_length_completion_bar(progress_bar_widget.progress_bar_state) + PADDING_BETWEEN_BARS / 2.0,
-                y: Point::ORIGIN.y + Y_POSITION_BAR,
+                x: Point::ORIGIN.x + calculate_length_completion_bar(progress_bar_widget.progress_bar_state) + PADDING_BETWEEN_BARS / 2.0,
+                y: Point::ORIGIN.y +  frame.center().y,
             };
 
         let end_point =
             Point {
-                x: PROGRESS_BAR_WIDGET_WIDTH - PADDING_X,
-                y: Point::ORIGIN.y + Y_POSITION_BAR,
+                x: PROGRESS_BAR_WIDTH - ROUNDED_CORNERS_PADDING,
+                y: Point::ORIGIN.y +  frame.center().y,
             };
 
         frame.stroke(&Path::line(start_point, end_point), generate_stroke(BAR_THICKNESS, progress_bar_widget.progress_bar_type.get_remaining_bar_color()))
     }
 }
 
-fn draw_progress_bar_values_text(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget) {
-
-    let values_text = format!("{}/{} {}", progress_bar_widget.progress_bar_state.current_value, progress_bar_widget.progress_bar_state.goal_value, progress_bar_widget.progress_bar_type.get_unit());
-
-    let position_values = Point{
-        x: Point::ORIGIN.x + PROGRESS_BAR_WIDGET_WIDTH - PADDING_X,
-        y: Point::ORIGIN.y + PADDING_Y + PROGRESS_BAR_TITLE_FONT_SIZE / 2.0,
-    };
-
-    frame.fill_text(canvas::Text {
-        content: values_text,
-        size: PROGRESS_BAR_FONT_SIZE_STATS.into(),
-        position: position_values,
-        color: TEXT_COLOR,
-        font: FIRA_SANS_EXTRABOLD,
-        horizontal_alignment: Horizontal::Right,
-        vertical_alignment: Vertical::Center,
-        line_height: Default::default(),
-        shaping: iced_core::text::Shaping::Advanced,
-    });
-    //draw_text(frame, values_text, PROGRESS_BAR_TITLE_FONT_SIZE, position_values)
-}
 
 //LOGIC
 
 fn calculate_length_completion_bar(progress_bar_state: &ProgressBarState) -> f32 {
 
-    let total_possible_bar_length = PROGRESS_BAR_WIDGET_WIDTH - PADDING_X * 2.0;
+    let total_possible_bar_length = PROGRESS_BAR_WIDTH;
     let percentage = progress_bar_state.current_value / progress_bar_state.goal_value;
     let padding_to_other_bar = match percentage {
         1.0 => 0.0,
@@ -303,4 +295,73 @@ fn calculate_length_completion_bar(progress_bar_state: &ProgressBarState) -> f32
     };
 
     total_possible_bar_length * percentage - padding_to_other_bar
+}
+
+pub fn create_progress_bar_environment<'a>(progress_bar_widget: ProgressBarWidget<'a>, mascot: &Mascot, counter: bool) -> Element<'a,Message> {
+    let title = text(progress_bar_widget.progress_bar_type.to_string())
+        .font(FIRA_SANS_EXTRABOLD)
+        .size(PROGRESS_BAR_TITLE_FONT_SIZE)
+        .color(TEXT_COLOR);
+
+    let progress_text = text(
+        format!("{}/{} {}", progress_bar_widget.progress_bar_state.current_value, progress_bar_widget.progress_bar_state.goal_value, progress_bar_widget.progress_bar_type.get_unit())
+    )
+        .font(FIRA_SANS_EXTRABOLD)
+        .size(PROGRESS_BAR_TITLE_FONT_SIZE)
+        .color(TEXT_COLOR);
+
+    let mut header = Row::new()
+        .push(title);
+
+    if counter {
+
+        let increment_button = create_text_button(
+            mascot,
+            "+".to_string(),
+            Active,
+            Some(Radius {
+                top_left: 0.0,
+                top_right: DEFAULT_BUTTON_RADIUS,
+                bottom_right: DEFAULT_BUTTON_RADIUS,
+                bottom_left: 0.0,
+            }),
+        )
+            .on_press(ProgressBar(ProgressBarMessage::IncrementCurrentValue(progress_bar_widget.progress_bar_type.clone())));
+
+        let decrement_button = create_text_button(
+            mascot,
+            "-".to_string(),
+            InactiveTab,
+            Some(Radius {
+                top_left: DEFAULT_BUTTON_RADIUS,
+                top_right: 0.0,
+                bottom_right: 0.0,
+                bottom_left: DEFAULT_BUTTON_RADIUS,
+            }),
+        )
+            .on_press(ProgressBar(ProgressBarMessage::DecrementCurrentValue(progress_bar_widget.progress_bar_type.clone())));
+
+        header = header.push(decrement_button)
+                        .push(increment_button)
+    }
+
+    header = header
+        .push(Space::with_width(Length::Fill))
+        .push(progress_text);
+
+    let progress_bar = progress_bar_widget.view();
+
+    let progress_widget = Column::new()
+        .push(header)
+        .push(progress_bar)
+        .spacing(INDENT)
+        .width(PROGRESS_BAR_WIDGET_WIDTH)
+        .align_x(Horizontal::Center);
+
+    let content =
+        container(progress_widget)
+            .style(create_container_style(ContainerStyle::Default,None,None))
+            .padding(INDENT);
+
+    content.into()
 }
