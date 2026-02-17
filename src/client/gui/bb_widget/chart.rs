@@ -3,7 +3,7 @@ use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color::BACKGROUND_COLOR;
 use crate::client::gui::bb_theme::container::ContainerStyle;
 use crate::client::gui::bb_theme::custom_button::{
-    ButtonStyle, DEFAULT_BUTTON_RADIUS, create_text_button,
+    BUTTON_RADIUS_LEFT_ZERO, BUTTON_RADIUS_RIGHT_ZERO, ButtonStyle, create_text_button,
 };
 use crate::client::gui::bb_theme::text_format;
 use crate::client::gui::bb_theme::text_format::format_button_text;
@@ -16,7 +16,6 @@ use crate::client::gui::user_interface::Message::ChangeShownChartType;
 use iced::Element;
 use iced::widget::{Column, Row, Space, combo_box, container};
 use iced_core::alignment::{Horizontal, Vertical};
-use iced_core::border::Radius;
 use iced_core::{Length, Padding};
 use std::cmp::PartialEq;
 
@@ -132,12 +131,7 @@ fn chart_type_buttons(app: &App) -> Row<Message> {
         &app.mascot_manager.selected_mascot,
         ChartTypes::Graph.get_graph_design_name().to_string(),
         line_button_style,
-        Some(Radius {
-            top_left: DEFAULT_BUTTON_RADIUS,
-            top_right: 0.0,
-            bottom_right: 0.0,
-            bottom_left: DEFAULT_BUTTON_RADIUS,
-        }),
+        Some(BUTTON_RADIUS_RIGHT_ZERO),
     )
     .on_press(ChangeShownChartType(ChartTypes::Graph));
 
@@ -145,12 +139,7 @@ fn chart_type_buttons(app: &App) -> Row<Message> {
         &app.mascot_manager.selected_mascot,
         ChartTypes::Progress.get_graph_design_name().to_string(),
         bar_button_style,
-        Some(Radius {
-            top_left: 0.0,
-            top_right: DEFAULT_BUTTON_RADIUS,
-            bottom_right: DEFAULT_BUTTON_RADIUS,
-            bottom_left: 0.0,
-        }),
+        Some(BUTTON_RADIUS_LEFT_ZERO),
     )
     .on_press(ChangeShownChartType(ChartTypes::Progress));
 

@@ -6,8 +6,10 @@ use crate::client::gui::bb_theme::container::{
     ContainerStyle, DEFAULT_TEXT_CONTAINER_PADDING, create_container_style,
 };
 use crate::client::gui::bb_theme::custom_button::{
-    ButtonStyle, create_element_button, create_text_button,
+    BUTTON_RADIUS_LEFT_ZERO, BUTTON_RADIUS_RIGHT_ZERO, ButtonStyle, create_element_button,
+    create_text_button,
 };
+use crate::client::gui::bb_theme::separator::separator_line;
 use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, cm_to_string, format_button_text, format_description_text, kg_to_string,
 };
@@ -68,6 +70,7 @@ fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
 
     let username_and_data_column = if app.user_manager.pending_user_info_changes.is_none() {
         Column::new()
+            .spacing(INDENT)
             .push(preview_user_info_column(app))
             .push(preview_goals_column(app))
     } else {
@@ -139,7 +142,8 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
         .push(Space::with_width(Length::Fill))
         .push(description_text_container);
 
-    let user_data_title = format_button_text(text(USER_DATA_TITLE)).size(TITLE_SIZE);
+    let user_data_title =
+        create_settings_sub_header(&app.mascot_manager.selected_mascot, USER_DATA_TITLE);
 
     let user_data_column = Column::new()
         .push(user_data_title)
@@ -169,69 +173,6 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
 
     username_and_data_column
 }
-fn preview_goals_column(app: &App) -> Column<SettingsMessage> {
-    let goal_title = format_button_text(text(GOAL_DATA_TITLE)).size(TITLE_SIZE);
-
-    let mut goal_previews = Column::new().push(goal_title);
-
-    for goal in GoalType::iter() {
-        goal_previews = goal_previews.push(descriptor_space_fill_text_row(
-            goal.to_string(),
-            goal.get_formatted_user_goal_strings(&app.user_manager.user_info.user_goals),
-        ));
-    }
-
-    goal_previews
-}
-fn edit_goals_column(app: &App) -> Column<SettingsMessage> {
-    let pending_info = if let Some((user_info, _)) = &app.user_manager.pending_user_info_changes {
-        user_info
-    } else {
-        return Column::new();
-    };
-
-    let goal_title = format_button_text(text(GOAL_DATA_TITLE)).size(TITLE_SIZE);
-
-    let mut contents = Column::new()
-        .spacing(SETTINGS_ENTRY_SPACING)
-        .push(goal_title);
-
-    for goal in GoalType::iter() {
-        contents = contents.push(descriptor_space_fill_element_row(
-            goal.to_string(),
-            number_inc_decrementer_buttons(
-                &app.mascot_manager.selected_mascot,
-                goal.get_formatted_user_goal_strings(&pending_info.user_goals),
-                SettingsMessage::IncrementGoalValue(goal.clone()),
-                SettingsMessage::DecrementGoalValue(goal),
-            )
-            .into(),
-        ))
-    }
-    contents
-}
-fn number_inc_decrementer_buttons(
-    mascot: &Mascot,
-    number: String,
-    increment_message: SettingsMessage,
-    decrement_message: SettingsMessage,
-) -> Row<SettingsMessage> {
-    let number_text = format_button_text(text(number));
-    let increment_button = create_text_button(mascot, "+".to_string(), ButtonStyle::Active, None)
-        .on_press(increment_message);
-    let decrement_button =
-        create_text_button(mascot, "-".to_string(), ButtonStyle::InactiveTab, None)
-            .on_press(decrement_message);
-
-    let row = Row::new()
-        .push(number_text)
-        .push(Space::with_width(INDENT / 2.0))
-        .push(increment_button)
-        .push(decrement_button)
-        .align_y(Vertical::Center);
-
-    row
-}
 fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     let pending_info: &UserInformation;
     //These strings are necessary for proper text_input functionality
@@ -244,7 +185,8 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
         return Column::new();
     };
 
-    let user_data_title = format_button_text(text(USER_DATA_TITLE)).size(TITLE_SIZE);
+    let user_data_title =
+        create_settings_sub_header(&app.mascot_manager.selected_mascot, USER_DATA_TITLE);
 
     //Username should currently not be changeable
     let username = text(&pending_info.username)
@@ -330,6 +272,92 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
         .width(Length::FillPortion(15));
 
     username_and_data_column
+}
+fn preview_goals_column(app: &App) -> Column<SettingsMessage> {
+    let goal_title =
+        create_settings_sub_header(&app.mascot_manager.selected_mascot, GOAL_DATA_TITLE);
+
+    let mut goal_previews = Column::new().push(goal_title);
+
+    for goal in GoalType::iter() {
+        goal_previews = goal_previews.push(descriptor_space_fill_text_row(
+            goal.to_string(),
+            goal.get_formatted_user_goal_strings(&app.user_manager.user_info.user_goals),
+        ));
+    }
+
+    goal_previews
+}
+fn edit_goals_column(app: &App) -> Column<SettingsMessage> {
+    let pending_info = if let Some((user_info, _)) = &app.user_manager.pending_user_info_changes {
+        user_info
+    } else {
+        return Column::new();
+    };
+
+    let goal_title =
+        create_settings_sub_header(&app.mascot_manager.selected_mascot, GOAL_DATA_TITLE);
+
+    let mut contents = Column::new()
+        .spacing(SETTINGS_ENTRY_SPACING)
+        .push(goal_title);
+
+    for goal in GoalType::iter() {
+        contents = contents.push(descriptor_space_fill_element_row(
+            goal.to_string(),
+            number_inc_decrementer_buttons(
+                &app.mascot_manager.selected_mascot,
+                goal.get_formatted_user_goal_strings(&pending_info.user_goals),
+                SettingsMessage::IncrementGoalValue(goal.clone()),
+                SettingsMessage::DecrementGoalValue(goal),
+            )
+            .into(),
+        ))
+    }
+    contents
+}
+fn number_inc_decrementer_buttons(
+    mascot: &Mascot,
+    number: String,
+    increment_message: SettingsMessage,
+    decrement_message: SettingsMessage,
+) -> Row<SettingsMessage> {
+    let number_text = format_button_text(text(number));
+    let increment_button = create_text_button(
+        mascot,
+        "+".to_string(),
+        ButtonStyle::Active,
+        Some(BUTTON_RADIUS_RIGHT_ZERO),
+    )
+    .on_press(increment_message);
+    let decrement_button = create_text_button(
+        mascot,
+        "-".to_string(),
+        ButtonStyle::InactiveTab,
+        Some(BUTTON_RADIUS_LEFT_ZERO),
+    )
+    .on_press(decrement_message);
+
+    let row = Row::new()
+        .push(number_text)
+        .push(Space::with_width(INDENT / 2.0))
+        .push(increment_button)
+        .push(decrement_button)
+        .align_y(Vertical::Center);
+
+    row
+}
+fn create_settings_sub_header<'a>(
+    mascot: &'a Mascot,
+    header_text: &'a str,
+) -> Column<'a, SettingsMessage> {
+    let separator = separator_line(mascot, 3.0);
+    let user_data_title = format_button_text(text(header_text)).size(TITLE_SIZE);
+
+    Column::new()
+        .spacing(INDENT / 2.0)
+        .push(separator)
+        .push(user_data_title)
 }
 fn save_or_discard_pending_user_info(mascot: &Mascot) -> Row<SettingsMessage> {
     let save_changes_button = create_text_button(
