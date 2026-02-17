@@ -1,4 +1,4 @@
-mod health;
+pub mod health;
 mod home;
 pub mod loading;
 pub mod login;
