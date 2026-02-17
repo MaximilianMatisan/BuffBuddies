@@ -117,14 +117,26 @@ fn detail_column(general_exercise_info: &GeneralExerciseInfo) -> Column<Message>
     let mut content = Column::new().width(Length::FillPortion(5));
 
     let fields = [
-        descriptor_space_fill_text_row("Force:", general_exercise_info.force.to_string()),
-        descriptor_space_fill_text_row("Level:", general_exercise_info.level.to_string()),
-        descriptor_space_fill_text_row("Equipment:", general_exercise_info.equipment.to_string()),
         descriptor_space_fill_text_row(
-            "Primary muscle:",
+            "Force:".to_string(),
+            general_exercise_info.force.to_string(),
+        ),
+        descriptor_space_fill_text_row(
+            "Level:".to_string(),
+            general_exercise_info.level.to_string(),
+        ),
+        descriptor_space_fill_text_row(
+            "Equipment:".to_string(),
+            general_exercise_info.equipment.to_string(),
+        ),
+        descriptor_space_fill_text_row(
+            "Primary muscle:".to_string(),
             general_exercise_info.primary_muscle.to_string(),
         ),
-        descriptor_space_fill_text_row("Category:", general_exercise_info.category.to_string()),
+        descriptor_space_fill_text_row(
+            "Category:".to_string(),
+            general_exercise_info.category.to_string(),
+        ),
     ];
     for field in fields {
         content = content.push(field);

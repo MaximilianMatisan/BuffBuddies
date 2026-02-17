@@ -77,18 +77,9 @@ impl Default for ForeignUser {
 pub struct UserInformationStrings {
     pub weight: String,
     pub height: String,
-    pub weekly_workout_goal: String,
 }
 impl UserInformationStrings {
-    pub fn new(
-        weight: String,
-        height: String,
-        weekly_workout_goal: String,
-    ) -> UserInformationStrings {
-        UserInformationStrings {
-            weight,
-            height,
-            weekly_workout_goal,
-        }
+    pub fn new(weight: String, height: String) -> UserInformationStrings {
+        UserInformationStrings { weight, height }
     }
 }

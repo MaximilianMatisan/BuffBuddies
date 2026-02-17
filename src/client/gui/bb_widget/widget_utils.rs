@@ -2,6 +2,7 @@ use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::text_format::{format_button_text, format_description_text};
 use iced::Element;
 use iced::widget::{Row, Space, text};
+use iced_core::alignment::Vertical;
 use iced_core::renderer::Quad;
 use iced_core::{Border, Layout, Length, Shadow};
 
@@ -20,7 +21,7 @@ pub fn background_quad(layout: Layout<'_>) -> Quad {
     }
 }
 pub fn descriptor_space_fill_text_row<'a, Msg>(
-    description_text: &'a str,
+    description_text: String,
     information_text: String,
 ) -> Row<'a, Msg>
 where
@@ -32,13 +33,14 @@ where
     )
 }
 pub fn descriptor_space_fill_element_row<'a, Msg>(
-    description_text: &'a str,
+    description_text: String,
     data_element: Element<'a, Msg>,
 ) -> Row<'a, Msg>
 where
     Msg: Clone + 'a,
 {
     Row::new()
+        .align_y(Vertical::Center)
         .push(format_description_text(text(description_text)))
         .push(Space::with_width(Length::Fill))
         .push(data_element)

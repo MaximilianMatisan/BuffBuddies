@@ -9,7 +9,7 @@ use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, create_element_button, create_text_button,
 };
 use crate::client::gui::bb_theme::text_format::{
-    FIRA_SANS_EXTRABOLD, cm_to_string, format_description_text, kg_to_string,
+    FIRA_SANS_EXTRABOLD, cm_to_string, format_button_text, format_description_text, kg_to_string,
 };
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::bb_widget::widget_utils::{
@@ -23,6 +23,7 @@ use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::user_mod::user::{
     Gender, MAX_DESCRIPTION_CHARACTERS, UserInformation, UserInformationStrings,
 };
+use crate::common::user_mod::user_goals::GoalType;
 use iced::widget::{
     Button, Column, Container, Row, Space, TextInput, combo_box, container, image, text, text_input,
 };
@@ -30,7 +31,9 @@ use iced::{Element, Task};
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
+use strum::IntoEnumIterator;
 
+const SETTINGS_ENTRY_SPACING: f32 = 3.0;
 const SETTINGS_TEXT_INPUT_WIDTH: f32 = 250.0;
 impl App {
     pub fn settings_screen(&self) -> Element<Message> {
@@ -60,9 +63,17 @@ fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
         .height(size::LARGE_PROFILE_PICTURE_DIMENSION);
 
     let username_and_data_column = if app.user_manager.pending_user_info_changes.is_none() {
-        preview_user_info_column(app)
+        Column::new()
+            .push(preview_user_info_column(app))
+            .push(preview_goals_column(app))
     } else {
-        edit_user_info_column(app)
+        Column::new()
+            .spacing(INDENT)
+            .push(edit_user_info_column(app))
+            .push(edit_goals_column(app))
+            .push(save_or_discard_pending_user_info(
+                &app.mascot_manager.selected_mascot,
+            ))
     };
 
     let contents = Row::new()
@@ -124,26 +135,25 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
         .push(Space::with_width(Length::Fill))
         .push(description_text_container);
 
+    let user_data_title = format_button_text(text("General info")).size(30);
+
     let user_data_column = Column::new()
+        .push(user_data_title)
         .push(descriptor_space_fill_text_row(
-            "Favorite Mascot:",
+            "Favorite Mascot:".to_string(),
             app.user_manager.user_info.favorite_mascot.to_string(),
         ))
         .push(descriptor_space_fill_text_row(
-            "Gender:",
+            "Gender:".to_string(),
             user_info.gender.to_string(),
         ))
         .push(descriptor_space_fill_text_row(
-            "Weight:",
+            "Weight:".to_string(),
             kg_to_string(user_info.weight),
         ))
         .push(descriptor_space_fill_text_row(
-            "Height:",
+            "Height:".to_string(),
             cm_to_string(user_info.height),
-        ))
-        .push(descriptor_space_fill_text_row(
-            "Weekly workout goal:",
-            user_info.user_goals.weekly_workouts.to_string(),
         ))
         .push(description)
         .width(Length::FillPortion(15));
@@ -154,6 +164,69 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
         .push(user_data_column);
 
     username_and_data_column
+}
+fn preview_goals_column(app: &App) -> Column<SettingsMessage> {
+    let goal_title = format_button_text(text("Goals")).size(30);
+
+    let mut goal_previews = Column::new().push(goal_title);
+
+    for goal in GoalType::iter() {
+        goal_previews = goal_previews.push(descriptor_space_fill_text_row(
+            goal.to_string(),
+            goal.get_formatted_user_goal_strings(&app.user_manager.user_info.user_goals),
+        ));
+    }
+
+    goal_previews
+}
+fn edit_goals_column(app: &App) -> Column<SettingsMessage> {
+    let pending_info = if let Some((user_info, _)) = &app.user_manager.pending_user_info_changes {
+        user_info
+    } else {
+        return Column::new();
+    };
+
+    let goal_title = format_button_text(text("Goals")).size(30);
+
+    let mut contents = Column::new()
+        .spacing(SETTINGS_ENTRY_SPACING)
+        .push(goal_title);
+
+    for goal in GoalType::iter() {
+        contents = contents.push(descriptor_space_fill_element_row(
+            goal.to_string(),
+            number_inc_decrementer_buttons(
+                &app.mascot_manager.selected_mascot,
+                goal.get_formatted_user_goal_strings(&pending_info.user_goals),
+                SettingsMessage::IncrementGoalValue(goal.clone()),
+                SettingsMessage::DecrementGoalValue(goal),
+            )
+            .into(),
+        ))
+    }
+    contents
+}
+fn number_inc_decrementer_buttons(
+    mascot: &Mascot,
+    number: String,
+    increment_message: SettingsMessage,
+    decrement_message: SettingsMessage,
+) -> Row<SettingsMessage> {
+    let number_text = format_button_text(text(number));
+    let increment_button = create_text_button(mascot, "+".to_string(), ButtonStyle::Active, None)
+        .on_press(increment_message);
+    let decrement_button =
+        create_text_button(mascot, "-".to_string(), ButtonStyle::InactiveTab, None)
+            .on_press(decrement_message);
+
+    let row = Row::new()
+        .push(number_text)
+        .push(Space::with_width(INDENT / 2.0))
+        .push(increment_button)
+        .push(decrement_button)
+        .align_y(Vertical::Center);
+
+    row
 }
 fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     let pending_info: &UserInformation;
@@ -166,6 +239,8 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     } else {
         return Column::new();
     };
+
+    let user_data_title = format_button_text(text("General info")).size(30);
 
     //Username should currently not be changeable
     let username = text(&pending_info.username)
@@ -193,12 +268,6 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     let weight_text_input = text_input("Enter your weight in kg", &pending_info_strings.weight)
         .on_input(SettingsMessage::EditWeight);
 
-    let weekly_workout_goal_text_input = text_input(
-        "Enter your weekly workout goal",
-        &pending_info_strings.weekly_workout_goal,
-    )
-    .on_input(SettingsMessage::EditWeeklyWorkoutGoal);
-
     let mascot_combo_box: Element<SettingsMessage> = combo_box(
         &app.mascot_manager.owned_mascots_state,
         "Select mascot...",
@@ -218,21 +287,20 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     let description_text_input = text_input("Tell something about you!", &pending_info.description)
         .on_input(SettingsMessage::EditDescription);
 
-    let text_input_data_fields: [(&str, TextInput<SettingsMessage>); 4] = [
+    let text_input_data_fields: [(&str, TextInput<SettingsMessage>); 3] = [
         ("Weight:", weight_text_input),
         ("Height:", height_text_input),
-        ("Weekly workout goal:", weekly_workout_goal_text_input),
         ("Description:", description_text_input),
     ];
 
     let mut user_data_column = Column::new()
-        .spacing(3)
+        .spacing(SETTINGS_ENTRY_SPACING)
         .push(descriptor_space_fill_element_row(
-            "Favorite Mascot:",
+            "Favorite Mascot:".to_string(),
             mascot_combo_box,
         ))
         .push(descriptor_space_fill_element_row(
-            "Gender:",
+            "Gender:".to_string(),
             gender_combo_box.into(),
         ));
 
@@ -245,13 +313,23 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
             .font(FIRA_SANS_EXTRABOLD)
             .width(SETTINGS_TEXT_INPUT_WIDTH);
         user_data_column = user_data_column.push(descriptor_space_fill_element_row(
-            description_text,
+            description_text.to_string(),
             text_input.into(),
         ));
     }
 
+    let username_and_data_column = Column::new()
+        .push(username)
+        .push(user_data_title)
+        .push(user_data_column)
+        .spacing(INDENT)
+        .width(Length::FillPortion(15));
+
+    username_and_data_column
+}
+fn save_or_discard_pending_user_info(mascot: &Mascot) -> Row<SettingsMessage> {
     let save_changes_button = create_text_button(
-        &app.mascot_manager.selected_mascot,
+        mascot,
         "Save changes".to_string(),
         ButtonStyle::Active,
         None,
@@ -260,7 +338,7 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
     .on_press(SettingsMessage::SavePendingUserInfoChanges);
 
     let discard_changes_button = create_text_button(
-        &app.mascot_manager.selected_mascot,
+        mascot,
         "Discard changes".to_string(),
         ButtonStyle::InactiveTab,
         None,
@@ -272,15 +350,7 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
         .push(save_changes_button)
         .push(discard_changes_button)
         .spacing(INDENT);
-
-    let username_and_data_column = Column::new()
-        .push(username)
-        .push(user_data_column)
-        .push(button_row)
-        .spacing(INDENT)
-        .width(Length::FillPortion(15));
-
-    username_and_data_column
+    button_row
 }
 fn log_out_button(active_mascot: &Mascot) -> Element<SettingsMessage> {
     let log_out_button_text = text("Log out")
@@ -307,9 +377,10 @@ pub enum SettingsMessage {
     SelectGender(Gender),
     EditHeight(String),
     EditWeight(String),
-    EditWeeklyWorkoutGoal(String),
     EditDescription(String),
     EditMascot(Mascot),
+    IncrementGoalValue(GoalType),
+    DecrementGoalValue(GoalType),
     SavePendingUserInfoChanges,
     DiscardPendingUserInfoChanges,
     LogOut,
@@ -325,7 +396,6 @@ impl SettingsMessage {
                     UserInformationStrings::new(
                         existing_user_info.weight.to_string(),
                         existing_user_info.height.to_string(),
-                        existing_user_info.user_goals.weekly_workouts.to_string(),
                     ),
                 ));
             }
@@ -385,27 +455,6 @@ impl SettingsMessage {
                     .animation_progress
                     .settle_at(0.0);
             }
-            SettingsMessage::EditWeeklyWorkoutGoal(new_goal) => {
-                if let Some((pending_info, pending_user_info_strings)) = pending_user_info_changes {
-                    let digit_string: String = new_goal
-                        .chars()
-                        .filter(|char| char.is_ascii_digit())
-                        .take(2)
-                        .collect();
-                    pending_user_info_strings.weekly_workout_goal = digit_string;
-
-                    let new_goal_integer: u32 = pending_user_info_strings
-                        .weekly_workout_goal
-                        .parse()
-                        .map(|num: u32| if num == 0 { 1 } else { num })
-                        .unwrap_or(existing_user_info.user_goals.weekly_workouts);
-                    pending_info.user_goals.weekly_workouts = new_goal_integer;
-                }
-                app.widget_manager
-                    .circle_widget_state
-                    .animation_progress
-                    .settle_at(0.0);
-            }
             SettingsMessage::EditDescription(new_description) => {
                 let cut_description = new_description
                     .chars()
@@ -418,6 +467,38 @@ impl SettingsMessage {
             SettingsMessage::EditMascot(new_mascot) => {
                 if let Some((user_info, _)) = pending_user_info_changes {
                     user_info.favorite_mascot = new_mascot;
+                }
+            }
+            SettingsMessage::IncrementGoalValue(goal_type) => {
+                if let Some((pending_info, _)) = pending_user_info_changes {
+                    let pending_goals = &mut pending_info.user_goals;
+
+                    let inc_val = goal_type.get_increment_decrement_step();
+                    match goal_type {
+                        GoalType::WeeklyWorkouts => {
+                            pending_goals.weekly_workouts += inc_val as u32;
+                        }
+                        GoalType::Weight => pending_goals.weight += inc_val,
+                        GoalType::Water => pending_goals.water += inc_val,
+                        GoalType::Steps => pending_goals.steps += inc_val as u32,
+                        GoalType::Sleep => pending_goals.sleep += inc_val,
+                    }
+                }
+            }
+            SettingsMessage::DecrementGoalValue(goal_type) => {
+                if let Some((pending_info, _)) = pending_user_info_changes {
+                    let pending_goals = &mut pending_info.user_goals;
+
+                    let inc_val = goal_type.get_increment_decrement_step();
+                    match goal_type {
+                        GoalType::WeeklyWorkouts => {
+                            pending_goals.weekly_workouts -= inc_val as u32;
+                        }
+                        GoalType::Weight => pending_goals.weight -= inc_val,
+                        GoalType::Water => pending_goals.water -= inc_val,
+                        GoalType::Steps => pending_goals.steps -= inc_val as u32,
+                        GoalType::Sleep => pending_goals.sleep -= inc_val,
+                    }
                 }
             }
             SettingsMessage::SavePendingUserInfoChanges => {
