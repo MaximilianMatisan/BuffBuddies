@@ -1,7 +1,7 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::ContainerStyle;
-use crate::client::gui::bb_theme::custom_button::{ButtonStyle, DEFAULT_BUTTON_RADIUS};
+use crate::client::gui::bb_theme::custom_button::{BUTTON_RADIUS_LEFT_ZERO, ButtonStyle};
 use crate::client::gui::bb_theme::{color, custom_button};
 use crate::client::gui::bb_widget::activity_widget::date_utils::{
     DAYS_PER_WEEK, DateScope, Offset, get_date_by_offset, get_end_dates_of_offsets,
@@ -16,7 +16,6 @@ use chrono::{Datelike, Duration, Local, NaiveDate};
 use iced::widget::{Column, container, row};
 use iced::{Element, Point, Task};
 use iced_core::alignment::Vertical;
-use iced_core::border::Radius;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::{Quad, Style};
@@ -167,13 +166,6 @@ impl<'a> ActivityWidget {
     fn view_time_scope_buttons(&self) -> Column<'a, Message> {
         let mut time_scope_buttons: Column<Message> = Column::new();
 
-        let time_scope_button_border_radius = Radius {
-            top_left: 0.0,
-            top_right: DEFAULT_BUTTON_RADIUS,
-            bottom_right: DEFAULT_BUTTON_RADIUS,
-            bottom_left: 0.0,
-        };
-
         for time in DateScope::iter() {
             let style_of_button = if self.current_scope == time {
                 ButtonStyle::Active
@@ -191,7 +183,7 @@ impl<'a> ActivityWidget {
                     &self.active_mascot,
                     time.to_string(),
                     style_of_button,
-                    Some(time_scope_button_border_radius),
+                    Some(BUTTON_RADIUS_LEFT_ZERO),
                 )
                 .width(width_of_button)
                 .height(DEFAULT_NAVIGATION_BUTTON_HEIGHT)

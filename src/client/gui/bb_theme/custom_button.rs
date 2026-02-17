@@ -14,6 +14,19 @@ pub const TAB_BUTTON_WIDTH: f32 = 225.0;
 pub const TAB_BUTTON_HEIGHT: f32 = 45.0;
 pub const DEFAULT_BUTTON_RADIUS: f32 = 190.0;
 
+pub const BUTTON_RADIUS_LEFT_ZERO: Radius = Radius {
+    top_left: 0.0,
+    top_right: DEFAULT_BUTTON_RADIUS,
+    bottom_right: DEFAULT_BUTTON_RADIUS,
+    bottom_left: 0.0,
+};
+
+pub const BUTTON_RADIUS_RIGHT_ZERO: Radius = Radius {
+    top_left: DEFAULT_BUTTON_RADIUS,
+    top_right: 0.0,
+    bottom_right: 0.0,
+    bottom_left: DEFAULT_BUTTON_RADIUS,
+};
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ButtonStyle {
     #[default]
