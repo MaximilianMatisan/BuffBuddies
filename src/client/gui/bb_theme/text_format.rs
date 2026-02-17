@@ -29,6 +29,12 @@ pub fn format_description_text(msg: Text<Theme, Renderer>) -> Text<'_, Theme, Re
 pub fn kg_to_string(kg: Kg) -> String {
     format!("{} kg", kg)
 }
+pub fn liter_to_string(liters: f32) -> String {
+    format!("{} L", liters)
+}
+pub fn hours_to_string(hours: f32) -> String {
+    format!("{} h", hours)
+}
 pub fn cm_to_string(cm: u32) -> String {
     format!("{} cm", cm)
 }
