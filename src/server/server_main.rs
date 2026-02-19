@@ -5,6 +5,7 @@ use crate::server::routes::login::check_login;
 use crate::server::routes::mascot_manager::{buy_mascot, get_mascot_data, select_mascot};
 use crate::server::routes::user_exercises::get_user_exercises;
 use crate::server::routes::user_info::{get_user_info, update_user_info};
+use crate::server::routes::user_presets::{get_user_presets, save_preset};
 use crate::server::routes::workout::save_workout;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
@@ -79,7 +80,9 @@ fn create_app(pool: SqlitePool) -> Router {
         .route("/mascot/get", get(get_mascot_data))
         .route("/mascot/select", post(select_mascot))
         .route("/workout/save", post(save_workout))
+        .route("/preset/save", post(save_preset))
         .route("/user/exercises", get(get_user_exercises))
+        .route("/user/presets", get(get_user_presets))
         .route("/user/info/get", get(get_user_info))
         .route("/user/info/update", post(update_user_info))
         .route("/user/foreign/get", get(get_foreign_users))

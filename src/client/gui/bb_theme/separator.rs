@@ -1,11 +1,14 @@
-use crate::client::gui::bb_tab::settings::SettingsMessage;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::widget::container::Style;
 use iced::widget::{Container, Space, container};
 use iced_core::{Background, Length};
+use crate::client::gui::user_interface::Message;
 
-pub fn separator_line(mascot: &Mascot, height: impl Into<Length>) -> Container<SettingsMessage> {
+pub fn separator_line<'a, Msg>(mascot: &'a Mascot, height: impl Into<Length>) -> Container<Msg>
+where
+    Msg: Clone + 'a
+{
     container(Space::new(0, 0))
         .style(|_theme| Style {
             text_color: None,

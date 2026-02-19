@@ -85,5 +85,5 @@ pub fn new_preset_widget_button<'a>() -> Button<'a, Message, Theme, Renderer> {
     })
     .width(BUTTONS_WIDTH)
     .height(NEW_PRESET_BUTTON_HEIGHT)
-    .on_press(Message::Select(Tab::Home))
+    .on_press(Message::Select(Tab::CreatePreset))
 }

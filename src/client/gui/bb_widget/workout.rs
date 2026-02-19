@@ -1,6 +1,7 @@
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::client::gui::{bb_theme, bb_widget};
+use crate::common::workout_preset::WorkoutPreset;
 use iced::{Element, event};
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
@@ -61,6 +62,22 @@ where
             on_press: None,
         }
     }
+    pub fn new_workout_preset_widget(preset: &WorkoutPreset) -> Self {
+        WorkoutWidget {
+            width: DEFAULT_WORKOUT_WIDGET_WIDTH,
+            height: DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT,
+            image: Some(Image::new(image::Handle::from_path(
+                "assets/images/default_preset.png",
+            ))),
+            title: preset.name.clone(),
+            title_font_size: DEFAULT_TITLE_FONT_SIZE,
+            exercises: preset.exercises.clone(),
+            description_font_size: DEFAULT_DESCRIPTION_FONT_SIZE,
+            font: bb_theme::text_format::FIRA_SANS_EXTRABOLD,
+            on_press: None,
+        }
+    }
+
     pub fn default_recent_workout_widget() -> Self {
         WorkoutWidget {
             width: DEFAULT_WORKOUT_WIDGET_WIDTH,
