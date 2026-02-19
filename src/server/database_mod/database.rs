@@ -177,7 +177,7 @@ pub async fn add_user(
     password: &str,
 ) -> Result<(), sqlx::Error> {
     sqlx::query("INSERT INTO users (username, user_password, weekly_workout_streak, coin_balance, weight, height, gender, favorite_mascot, selected_mascot, profile_picture)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         .bind(username)
         .bind(password)
         .bind(0)
@@ -191,8 +191,20 @@ pub async fn add_user(
         .execute(pool)
         .await?;
 
-    //TODO create default user_mascot entry
-    //TODO create default user_goals entry
+    add_mascot_to_user(pool, username, "Duck").await?;
+
+    sqlx::query(
+        "INSERT INTO user_goals(username, weekly_workouts, weight, water, steps, sleep)
+        VALUES(?, ?, ?, ?, ?, ?)",
+    )
+    .bind(username)
+    .bind(4.0)
+    .bind(60.0)
+    .bind(2000.0)
+    .bind(10000.0)
+    .bind(9.0)
+    .execute(pool)
+    .await?;
 
     Ok(())
 }
@@ -234,6 +246,38 @@ pub async fn get_all_usernames(pool: &SqlitePool) -> Result<String, sqlx::Error>
     }
     Ok(names)
 }
+#[allow(dead_code)]
+pub async fn update_user_goals(
+    pool: &SqlitePool,
+    username: &str,
+    user_goals: UserGoals,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE user_goals SET weekly_workouts = ? AND weight = ? AND steps = ? AND sleep = ? WHERE username = ?")
+        .bind(user_goals.weekly_workouts)
+        .bind(user_goals.weight)
+        .bind(user_goals.steps)
+        .bind(user_goals.sleep)
+        .bind(username)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn get_user_goals(pool: &SqlitePool, username: &str) -> Result<UserGoals, sqlx::Error> {
+    let user_goal_row = sqlx::query("SELECT * FROM user_goals WHERE username = ?")
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(UserGoals {
+        weekly_workouts: user_goal_row.get("weekly_workouts"),
+        weight: user_goal_row.get::<Kg, _>("weight"),
+        water: user_goal_row.get("water"),
+        steps: user_goal_row.get("steps"),
+        sleep: user_goal_row.get("sleep"),
+    })
+}
+#[allow(dead_code)]
 pub async fn update_user_weight(
     pool: &SqlitePool,
     username: &str,
@@ -530,21 +574,23 @@ pub async fn reset_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     //sqlx::query("DROP TABLE IF EXISTS exercise")
     //.execute(pool)
     //.await?;
+    sqlx::query("DROP TABLE IF EXISTS user_goals ")
+        .execute(pool)
+        .await?;
+
     sqlx::query("DROP TABLE IF EXISTS user_mascot")
         .execute(pool)
         .await?;
-    sqlx::query("DROP TABLE IF EXISTS mascot")
-        .execute(pool)
-        .await?;
+    //sqlx::query("DROP TABLE IF EXISTS mascot")
+    //.execute(pool)
+    //.await?;
     sqlx::query("DROP TABLE IF EXISTS users")
         .execute(pool)
         .await?;
     sqlx::query("DROP TABLE IF EXISTS weightLog")
         .execute(pool)
         .await?;
-
     init_db(pool).await?;
-
     Ok(())
 }
 #[allow(dead_code)]
@@ -795,7 +841,7 @@ pub async fn get_single_foreign_user(
             weekly_workout_streak: row.get::<i64, _>("weekly_workout_streak") as u32,
             coin_balance: row.get::<i64, _>("coin_balance") as u32,
             favorite_mascot: mascot_from_string(row.get("favorite_mascot")),
-            user_goals: UserGoals::default(), //TODO get
+            user_goals: get_user_goals(pool, target_username).await?,
             profile_stat_manager: ProfileStatManager::new(&exercise_stats),
         },
         selected_mascot: mascot_from_string(row.get("selected_mascot")),
@@ -1177,7 +1223,7 @@ pub async fn get_user_information(
         weekly_workout_streak: row.get::<i64, _>("weekly_workout_streak") as u32,
         coin_balance: row.get::<i64, _>("coin_balance") as u32,
         favorite_mascot: mascot_from_string(row.get("favorite_mascot")),
-        user_goals: UserGoals::default(), //TODO get
+        user_goals: get_user_goals(pool, username).await?,
         profile_stat_manager: ProfileStatManager::new(&exercise_stats),
     })
 }
