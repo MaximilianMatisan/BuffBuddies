@@ -1,4 +1,5 @@
 use crate::client::backend::exercise_create::ExerciseCreate;
+use crate::client::backend::exercise_manager::CreateWorkoutError;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::tab::Tab;
@@ -15,6 +16,7 @@ use crate::client::gui::user_interface::Message;
 use crate::client::server_communication::server_communicator::save_workout;
 use crate::common::exercise_mod::set::StrengthSet;
 use crate::common::exercise_mod::weight::Kg;
+use crate::common::workout_preset::WorkoutPreset;
 use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{
     Column, Row, Scrollable, Space, combo_box, container, image, row, stack, text, text_input,
@@ -24,6 +26,7 @@ use iced_core::Length::{Fill, FillPortion, Shrink};
 use iced_core::image::Handle;
 use iced_core::text::LineHeight;
 use iced_core::{Alignment, Pixels};
+use std::sync::Arc;
 
 type SetNumber = usize;
 pub type ExerciseNumber = usize;
@@ -39,6 +42,8 @@ pub enum WorkoutCreationMessage {
     EditKg(SetNumber, String),
     EditReps(SetNumber, String),
     FinishWorkoutCreation,
+    NewWithPreset(WorkoutPreset),
+    PresetReplace(WorkoutPreset),
 }
 
 impl WorkoutCreationMessage {
@@ -225,6 +230,40 @@ impl WorkoutCreationMessage {
                         }
                     }
                 }
+                Task::none()
+            }
+            WorkoutCreationMessage::NewWithPreset(preset) => {
+                if let Err(err) = app.exercise_manager.start_workout_with_preset(preset) {
+                    let preset_clone = preset.clone();
+                    match err {
+                        CreateWorkoutError::WorkoutAlreadyInCreation => {
+                            app.pop_up_manager.new_pop_up(
+                                PopUpType::Question(Arc::new(move |overwrite| {
+                                    if overwrite {
+                                        Message::WorkoutCreation(
+                                            WorkoutCreationMessage::PresetReplace(
+                                                preset_clone.clone(),
+                                            ),
+                                        )
+                                    } else {
+                                        Message::ResetPopUp
+                                    }
+                                })),
+                                "You already have a workout!".to_string(),
+                                "Do you want to overwrite your current workout with the preset?"
+                                    .to_string(),
+                            )
+                        }
+                    }
+                } else {
+                    app.screen = Tab::CreateWorkout;
+                }
+                Task::none()
+            }
+            WorkoutCreationMessage::PresetReplace(preset) => {
+                app.exercise_manager.force_workout_with_preset(preset);
+                app.screen = Tab::CreateWorkout;
+                app.pop_up_manager.reset();
                 Task::none()
             }
         }

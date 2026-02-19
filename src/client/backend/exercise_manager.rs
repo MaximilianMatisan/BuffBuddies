@@ -13,9 +13,14 @@ use crate::common::exercise_mod::general_exercise::{
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::user_mod::user::UserInformation;
+use crate::common::workout_preset::WorkoutPreset;
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
+
+pub enum CreateWorkoutError {
+    WorkoutAlreadyInCreation,
+}
 
 pub struct ExerciseManager {
     pub exercises: Vec<Exercise>,
@@ -219,6 +224,26 @@ impl ExerciseManager {
         if self.workout_in_creation.is_none() {
             self.workout_in_creation = Some(Vec::new());
         }
+    }
+
+    pub fn start_workout_with_preset(
+        &mut self,
+        preset: &WorkoutPreset,
+    ) -> Result<(), CreateWorkoutError> {
+        if self.workout_in_creation.is_none() {
+            self.force_workout_with_preset(preset);
+            Ok(())
+        } else {
+            Err(CreateWorkoutError::WorkoutAlreadyInCreation)
+        }
+    }
+
+    pub fn force_workout_with_preset(&mut self, preset: &WorkoutPreset) {
+        let mut exercises = Vec::new();
+        for exercise in &preset.exercises {
+            exercises.push(ExerciseCreate::new(exercise.clone()))
+        }
+        self.workout_in_creation = Some(exercises);
     }
 
     pub fn get_last_done_set(&self, exercise: &String) -> Option<StrengthSet> {
