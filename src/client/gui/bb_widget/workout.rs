@@ -1,3 +1,4 @@
+use crate::client::gui::bb_tab::workout_creation::WorkoutCreationMessage;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::client::gui::{bb_theme, bb_widget};
@@ -74,7 +75,9 @@ where
             exercises: preset.exercises.clone(),
             description_font_size: DEFAULT_DESCRIPTION_FONT_SIZE,
             font: bb_theme::text_format::FIRA_SANS_EXTRABOLD,
-            on_press: None,
+            on_press: Some(Message::WorkoutCreation(
+                WorkoutCreationMessage::NewWithPreset(preset.clone()),
+            )),
         }
     }
 

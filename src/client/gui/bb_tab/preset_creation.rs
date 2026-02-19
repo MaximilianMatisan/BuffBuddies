@@ -117,6 +117,7 @@ impl PresetCreationMessage {
             }
             PresetCreationMessage::SavePreset(Ok(())) => {
                 app.workout_preset_manager.add_preset();
+                app.screen = Tab::Workout;
                 Task::none()
             }
             PresetCreationMessage::SavePreset(Err(err)) => {

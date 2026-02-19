@@ -4,10 +4,11 @@ use crate::client::gui::bb_theme::color::{DARK_SHADOW, HIGHLIGHTED_CONTAINER_COL
 use crate::client::gui::bb_theme::container::{ContainerStyle, DEFAULT_CONTAINER_RADIUS};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button};
 use crate::client::gui::bb_theme::text_format::format_button_text;
+use crate::client::gui::bb_widget::widget_utils::LARGE_INDENT;
 use crate::client::gui::user_interface::Message;
 use iced::Element;
 use iced::widget::container::Style;
-use iced::widget::{Column, container, text};
+use iced::widget::{Column, Row, container, text};
 use iced_core::Length::{Fill, Shrink};
 use iced_core::{Border, Shadow, Theme, Vector};
 
@@ -22,21 +23,44 @@ pub fn view_pop_up(app: &App) -> Element<'_, Message> {
         .center()
         .into();
 
-    let ok_button: Element<Message> = create_text_button(
-        &app.mascot_manager.selected_mascot,
-        "Okay".to_string(),
-        ButtonStyle::Active,
-        None,
-    )
-    .on_press(Message::ResetPopUp)
-    .into();
+    let mut buttons: Row<Message> = Row::new().spacing(LARGE_INDENT);
 
-    let centered_ok = container(ok_button).center(Fill).height(Shrink);
+    if let Some(bool_to_msg) = &app.pop_up_manager.question_pop_up {
+        let yes_button: Element<Message> = create_text_button(
+            &app.mascot_manager.selected_mascot,
+            "Yes".to_string(),
+            ButtonStyle::Active,
+            None,
+        )
+        .on_press(bool_to_msg(true))
+        .into();
+        let no_button: Element<Message> = create_text_button(
+            &app.mascot_manager.selected_mascot,
+            "No".to_string(),
+            ButtonStyle::Active,
+            None,
+        )
+        .on_press(bool_to_msg(false))
+        .into();
+        buttons = buttons.push(yes_button).push(no_button);
+    } else {
+        let ok_button: Element<Message> = create_text_button(
+            &app.mascot_manager.selected_mascot,
+            "Okay".to_string(),
+            ButtonStyle::Active,
+            None,
+        )
+        .on_press(Message::ResetPopUp)
+        .into();
+        buttons = buttons.push(ok_button);
+    }
+
+    let centered_buttons = container(buttons).center(Fill).height(Shrink);
 
     let column: Element<Message> = Column::new()
         .push(title)
         .push(text)
-        .push(centered_ok)
+        .push(centered_buttons)
         .spacing(10)
         .into();
 
