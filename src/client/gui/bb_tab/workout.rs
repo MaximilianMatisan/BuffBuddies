@@ -20,12 +20,14 @@ impl App {
         .spacing(LARGE_INDENT)
         .into();
 
-        let workout_preset_row: Element<Message> = row![
-            new_widget::new_preset_widget_button(),
-            workout::WorkoutWidget::default_workout_preset_widget()
-        ]
-        .spacing(LARGE_INDENT)
-        .into();
+        let mut workout_preset_row = Row::new()
+            .push(new_widget::new_preset_widget_button())
+            .spacing(LARGE_INDENT);
+
+        for preset in &self.workout_preset_manager.presets {
+            workout_preset_row =
+                workout_preset_row.push(workout::WorkoutWidget::new_workout_preset_widget(preset));
+        }
 
         let general_exercise_info_elements = display_general_exercise_infos(
             &self.mascot_manager.selected_mascot,

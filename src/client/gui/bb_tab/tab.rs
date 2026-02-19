@@ -13,6 +13,7 @@ pub enum Tab {
     //Further frames
     ViewProfile,
     CreateWorkout,
+    CreatePreset,
 }
 
 impl Tab {

@@ -1,8 +1,22 @@
 use serde::{Deserialize, Serialize};
 
-use crate::common::exercise_mod::general_exercise::Id;
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkoutPreset {
-    pub exercises: Vec<Id>,
+    pub name: String,
+    pub exercises: Vec<String>,
+}
+
+impl Default for WorkoutPreset {
+    fn default() -> Self {
+        WorkoutPreset {
+            name: "Preset Title".to_string(),
+            exercises: Vec::default(),
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct PresetCreation {
+    pub workout_preset: WorkoutPreset,
+    pub edit_title: bool,
 }

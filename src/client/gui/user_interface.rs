@@ -3,6 +3,7 @@ use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::loading::view_loading_screen;
 use crate::client::gui::bb_tab::login::view_login;
+use crate::client::gui::bb_tab::preset_creation::PresetCreationMessage;
 use crate::client::gui::bb_tab::settings::SettingsMessage;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_tab::user::view_profile;
@@ -76,6 +77,7 @@ pub enum Message {
     ToggleGeneralExerciseInfo(u32),
     WorkoutCreation(WorkoutCreationMessage),
     SaveWorkout(Result<(), SaveWorkoutError>),
+    PresetCreation(PresetCreationMessage),
 }
 
 impl App {
@@ -94,6 +96,8 @@ impl App {
 
                 if let Tab::CreateWorkout = tab {
                     self.exercise_manager.start_workout();
+                } else if let Tab::CreatePreset = tab {
+                    self.workout_preset_manager.start_preset_creation();
                 }
 
                 self.screen = tab;
@@ -426,6 +430,7 @@ impl App {
                 Task::none()
             }
             Message::SaveWorkout(Ok(())) => Task::none(),
+            Message::PresetCreation(preset_creation_msg) => preset_creation_msg.update(self),
         }
     }
     fn view(&self) -> Element<'_, Message> {
@@ -503,6 +508,7 @@ impl App {
             Tab::Settings => Some(self.settings_screen()),
             Tab::Exit => None,
             Tab::CreateWorkout => Some(self.workout_creation_screen()),
+            Tab::CreatePreset => Some(self.preset_creation_screen()),
             Tab::ViewProfile => {
                 let user_type = &self.user_manager.most_recently_viewed_user;
 
