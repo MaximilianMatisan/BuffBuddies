@@ -47,4 +47,15 @@ impl WorkoutPresetManager {
             Err(PresetSafeError::NoPresetToSafe)
         }
     }
+
+    pub fn move_preset_to_front(&mut self, preset: &WorkoutPreset) {
+        if let Some(index) = self
+            .presets
+            .iter()
+            .position(|preset_in_vec| -> bool { preset.name == preset_in_vec.name })
+        {
+            self.presets.remove(index);
+            self.presets.insert(0, preset.clone())
+        }
+    }
 }
