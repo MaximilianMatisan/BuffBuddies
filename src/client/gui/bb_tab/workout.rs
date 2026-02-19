@@ -29,6 +29,9 @@ impl App {
                 workout_preset_row.push(workout::WorkoutWidget::new_workout_preset_widget(preset));
         }
 
+        let workout_preset_scrollable =
+            Scrollable::new(workout_preset_row).direction(Direction::Horizontal(Scrollbar::new()));
+
         let general_exercise_info_elements = display_general_exercise_infos(
             &self.mascot_manager.selected_mascot,
             &self.exercise_manager,
@@ -60,7 +63,7 @@ impl App {
         let content = column![
             circle_widget,
             recent_workout_row,
-            workout_preset_row,
+            workout_preset_scrollable,
             exercise_info_container,
         ]
         .padding(LARGE_INDENT)

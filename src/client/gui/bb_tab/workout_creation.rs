@@ -256,12 +256,14 @@ impl WorkoutCreationMessage {
                         }
                     }
                 } else {
+                    app.workout_preset_manager.move_preset_to_front(preset);
                     app.screen = Tab::CreateWorkout;
                 }
                 Task::none()
             }
             WorkoutCreationMessage::PresetReplace(preset) => {
                 app.exercise_manager.force_workout_with_preset(preset);
+                app.workout_preset_manager.move_preset_to_front(preset);
                 app.screen = Tab::CreateWorkout;
                 app.pop_up_manager.reset();
                 Task::none()
