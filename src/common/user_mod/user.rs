@@ -25,7 +25,7 @@ pub enum UserType {
 pub struct UserInformation {
     pub username: String,
     pub description: String,
-    pub profile_picture_handle: String,
+    pub profile_picture_path: String,
     pub weight: Kg,
     pub height: u32,
     pub gender: Gender,
@@ -41,7 +41,7 @@ impl UserInformation {
         UserInformation {
             username: "Default_user".to_string(),
             description: "".to_string(),
-            profile_picture_handle: "assets/images/profile_picture.png".to_string(),
+            profile_picture_path: "assets/images/profile_picture.png".to_string(),
             weight: 60.0,
             height: 170,
             gender: Gender::Male,

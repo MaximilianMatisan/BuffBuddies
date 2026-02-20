@@ -7,10 +7,10 @@ use crate::client::gui::bb_theme::text_format::{
 };
 use crate::client::gui::bb_widget::stats::{PROFILE_STAT_CONTAINER_HEIGHT, profile_stat_container};
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
-use crate::client::gui::size::LARGE_PROFILE_PICTURE_DIMENSION;
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::profile_picture::LARGE_PROFILE_PICTURE_DIMENSION;
 use crate::common::user_mod::user::UserInformation;
 use iced::Element;
 use iced::widget::{Column, Container, Row, Space, column, container, image, row, text};
@@ -25,7 +25,7 @@ pub fn view_profile<'a>(
     friends_with_logged_in_user: bool,
 ) -> Element<'a, Message> {
     let profile_picture = container(
-        image(&user.profile_picture_handle)
+        image(&user.profile_picture_path)
             .width(Length::Shrink)
             .height(Length::Fill),
     )

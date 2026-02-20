@@ -36,7 +36,7 @@ impl UserManager {
             user_information: UserInformation {
                 username: "Felix".to_string(),
                 description: "The boss".to_string(),
-                profile_picture_handle: "assets/images/profile_picture.png".to_string(),
+                profile_picture_path: "assets/images/profile_picture.png".to_string(),
                 weight: 75.0,
                 height: 187,
                 gender: Gender::Male,
@@ -63,7 +63,7 @@ impl UserManager {
             user_information: UserInformation {
                 username: "Stefano".to_string(),
                 description: "The beast".to_string(),
-                profile_picture_handle: "assets/images/profile_picture.png".to_string(),
+                profile_picture_path: "assets/images/profile_picture.png".to_string(),
                 weight: 70.0,
                 height: 178,
                 gender: Gender::Male,
@@ -86,7 +86,7 @@ impl UserManager {
             user_information: UserInformation {
                 username: "Robert".to_string(),
                 description: "The titan".to_string(),
-                profile_picture_handle: "assets/images/profile_picture.png".to_string(),
+                profile_picture_path: "assets/images/profile_picture.png".to_string(),
                 weight: 68.0,
                 height: 188,
                 gender: Gender::Male,
@@ -109,7 +109,7 @@ impl UserManager {
             user_information: UserInformation {
                 username: "JohnP".to_string(),
                 description: "always on my phone".to_string(),
-                profile_picture_handle: "assets/images/profile_picture.png".to_string(),
+                profile_picture_path: "assets/images/profile_picture.png".to_string(),
                 weight: 100.0,
                 height: 150,
                 gender: Gender::Male,

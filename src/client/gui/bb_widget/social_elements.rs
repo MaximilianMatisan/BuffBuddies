@@ -3,9 +3,11 @@ use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{format_button_text, format_description_text};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::client::gui::size::{MEDIUM_PROFILE_PICTURE_DIMENSION, SMALL_PROFILE_PICTURE_DIMENSION};
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::profile_picture::{
+    MEDIUM_PROFILE_PICTURE_DIMENSION, SMALL_PROFILE_PICTURE_DIMENSION,
+};
 use crate::common::user_mod::user::{ForeignUser, UserType};
 use iced::Element;
 use iced::widget::{Button, Column, Row, Space, column, image, text};
@@ -20,7 +22,7 @@ const MAX_DISPLAYED_NAME_CHARS: usize = 8;
 
 pub fn friend_user_button<'a>(app: &App, user: &ForeignUser) -> Button<'a, Message> {
     let profile_picture: Element<Message> = image(Handle::from_path(
-        &user.user_information.profile_picture_handle,
+        &user.user_information.profile_picture_path,
     ))
     .width(MEDIUM_PROFILE_PICTURE_DIMENSION)
     .height(MEDIUM_PROFILE_PICTURE_DIMENSION)
@@ -74,7 +76,7 @@ pub fn user_profile_button<'a>(
     user: &'a ForeignUser,
 ) -> Button<'a, Message> {
     let profile_picture: Element<Message> = image(Handle::from_path(
-        &user.user_information.profile_picture_handle,
+        &user.user_information.profile_picture_path,
     ))
     .width(SMALL_PROFILE_PICTURE_DIMENSION)
     .height(SMALL_PROFILE_PICTURE_DIMENSION)
@@ -125,7 +127,7 @@ pub fn profile_tab_button(app: &App) -> Button<Message> {
     let user: Element<Message> = Row::new()
         .push(
             iced::widget::image(Handle::from_path(
-                &app.user_manager.user_info.profile_picture_handle,
+                &app.user_manager.user_info.profile_picture_path,
             ))
             .width(100)
             .height(100),

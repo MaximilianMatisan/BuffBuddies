@@ -234,7 +234,6 @@ pub async fn get_all_usernames(pool: &SqlitePool) -> Result<String, sqlx::Error>
     }
     Ok(names)
 }
-#[allow(dead_code)]
 pub async fn update_user_weight(
     pool: &SqlitePool,
     username: &str,
@@ -247,7 +246,19 @@ pub async fn update_user_weight(
         .await?;
     Ok(())
 }
-#[allow(dead_code)]
+pub async fn update_user_profile_picture(
+    pool: &SqlitePool,
+    username: &str,
+    new_profile_picture_path: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE users SET profile_picture = ? WHERE username = ?")
+        .bind(new_profile_picture_path)
+        .bind(username)
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}
 pub async fn update_user_height(
     pool: &SqlitePool,
     username: &str,
@@ -261,7 +272,6 @@ pub async fn update_user_height(
     Ok(())
 }
 
-#[allow(dead_code)]
 pub async fn update_user_gender(
     pool: &SqlitePool,
     username: &str,
@@ -287,7 +297,6 @@ pub async fn update_user_weekly_workout_streak(
         .await?;
     Ok(())
 }
-#[allow(dead_code)]
 pub async fn update_user_coin_balance(
     pool: &SqlitePool,
     username: &str,
@@ -301,7 +310,6 @@ pub async fn update_user_coin_balance(
     Ok(())
 }
 
-#[allow(dead_code)]
 pub async fn update_user_description(
     pool: &SqlitePool,
     username: &str,
@@ -417,7 +425,6 @@ pub async fn remove_friend(
         .await?;
     Ok(())
 }
-#[allow(dead_code)]
 pub async fn add_mascot_to_user(
     pool: &SqlitePool,
     username: &str,
@@ -452,7 +459,6 @@ pub async fn get_mascots_from_user(
     }
     Ok(mascots)
 }
-#[allow(dead_code)]
 pub async fn update_user_favorite_mascot(
     pool: &SqlitePool,
     username: &str,
@@ -481,7 +487,6 @@ pub async fn get_user_favorite_mascot(
 
     Ok(favorite_mascot)
 }
-#[allow(dead_code)]
 pub async fn update_user_selected_mascot(
     pool: &SqlitePool,
     username: &str,
@@ -509,7 +514,6 @@ pub async fn get_user_selected_mascot(
 
     Ok(selected_mascot)
 }
-#[allow(dead_code)]
 pub async fn reset_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("DROP TABLE IF EXISTS friendship")
         .execute(pool)
@@ -585,7 +589,6 @@ pub async fn get_user_weekly_workout_streak(
 
     Ok(row.get("weekly_workout_streak"))
 }
-#[allow(dead_code)]
 pub async fn get_user_coin_balance(pool: &SqlitePool, username: &str) -> Result<u32, sqlx::Error> {
     let row = sqlx::query("SELECT coin_balance FROM users WHERE username = ?")
         .bind(username)
@@ -650,7 +653,6 @@ pub async fn add_exercise_log(
     Ok(())
 }
 
-#[allow(dead_code)]
 pub async fn add_workout_to_exercise_log(
     pool: &SqlitePool,
     username: &str,
@@ -783,7 +785,7 @@ pub async fn get_single_foreign_user(
         user_information: UserInformation {
             username: row.get("username"),
             description: row.get("description"),
-            profile_picture_handle: row.get("profile_picture"),
+            profile_picture_path: row.get("profile_picture"),
             weight: row.get::<Kg, _>("weight"),
             height: row.get::<f64, _>("height") as u32,
             gender: match row.get("gender") {
@@ -1165,7 +1167,7 @@ pub async fn get_user_information(
     Ok(UserInformation {
         username: row.get("username"),
         description: row.get("description"),
-        profile_picture_handle: row.get("profile_picture"),
+        profile_picture_path: row.get("profile_picture"),
         weight: row.get::<Kg, _>("weight"),
         height: row.get::<f64, _>("height") as u32,
         gender: match row.get("gender") {

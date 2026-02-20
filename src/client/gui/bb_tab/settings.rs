@@ -17,17 +17,20 @@ use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::bb_widget::widget_utils::{
     descriptor_space_fill_element_row, descriptor_space_fill_text_row,
 };
-use crate::client::gui::size;
 use crate::client::gui::user_interface::Message;
 use crate::client::server_communication::user_communicator::update_user_info_on_server;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::profile_picture::{
+    LARGE_PROFILE_PICTURE_DIMENSION, profile_picture_selection_row,
+};
 use crate::common::user_mod::user::{
     Gender, MAX_DESCRIPTION_CHARACTERS, UserInformation, UserInformationStrings,
 };
 use crate::common::user_mod::user_goals::GoalType;
 use iced::widget::{
-    Button, Column, Container, Row, Space, TextInput, combo_box, container, image, text, text_input,
+    Button, Column, Container, Image, Row, Space, TextInput, combo_box, container, image, text,
+    text_input,
 };
 use iced::{Element, Task};
 use iced_core::alignment::Vertical;
@@ -35,15 +38,16 @@ use iced_core::image::Handle;
 use iced_core::{Length, Padding};
 use strum::IntoEnumIterator;
 
-const SETTINGS_ENTRY_SPACING: f32 = 3.0;
+const SETTINGS_ENTRY_SPACING: f32 = 5.0;
 const SETTINGS_TEXT_INPUT_WIDTH: f32 = 250.0;
 const TITLE_SIZE: f32 = 30.0;
-static USER_DATA_TITLE: &str = "General info";
-static GOAL_DATA_TITLE: &str = "Goals";
+const USER_DATA_TITLE: &str = "General info";
+const GOAL_DATA_TITLE: &str = "Goals";
+const PROFILE_PICTURE_TITLE: &str = "Profile picture";
 
 impl App {
     pub fn settings_screen(&self) -> Element<Message> {
-        let user_info_container = settings_user_info_preview(self).map(Message::Settings);
+        let user_info_container = user_settings(self).map(Message::Settings);
         let log_out_button =
             log_out_button(&self.mascot_manager.selected_mascot).map(Message::Settings);
 
@@ -61,28 +65,54 @@ impl App {
         padded_content
     }
 }
-fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
+fn user_settings(app: &App) -> Element<SettingsMessage> {
+    if app.user_manager.pending_user_info_changes.is_none() {
+        user_settings_preview(app)
+    } else {
+        user_settings_edit(app)
+    }
+}
+fn user_settings_preview(app: &App) -> Element<SettingsMessage> {
     let user_info = &app.user_manager.user_info;
 
-    let profile_picture = image(Handle::from_path(&user_info.profile_picture_handle))
-        .width(size::LARGE_PROFILE_PICTURE_DIMENSION)
-        .height(size::LARGE_PROFILE_PICTURE_DIMENSION);
+    let profile_picture = image(Handle::from_path(&user_info.profile_picture_path))
+        .width(LARGE_PROFILE_PICTURE_DIMENSION)
+        .height(LARGE_PROFILE_PICTURE_DIMENSION);
 
-    let username_and_data_column = if app.user_manager.pending_user_info_changes.is_none() {
-        Column::new()
-            .spacing(INDENT)
-            .push(preview_user_info_column(app))
-            .push(preview_goals_column(app))
-    } else {
-        Column::new()
+    let username_and_data_column = Column::new()
+        .spacing(INDENT)
+        .push(preview_user_info_column(app))
+        .push(preview_goals_column(app));
+
+    arrange_and_wrap_user_settings_in_container(profile_picture, username_and_data_column).into()
+}
+fn user_settings_edit(app: &App) -> Element<SettingsMessage> {
+    if let Some((pending_info, _)) = &app.user_manager.pending_user_info_changes {
+        let profile_picture = image(Handle::from_path(pending_info.profile_picture_path.clone()))
+            .width(LARGE_PROFILE_PICTURE_DIMENSION)
+            .height(LARGE_PROFILE_PICTURE_DIMENSION);
+
+        let username_and_data_column = Column::new()
             .spacing(INDENT)
             .push(edit_user_info_column(app))
             .push(edit_goals_column(app))
-            .push(save_or_discard_pending_user_info(
+            .push(edit_profile_picture_column(
                 &app.mascot_manager.selected_mascot,
             ))
-    };
+            .push(save_or_discard_pending_user_info(
+                &app.mascot_manager.selected_mascot,
+            ));
 
+        arrange_and_wrap_user_settings_in_container(profile_picture, username_and_data_column)
+            .into()
+    } else {
+        Column::new().into()
+    }
+}
+fn arrange_and_wrap_user_settings_in_container(
+    profile_picture: Image,
+    username_and_data_column: Column<SettingsMessage>,
+) -> Container<SettingsMessage> {
     let contents = Row::new()
         .push(Space::with_width(Length::FillPortion(1)))
         .push(profile_picture)
@@ -100,14 +130,16 @@ fn settings_user_info_preview(app: &App) -> Element<SettingsMessage> {
             ..Default::default()
         });
 
-    user_info_container.into()
+    user_info_container
 }
 fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
     let user_info = &app.user_manager.user_info;
+
     let username = text(&user_info.username)
         .font(FIRA_SANS_EXTRABOLD)
         .color(TEXT_COLOR)
         .size(40);
+
     let edit_profile_button: Button<SettingsMessage> = create_element_button(
         &app.mascot_manager.selected_mascot,
         image(Handle::from_path("assets/images/edit.png")).into(),
@@ -164,6 +196,7 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
             cm_to_string(user_info.height),
         ))
         .push(description)
+        .spacing(SETTINGS_ENTRY_SPACING)
         .width(Length::FillPortion(15));
 
     let username_and_data_column: Column<SettingsMessage> = Column::new()
@@ -277,11 +310,14 @@ fn preview_goals_column(app: &App) -> Column<SettingsMessage> {
     let goal_title =
         create_settings_sub_header(&app.mascot_manager.selected_mascot, GOAL_DATA_TITLE);
 
-    let mut goal_previews = Column::new().push(goal_title);
+    let mut goal_previews = Column::new()
+        .spacing(SETTINGS_ENTRY_SPACING)
+        .push(goal_title);
 
     for goal in GoalType::iter() {
+        let descriptor = format!("{}:", goal);
         goal_previews = goal_previews.push(descriptor_space_fill_text_row(
-            goal.to_string(),
+            descriptor,
             goal.get_formatted_user_goal_strings(&app.user_manager.user_info.user_goals),
         ));
     }
@@ -303,8 +339,9 @@ fn edit_goals_column(app: &App) -> Column<SettingsMessage> {
         .push(goal_title);
 
     for goal in GoalType::iter() {
+        let descriptor = format!("{}:", goal);
         contents = contents.push(descriptor_space_fill_element_row(
-            goal.to_string(),
+            descriptor,
             number_inc_decrementer_buttons(
                 &app.mascot_manager.selected_mascot,
                 goal.get_formatted_user_goal_strings(&pending_info.user_goals),
@@ -315,6 +352,18 @@ fn edit_goals_column(app: &App) -> Column<SettingsMessage> {
         ))
     }
     contents
+}
+fn edit_profile_picture_column(mascot: &Mascot) -> Column<SettingsMessage> {
+    let header = create_settings_sub_header(mascot, PROFILE_PICTURE_TITLE);
+
+    let picture_selection_row = profile_picture_selection_row(mascot);
+
+    let content = Column::new()
+        .push(header)
+        .push(picture_selection_row)
+        .spacing(SETTINGS_ENTRY_SPACING);
+
+    content
 }
 fn number_inc_decrementer_buttons(
     mascot: &Mascot,
@@ -407,6 +456,7 @@ fn log_out_button(active_mascot: &Mascot) -> Element<SettingsMessage> {
 pub enum SettingsMessage {
     StartEditingProfile,
     SelectGender(Gender),
+    SelectProfilePicture(String),
     EditHeight(String),
     EditWeight(String),
     EditDescription(String),
@@ -434,6 +484,11 @@ impl SettingsMessage {
             SettingsMessage::SelectGender(new_gender) => {
                 if let Some((user_info, _)) = pending_user_info_changes {
                     user_info.gender = new_gender;
+                }
+            }
+            SettingsMessage::SelectProfilePicture(new_profile_picture_path) => {
+                if let Some((user_info, _)) = pending_user_info_changes {
+                    user_info.profile_picture_path = new_profile_picture_path;
                 }
             }
             SettingsMessage::EditHeight(new_height) => {
