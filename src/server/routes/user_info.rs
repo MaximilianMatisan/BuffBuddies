@@ -2,6 +2,7 @@ use axum::extract::State;
 
 use crate::common::user_mod::user::UserInformation;
 use crate::server::database_mod::database;
+use crate::server::database_mod::database::update_user_goals;
 use crate::server::jwt::user_authentication_request_path::UserAuthenticationRequestPath;
 use crate::server::server_main::ApiError;
 use axum::Json;
@@ -61,7 +62,12 @@ pub async fn update_user_info(
     )
     .await?;
 
-    //TODO database::update_user_goals(&pool, &user_authenticator.name, new_user_info.user_goals)
+    update_user_goals(
+        &pool,
+        &user_authentication.username,
+        new_user_info.user_goals,
+    )
+    .await?;
 
     println!(
         "{}: Updated UserInformation was saved in the database!",
