@@ -41,6 +41,13 @@ pub async fn update_user_info(
     )
     .await?;
 
+    database::update_user_profile_picture(
+        &pool,
+        &user_authentication.username,
+        &new_user_info.profile_picture_path,
+    )
+    .await?;
+
     database::update_user_height(&pool, &user_authentication.username, new_user_info.height)
         .await?;
 
