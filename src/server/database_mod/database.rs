@@ -252,9 +252,10 @@ pub async fn update_user_goals(
     username: &str,
     user_goals: UserGoals,
 ) -> Result<(), sqlx::Error> {
-    sqlx::query("UPDATE user_goals SET weekly_workouts = ? AND weight = ? AND steps = ? AND sleep = ? WHERE username = ?")
+    sqlx::query("UPDATE user_goals SET weekly_workouts = ? , weight = ? , water = ?, steps = ? , sleep = ? WHERE username = ?")
         .bind(user_goals.weekly_workouts)
         .bind(user_goals.weight)
+        .bind(user_goals.water)
         .bind(user_goals.steps)
         .bind(user_goals.sleep)
         .bind(username)
