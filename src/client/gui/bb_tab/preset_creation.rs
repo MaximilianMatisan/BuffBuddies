@@ -55,7 +55,10 @@ impl PresetCreationMessage {
             }
             PresetCreationMessage::EditTitle(str) => {
                 if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
-                    preset.workout_preset.name = str.to_string();
+                    let new_title = str.to_string();
+                    if new_title.len() <= 30 {
+                        preset.workout_preset.name = new_title;
+                    }
                 }
                 Task::none()
             }
@@ -239,10 +242,7 @@ impl App {
         }
         let title_container = container(title_row).center(Fill).height(Shrink).width(Fill);
 
-        let separator = separator_line(
-            &self.mascot_manager.selected_mascot,
-            Length::Fixed(5.0),
-        );
+        let separator = separator_line(&self.mascot_manager.selected_mascot, Length::Fixed(5.0));
 
         let mut column = Column::new().spacing(INDENT);
 

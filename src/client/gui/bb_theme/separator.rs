@@ -3,11 +3,10 @@ use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::widget::container::Style;
 use iced::widget::{Container, Space, container};
 use iced_core::{Background, Length};
-use crate::client::gui::user_interface::Message;
 
-pub fn separator_line<'a, Msg>(mascot: &'a Mascot, height: impl Into<Length>) -> Container<Msg>
+pub fn separator_line<'a, Msg>(mascot: &'a Mascot, height: impl Into<Length>) -> Container<'a, Msg>
 where
-    Msg: Clone + 'a
+    Msg: Clone + 'a,
 {
     container(Space::new(0, 0))
         .style(|_theme| Style {
