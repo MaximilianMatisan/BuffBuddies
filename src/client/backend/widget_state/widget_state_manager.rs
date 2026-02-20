@@ -7,6 +7,7 @@ use crate::client::gui::bb_widget::bmi_calculator::BMIWidgetState;
 use crate::client::gui::bb_widget::circle_widget::CircleWidgetState;
 use crate::client::gui::bb_widget::graph::GraphWidgetState;
 use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::user_mod::user::UserInformation;
 
 pub struct WidgetManager {
     pub activity_widget: ActivityWidget,
@@ -18,7 +19,7 @@ pub struct WidgetManager {
 }
 
 impl WidgetManager {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(user_information: &UserInformation) -> Self {
         let exercise_manager = ExerciseManager::default();
         let default_mascot = Mascot::default();
 
@@ -30,7 +31,7 @@ impl WidgetManager {
             graph_widget_state: GraphWidgetState::new(),
             circle_widget_state: CircleWidgetState::new(),
             bmi_widget_state: BMIWidgetState::new(),
-            progress_bar_state_manager: ProgressBarStateManager::new(),
+            progress_bar_state_manager: ProgressBarStateManager::new(user_information),
             pending_progress_bar_state_manager: None,
         }
     }

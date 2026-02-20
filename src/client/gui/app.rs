@@ -29,13 +29,14 @@ impl Default for App {
     fn default() -> Self {
         let exercise_manager = ExerciseManager::default();
         let _default_mascot = Mascot::default();
+        let user_manager = UserManager::new(&exercise_manager.exercises);
         App {
             jsonwebtoken: None,
             screen: Tab::Home,
             login_state: LoginState::default(),
-            user_manager: UserManager::new(&exercise_manager.exercises),
+            widget_manager: WidgetManager::new(&user_manager.user_info),
+            user_manager,
             mascot_manager: MascotManager::default(),
-            widget_manager: WidgetManager::new(),
             exercise_manager,
             workout_preset_manager: WorkoutPresetManager::default(),
             image_manager: ImageManager::default(),
