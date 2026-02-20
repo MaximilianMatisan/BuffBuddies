@@ -1,45 +1,42 @@
+use iced::widget::canvas::{event, Cache, Frame, Geometry, Path};
 use iced::widget::{canvas, container, text, Column, Row, Space};
-use iced::widget::canvas::{Cache, Frame, Geometry, Path, event};
-use iced::{Element, Rectangle, Renderer, Size, Theme};
-use iced::{Task, mouse};
+use iced::{mouse, Task};
+use iced::{Element, Rectangle, Renderer, Theme};
 use iced_anim::{Animated, Animation, Event, Motion};
-use iced_core::{Color, Point, color, Length};
+use iced_core::{Color, Length, Point};
 use std::time::Duration;
 
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, TEXT_COLOR};
-use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle, DEFAULT_CONTAINER_RADIUS};
-use crate::client::gui::bb_widget::canvas_utils::{create_arc_path, draw_text, generate_stroke};
+use crate::client::gui::bb_theme::color::TEXT_COLOR;
+use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle};
+use crate::client::gui::bb_theme::custom_button::ButtonStyle::{Active, InactiveTab};
+use crate::client::gui::bb_theme::custom_button::{create_text_button, DEFAULT_BUTTON_RADIUS};
+use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
+use crate::client::gui::bb_widget::canvas_utils::generate_stroke;
+use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
+use crate::client::gui::user_interface::Message::ProgressBar;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
+use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
-use crate::common::user_mod::user::UserInformation;
-use iced::advanced::text::{Renderer as TextRenderer, Text};
-use iced_core::alignment::{Horizontal, Vertical};
+use iced_core::alignment::Horizontal;
 use iced_core::border::Radius;
 use strum_macros::Display;
-use crate::client::gui::bb_tab::tab::Tab;
-use crate::client::gui::bb_theme::custom_button::{create_text_button, DEFAULT_BUTTON_RADIUS};
-use crate::client::gui::bb_theme::custom_button::ButtonStyle::{Active, InactiveSolid, InactiveTab};
-use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
-use crate::client::gui::bb_widget::chart::ChartTypes;
-use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::client::gui::user_interface::Message::{ChangeShownChartType, ProgressBar, Select};
-use crate::common::mascot_mod::mascot::Mascot;
 
+//LENGTH OF THE BAR ITSELF
 const PROGRESS_BAR_WIDTH: f32 = 700.0;
-const PROGRESS_BAR_WIDGET_HEIGHT: f32 = 83.0;
-const PADDING_Y: f32 = 15.0;
-const PADDING_X: f32 = 31.0;
-const ROUNDED_CORNERS_PADDING: f32 = 6.5;
+const ROUNDED_CORNERS_PADDING: f32 = 7.5;
+//THICKNESS IS ALSO THE HEIGHT OF THE WIDGET
 const BAR_THICKNESS: f32 = 15.0;
 const PADDING_BETWEEN_BARS: f32 = 40.0;
-const PROGRESS_BAR_FONT_SIZE_STATS: f32 = 26.0;
 const PROGRESS_BAR_TITLE_FONT_SIZE: f32 = 24.0;
 
+//---------Environment constants
+const BUTTON_WIDTH: f32 = 50.0;
+const BUTTON_HEIGHT: f32 = 25.8;
+
 //-------Variables used my multiple methods
-static Y_POSITION_BAR: f32 = PADDING_Y + PROGRESS_BAR_TITLE_FONT_SIZE + (PROGRESS_BAR_WIDGET_HEIGHT - PADDING_Y - PROGRESS_BAR_TITLE_FONT_SIZE) / 2.0;
 static PROGRESS_BAR_WIDGET_WIDTH: f32 = PROGRESS_BAR_WIDTH + ROUNDED_CORNERS_PADDING * 2.0;
 #[derive(Clone, Debug)]
 pub enum ProgressBarMessage {
@@ -96,19 +93,34 @@ impl ProgressBarMessage {
             }
 
             ProgressBarMessage::IncrementCurrentValue(progress_bar_type) => {
+                let progress_bars = &mut app.widget_manager.progress_bar_state_manager;
+
                 match progress_bar_type {
-                    ProgressBarType::Water => app.widget_manager.progress_bar_state_manager.water_progress_bar_state.increment(progress_bar_type),
-                    ProgressBarType::Steps => app.widget_manager.progress_bar_state_manager.steps_progress_bar_state.increment(progress_bar_type),
-                    ProgressBarType::Sleep => app.widget_manager.progress_bar_state_manager.sleep_progress_bar_state.increment(progress_bar_type)
+                    ProgressBarType::Water => progress_bars.water_progress_bar_state.increment(progress_bar_type),
+                    ProgressBarType::Steps => progress_bars.steps_progress_bar_state.increment(progress_bar_type),
+                    ProgressBarType::Sleep => progress_bars.sleep_progress_bar_state.increment(progress_bar_type)
                 };
                 Task::none()
             }
 
             ProgressBarMessage::DecrementCurrentValue(progress_bar_type) => {
+                let progress_bars = &mut app.widget_manager.progress_bar_state_manager;
                 match progress_bar_type {
-                    ProgressBarType::Water => app.widget_manager.progress_bar_state_manager.water_progress_bar_state.decrement(progress_bar_type),
-                    ProgressBarType::Steps => app.widget_manager.progress_bar_state_manager.steps_progress_bar_state.decrement(progress_bar_type),
-                    ProgressBarType::Sleep => app.widget_manager.progress_bar_state_manager.sleep_progress_bar_state.decrement(progress_bar_type)
+                    ProgressBarType::Water =>
+                        if progress_bars.water_progress_bar_state.current_value > 0.0 {
+                            progress_bars.water_progress_bar_state.decrement(progress_bar_type)
+
+                    },
+                    ProgressBarType::Steps =>
+                        if progress_bars.steps_progress_bar_state.current_value > 0.0 {
+                            progress_bars.steps_progress_bar_state.decrement(progress_bar_type)
+
+
+                    }
+                    ProgressBarType::Sleep =>
+                        if progress_bars.sleep_progress_bar_state.current_value > 0.0 {
+                            progress_bars.sleep_progress_bar_state.decrement(progress_bar_type)
+                    }
                 };
                 Task::none()
             }
@@ -119,7 +131,6 @@ impl ProgressBarMessage {
 pub struct ProgressBarWidget<'a> {
     progress_bar_state : &'a ProgressBarState,
     progress_bar_type: ProgressBarType
-
 }
 
 impl<'a> ProgressBarWidget<'a> {
@@ -133,7 +144,7 @@ impl<'a> ProgressBarWidget<'a> {
         let draw_percentage = &self.progress_bar_state.animation_progress;
 
         let canvas = canvas(self)
-            .width(PROGRESS_BAR_WIDTH)
+            .width(PROGRESS_BAR_WIDGET_WIDTH)
             .height(BAR_THICKNESS);
 
         Animation::new(draw_percentage, canvas)
@@ -154,7 +165,7 @@ impl ProgressBarState {
     pub(crate) fn increment(& mut self,progress_bar_type: ProgressBarType)  {
         let value_to_increment = match progress_bar_type {
             ProgressBarType::Water => 0.25,
-            ProgressBarType::Steps => 250.0,
+            ProgressBarType::Steps => 500.0,
             ProgressBarType::Sleep => 0.5
         };
 
@@ -164,7 +175,7 @@ impl ProgressBarState {
     pub(crate) fn decrement (& mut self,progress_bar_type: ProgressBarType)  {
         let value_to_increment = match progress_bar_type {
             ProgressBarType::Water =>  - 0.25,
-            ProgressBarType::Steps => - 250.0,
+            ProgressBarType::Steps => - 500.0,
             ProgressBarType::Sleep => - 0.5
         };
 
@@ -189,7 +200,7 @@ impl ProgressBarState {
             progress_bar: Cache::default(),
             animation_progress: Animated::new(0.0, animation_motion),
             current_value,
-            goal_value //TODO: Make sure it's not 0 to avoid division by 0
+            goal_value
         }
     }
 }
@@ -256,7 +267,7 @@ fn draw_bar_completion(frame: &mut Frame, progress_bar_widget: &ProgressBarWidge
 
     let end_point =
         Point{
-            x: Point::ORIGIN.x + calculate_length_completion_bar(progress_bar_widget.progress_bar_state),
+            x: Point::ORIGIN.x + ROUNDED_CORNERS_PADDING + calculate_length_completion_bar(progress_bar_widget.progress_bar_state),
             y: Point::ORIGIN.y + frame.center().y,
         };
 
@@ -267,13 +278,13 @@ fn draw_bar_remaining(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget
     if progress_bar_widget.progress_bar_state.current_value < progress_bar_widget.progress_bar_state.goal_value {
         let start_point =
             Point {
-                x: Point::ORIGIN.x + calculate_length_completion_bar(progress_bar_widget.progress_bar_state) + PADDING_BETWEEN_BARS / 2.0,
+                x: Point::ORIGIN.x + ROUNDED_CORNERS_PADDING + calculate_length_completion_bar(progress_bar_widget.progress_bar_state) + PADDING_BETWEEN_BARS / 2.0,
                 y: Point::ORIGIN.y +  frame.center().y,
             };
 
         let end_point =
             Point {
-                x: PROGRESS_BAR_WIDTH - ROUNDED_CORNERS_PADDING,
+                x: PROGRESS_BAR_WIDTH,
                 y: Point::ORIGIN.y +  frame.center().y,
             };
 
@@ -286,15 +297,26 @@ fn draw_bar_remaining(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget
 
 fn calculate_length_completion_bar(progress_bar_state: &ProgressBarState) -> f32 {
 
-    let total_possible_bar_length = PROGRESS_BAR_WIDTH;
-    let percentage = progress_bar_state.current_value / progress_bar_state.goal_value;
-    let padding_to_other_bar = match percentage {
-        1.0 => 0.0,
-        0.0 => 0.0,
-        _ => PADDING_BETWEEN_BARS / 2.0
+    let total_possible_bar_length = PROGRESS_BAR_WIDTH - ROUNDED_CORNERS_PADDING;
+    let percentage = match  progress_bar_state.current_value / progress_bar_state.goal_value {
+        1.0.. => 1.0,
+        _ => progress_bar_state.current_value / progress_bar_state.goal_value
     };
+    let padding_to_other_bar = match percentage {
+            1.0 => 0.0,
+            0.0 => 0.0,
+            _ => PADDING_BETWEEN_BARS / 2.0
+        };
 
-    total_possible_bar_length * percentage - padding_to_other_bar
+    //separate handling for the case in which the padding is too big and the bar goes backwards
+
+    let length = total_possible_bar_length * percentage - padding_to_other_bar;
+
+    match length {
+        ..0.0 => 0.0,
+        _ => length
+    }
+
 }
 
 pub fn create_progress_bar_environment<'a>(progress_bar_widget: ProgressBarWidget<'a>, mascot: &Mascot, counter: bool) -> Element<'a,Message> {
@@ -326,6 +348,8 @@ pub fn create_progress_bar_environment<'a>(progress_bar_widget: ProgressBarWidge
                 bottom_left: 0.0,
             }),
         )
+            .width(BUTTON_WIDTH)
+            .height(BUTTON_HEIGHT)
             .on_press(ProgressBar(ProgressBarMessage::IncrementCurrentValue(progress_bar_widget.progress_bar_type.clone())));
 
         let decrement_button = create_text_button(
@@ -339,9 +363,12 @@ pub fn create_progress_bar_environment<'a>(progress_bar_widget: ProgressBarWidge
                 bottom_left: DEFAULT_BUTTON_RADIUS,
             }),
         )
+            .width(BUTTON_WIDTH)
+            .height(BUTTON_HEIGHT)
             .on_press(ProgressBar(ProgressBarMessage::DecrementCurrentValue(progress_bar_widget.progress_bar_type.clone())));
 
-        header = header.push(decrement_button)
+        header = header.push(Space::with_width(Length::Fixed(INDENT)))
+                        .push(decrement_button)
                         .push(increment_button)
     }
 
