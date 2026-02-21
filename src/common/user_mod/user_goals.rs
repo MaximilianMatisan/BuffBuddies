@@ -3,6 +3,7 @@ use crate::common::exercise_mod::weight::Kg;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter};
 
+/// GoalsTypes of a user also see UserGoals
 #[derive(Debug, Clone, Display, EnumIter)]
 pub enum GoalType {
     #[strum(to_string = "Weekly workouts")]
@@ -14,6 +15,7 @@ pub enum GoalType {
     Sleep,
 }
 impl GoalType {
+    /// Formats the UserGoal data according to the fields unit
     pub fn get_formatted_user_goal_strings(&self, user_goals: &UserGoals) -> String {
         match self {
             GoalType::WeeklyWorkouts => user_goals.weekly_workouts.to_string(),
@@ -42,6 +44,7 @@ impl GoalType {
         }
     }
 }
+/// Goals of a User categorized in the GoalTypes
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserGoals {
     pub weekly_workouts: f32,
@@ -73,6 +76,7 @@ impl UserGoals {
             GoalType::Sleep => &mut self.sleep,
         }
     }
+    /// Update the UserGoals with small incremental/decremental steps 
     pub fn update_user_goals(&mut self, goal_type: &GoalType, increment: bool) {
         let value = self.get_goal_by_type_mut(goal_type);
         let step = goal_type.get_increment_decrement_step();
@@ -83,7 +87,8 @@ impl UserGoals {
     }
 }
 
-pub fn safe_increment_decrement_f32(
+/// Only increments/decrements the value as long as its within the bounds (including max min)
+fn safe_increment_decrement_f32(
     value: &mut f32,
     step: f32,
     min: f32,

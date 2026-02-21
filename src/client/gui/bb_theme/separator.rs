@@ -4,6 +4,8 @@ use iced::widget::container::Style;
 use iced::widget::{Container, Space, container};
 use iced_core::{Background, Length};
 
+/// Create a small visual divider in the corresponding mascot primary color. <br>
+/// width = Length::Fill
 pub fn separator_line<'a, Msg>(mascot: &'a Mascot, height: impl Into<Length>) -> Container<'a, Msg>
 where
     Msg: Clone + 'a,

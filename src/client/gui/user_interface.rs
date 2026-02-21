@@ -55,32 +55,52 @@ use std::sync::Arc;
 #[derive(Debug, Clone)]
 pub enum Message {
     Select(Tab),
-    Activity(ActivityMessage),
+
+    // MascotMessage (Combine)
     BuyMascot(MascotRarity),
     SaveMascot(Result<Mascot, ServerRequestError>),
     SelectMascot(Mascot),
+
+    // LoginMessage (Combine)
     TryRegister,
     TryLogin,
     RequestValidUser(Result<String, RequestValidUserError>),
     RequestLoginData(Result<Arc<LoginServerRequestData>, ServerRequestError>), //Arc necessary to receive non-cloneable Vec<Exercise>
     UsernameEntered(String),
     PasswordEntered(String),
+
+    // ChartMessage (Combine) maybe include in WidgetMessage?
     SelectExercise(String),
     Graph(GraphMessage),
     ChangeShownChartType(ChartTypes),
+
+    // WidgetMessage? (Combine)
+    Activity(ActivityMessage),
     Circle(CircleMessage),
     Bmi(BMIMessage),
     ProgressBar(ProgressBarMessage),
     HealthTab(HealthTabMessage),
+    ToggleGeneralExerciseInfo(u32),
+
+    // SocialMessage (Combine)
     AddUserAsFriend(String),
     RemoveUserAsFriend(String),
     ViewProfile(UserType),
+
+    // PopUpMessage?
     ResetPopUp,
+
+    // SettingsMessage (Can stay)
     Settings(SettingsMessage),
+
+    // Can stay?
     UpdateInfoOnServerResult(Result<(), ServerRequestError>, String),
-    ToggleGeneralExerciseInfo(u32),
+
+    // WorkoutMessage (Combine)
     WorkoutCreation(WorkoutCreationMessage),
     SaveWorkout(Result<(), SaveWorkoutError>),
+
+    // PresetMessage (Can stay)
     PresetCreation(PresetCreationMessage),
 }
 

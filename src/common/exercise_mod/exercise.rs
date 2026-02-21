@@ -12,14 +12,19 @@ pub type ExerciseDataPoints = Vec<(NaiveDate, Kg)>;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Exercise {
     pub general_exercise_info: GeneralExerciseInfo,
+    /// The completed sets of an exercise by the logged-in user are stored here.
+    /// They are located in a BTreemap, as its insert function allows us to guarantee that the nodes
+    /// of the tree are always sorted by primary key when iterating.  
     pub sets: BTreeMap<NaiveDate, Vec<StrengthSet>>,
 }
 
+/// Only show the exercise name when printing an exercise
 impl Display for Exercise {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.general_exercise_info.name)
     }
 }
+
 impl Exercise {
     pub fn new(general_exercise_info: GeneralExerciseInfo) -> Self {
         Self {
@@ -27,10 +32,12 @@ impl Exercise {
             sets: Default::default(),
         }
     }
+
     pub fn is_tracked(&self) -> bool {
         !self.sets.is_empty()
     }
 
+    /// This function calculates the maximum weight of a set for each tracked day. 
     pub fn calculate_max_weight_per_day(&self) -> ExerciseDataPoints {
         let mut results: ExerciseDataPoints = vec![];
         for (date, sets) in &self.sets {
@@ -53,6 +60,7 @@ impl Exercise {
         }
         total_lifted_weight
     }
+    /// Calculates the sum of all reps across all strength sets 
     pub fn all_time_reps(&self) -> Reps {
         let mut total_reps: Reps = 0;
         for sets_per_day in self.sets.values() {
@@ -62,6 +70,7 @@ impl Exercise {
         }
         total_reps
     }
+    /// Calculates the sum of all tracked sets
     pub fn all_time_sets(&self) -> u64 {
         let mut all_time_sets: u64 = 0;
         for sets_per_day in self.sets.values() {
@@ -69,6 +78,8 @@ impl Exercise {
         }
         all_time_sets
     }
+    /// Calculates the highest tracked weight of an exercise
+    /// Returns 0 if no StrengthSet is tracked
     pub fn weight_personal_record(&self) -> Kg {
         let mut pr = 0.0;
         for sets_per_day in self.sets.values() {
@@ -80,6 +91,8 @@ impl Exercise {
         }
         pr
     }
+    /// Calculates the max of reps * weight across all StrengthSets
+    /// Returns (<Date of today>, 0.0) if no StrengthSet is tracked
     pub fn set_with_most_total_lifted_weight(&self) -> (NaiveDate, Kg) {
         let mut heaviest_set: (NaiveDate, Kg) = (Local::now().date_naive(), 0.0);
         for (day, sets_per_day) in &self.sets {

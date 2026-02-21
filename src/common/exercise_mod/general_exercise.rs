@@ -8,8 +8,10 @@ pub struct GeneralExerciseInfo {
     pub id: Id,
     pub name: String,
     pub force: ExerciseForce,
+    /// Difficulty of the exercise
     pub level: ExerciseLevel,
     pub equipment: ExerciseEquipment,
+    /// Primarily targeted muscle
     pub primary_muscle: Muscle,
     pub instructions: String,
     pub category: ExerciseCategory,

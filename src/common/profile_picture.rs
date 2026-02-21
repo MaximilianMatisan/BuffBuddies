@@ -13,6 +13,8 @@ pub const MEDIUM_PROFILE_PICTURE_DIMENSION: f32 = 75.0;
 pub const LARGE_PROFILE_PICTURE_DIMENSION: f32 = 150.0;
 pub const PROFILE_PICTURE_FOLDER_PATH: &str = "assets/images/profile_pictures/";
 pub const PROFILE_PICTURE_FILE_TYPE_SUFFIX: &str = ".png";
+
+/// Types of preset profile pictures which the user can choose from
 #[derive(EnumIter, Display)]
 #[strum(serialize_all = "snake_case")]
 pub enum ProfilePictureTypes {
@@ -35,6 +37,8 @@ impl ProfilePictureTypes {
         image_path
     }
 }
+/// Scrollable row of iced images wrapped in buttons to select the users new profile picture
+/// Only used if the user has pending UserInfo changes
 pub fn profile_picture_selection_row<'a>(mascot: &Mascot) -> Element<'a, SettingsMessage> {
     let mut image_row = Row::new();
 

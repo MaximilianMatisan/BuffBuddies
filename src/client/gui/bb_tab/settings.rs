@@ -583,7 +583,7 @@ impl SettingsMessage {
 
                 app.widget_manager
                     .progress_bar_state_manager
-                    .update(&app.user_manager.user_info)
+                    .update_goals(&app.user_manager.user_info)
             }
             SettingsMessage::DiscardPendingUserInfoChanges => {
                 app.user_manager.pending_user_info_changes = None;
