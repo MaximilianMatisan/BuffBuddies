@@ -36,7 +36,7 @@ pub fn decode_jwt(token: &str) -> Option<String> {
 
     let token_data = decode::<Claims>(
         &token,
-        &DecodingKey::from_secret("123".as_ref()),
+        &DecodingKey::from_secret("123".as_ref()), //TODO HIDE
         &validation,
     )
     .ok()?;

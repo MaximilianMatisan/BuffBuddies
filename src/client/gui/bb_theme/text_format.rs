@@ -8,6 +8,7 @@ use iced_core::font::Weight::ExtraBold;
 use iced_core::widget::Text;
 use iced_core::{Font, Theme};
 
+/// default font
 pub const FIRA_SANS_EXTRABOLD: Font = Font {
     family: Name("Fira Sans"),
     weight: ExtraBold,
@@ -15,17 +16,22 @@ pub const FIRA_SANS_EXTRABOLD: Font = Font {
     style: Style::Normal,
 };
 
-// pub const ARIAL_ROUNDED_B: Font = Font::with_name("Arial Rounded MT Bold");
-
+/// create default styling for text displayed in buttons
 pub fn format_button_text(msg: Text<Theme, Renderer>) -> Text<Theme, Renderer> {
     msg.font(FIRA_SANS_EXTRABOLD)
         .color(color::TEXT_COLOR)
         .center()
 }
+/// create default styling for description text
 pub fn format_description_text(msg: Text<Theme, Renderer>) -> Text<'_, Theme, Renderer> {
     msg.font(FIRA_SANS_EXTRABOLD)
         .color(color::DESCRIPTION_TEXT_COLOR)
 }
+
+// ------------------
+// STRING FORMATTING
+// ------------------
+
 pub fn kg_to_string(kg: Kg) -> String {
     format!("{} kg", kg)
 }

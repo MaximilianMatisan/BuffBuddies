@@ -8,12 +8,12 @@ use crate::client::backend::widget_state::widget_state_manager::WidgetManager;
 use crate::client::backend::workout_preset_manager::WorkoutPresetManager;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::server_communication::request_data::LoginServerRequestData;
-use crate::common::mascot_mod::mascot::Mascot;
 
 pub struct App {
     /// Every connection to the server after the login has to contain this jwt in its json header
     /// to qualify as a valid request. E.g. see user_communicator::get_user_information_from_server
     pub jsonwebtoken: Option<String>,
+    /// Contains the currently viewed tab in logged-in view
     pub screen: Tab,
     pub widget_manager: WidgetManager,
     pub login_state: LoginState,
@@ -28,7 +28,6 @@ pub struct App {
 impl Default for App {
     fn default() -> Self {
         let exercise_manager = ExerciseManager::default();
-        let _default_mascot = Mascot::default();
         let user_manager = UserManager::new(&exercise_manager.exercises);
         App {
             jsonwebtoken: None,
@@ -46,10 +45,14 @@ impl Default for App {
 }
 impl App {
     pub fn update_app_on_login(&mut self, data: LoginServerRequestData) {
+        // Update user info
         self.user_manager.user_info = data.user_information;
+        // Update foreign users
         self.user_manager.loaded_users = data.foreign_users;
+        // Update mascot manager
         self.mascot_manager
             .update_mascot_manager_on_login(data.mascot_data);
+        // Update exercise manager
         self.exercise_manager.update_exercise_manager_on_login(
             data.exercises,
             self.user_manager
@@ -59,6 +62,7 @@ impl App {
                 .0
                 .clone(),
         );
+        // Update activity_widget state
         self.widget_manager.activity_widget.update_data(
             self.mascot_manager.selected_mascot,
             self.user_manager
@@ -67,5 +71,9 @@ impl App {
                 .activity_data
                 .clone(),
         );
+        //Update widget manager goals
+        self.widget_manager
+            .progress_bar_state_manager
+            .update_goals(&self.user_manager.user_info)
     }
 }

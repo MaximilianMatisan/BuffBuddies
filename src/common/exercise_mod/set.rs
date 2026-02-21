@@ -2,6 +2,7 @@ use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 use serde::{Deserialize, Serialize};
 
 pub type Reps = u32;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StrengthSet {
     pub weight: Kg,

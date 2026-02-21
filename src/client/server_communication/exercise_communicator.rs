@@ -1,10 +1,13 @@
 use crate::common::exercise_mod::exercise::Exercise;
 
+//TODO move into server_communicator.rs
 #[derive(Debug, Clone)]
 pub enum ServerRequestError {
+    /// Jsonwebtoken is missing or not correct
     NoJWTValidation,
     CouldNotRetrieveData,
     CouldNotSendData,
+    /// HTTP request Error mostly used when error code is sent back
     HTTPError,
 }
 impl ServerRequestError {
@@ -22,6 +25,7 @@ impl ServerRequestError {
         slice.to_string()
     }
 }
+
 pub async fn get_exercise_data_from_server(
     jwt: String,
 ) -> Result<Vec<Exercise>, ServerRequestError> {

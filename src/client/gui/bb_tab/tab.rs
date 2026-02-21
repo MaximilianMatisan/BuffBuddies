@@ -17,6 +17,7 @@ pub enum Tab {
 }
 
 impl Tab {
+    /// Shown tab categories on the left hand side of the logged-in view
     pub fn get_tab_button_categories() -> [Tab; 7] {
         [
             Tab::Home,

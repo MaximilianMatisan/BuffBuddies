@@ -9,6 +9,7 @@ use iced::widget::text_input::Status;
 use iced::widget::{combo_box, text_input};
 use iced_core::{Background, Border, Color, Theme};
 
+/// Styling of the iced text input widget (also used by combo_box)
 pub fn create_text_input_style(
     mascot: &Mascot,
     background_color: Color,
@@ -27,6 +28,8 @@ pub fn create_text_input_style(
     }
 }
 
+
+/// Styling of the iced combo_box widget's drop down menu
 pub fn create_menu_style(mascot: &Mascot) -> impl Fn(&Theme) -> menu::Style {
     |_theme: &Theme| menu::Style {
         background: Background::Color(color::LIGHTER_CONTAINER_COLOR),

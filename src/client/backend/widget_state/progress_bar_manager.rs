@@ -36,7 +36,7 @@ impl ProgressBarStateManager {
         }
     }
 
-    pub(crate) fn update(&mut self, user_information: &UserInformation) {
+    pub(crate) fn update_goals(&mut self, user_information: &UserInformation) {
         self.water_progress_bar_state.goal_value = user_information.user_goals.water;
         self.steps_progress_bar_state.goal_value = user_information.user_goals.steps;
         self.sleep_progress_bar_state.goal_value = user_information.user_goals.sleep;

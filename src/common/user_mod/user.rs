@@ -16,9 +16,12 @@ pub enum Gender {
     Male,
     Female,
 }
+
 #[derive(Debug, Clone)]
 pub enum UserType {
+    /// The currently logged-in user
     Own,
+    /// Another non-logged-in user
     Other(String),
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -53,6 +56,7 @@ impl UserInformation {
         }
     }
 }
+/// Necessary information about non-logged-in users for the logged-in user
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ForeignUser {
     pub user_information: UserInformation,

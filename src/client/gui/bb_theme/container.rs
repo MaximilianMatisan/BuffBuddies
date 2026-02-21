@@ -6,12 +6,14 @@ use iced_core::{Border, Color, Theme};
 
 pub const DEFAULT_CONTAINER_RADIUS: f32 = 15.0;
 pub const DEFAULT_TEXT_CONTAINER_PADDING: [f32; 2] = [3.0, INDENT];
+
 pub enum ContainerStyle {
     Highlighted,
     Default,
     Light,
     Background,
 }
+
 impl ContainerStyle {
     fn get_color(&self) -> Color {
         match self {
