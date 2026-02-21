@@ -337,13 +337,13 @@ fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<
             //LEFT
             Point {
                 x: Point::ORIGIN.x
-                    + (frame.width() - GRAPH_PADDING * 2.0) * (1.0 - animation_progress)
+                    + (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0) * (1.0 - animation_progress)
                     + GRAPH_PADDING,
                 y: frame.height() - GRAPH_PADDING,
             },
             //RIGHT
             Point {
-                x: frame.width() - GRAPH_PADDING,
+                x: CHART_WIDGET_WIDTH - GRAPH_PADDING,
                 y: frame.height() - GRAPH_PADDING,
             },
         ),
@@ -369,7 +369,7 @@ fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<
     //ARROW - X
 
     let x_tip = Point {
-        x: frame.width() - GRAPH_PADDING,
+        x: CHART_WIDGET_WIDTH - GRAPH_PADDING,
         y: frame.height() - GRAPH_PADDING,
     };
     let x_up = Point {
@@ -944,11 +944,11 @@ impl canvas::Program<Message> for GraphWidget<'_> {
                 //DRAW BACKGROUND
                 let background = Path::rectangle(
                     Point {
-                        x: Point::ORIGIN.x + frame.width() - GRAPH_PADDING, //setting top right, so that the animation goes along the x-axis animation
+                        x: Point::ORIGIN.x + CHART_WIDGET_WIDTH - GRAPH_PADDING, //setting top right, so that the animation goes along the x-axis animation
                         y: Point::ORIGIN.y + GRAPH_PADDING,
                     },
                     Size {
-                        width: -((frame.width() - GRAPH_PADDING * 2.0)
+                        width: -((CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0)
                             * self.graph_state.animation_progress.value()), //negative width, so that the animation goes along the x-axis animation
                         height: frame.height() - GRAPH_PADDING * 2.0,
                     },
