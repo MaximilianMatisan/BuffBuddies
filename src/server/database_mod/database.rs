@@ -9,7 +9,7 @@ use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::user_mod::user::{ForeignUser, Gender, UserInformation};
-use crate::common::user_mod::user_goals::UserGoals;
+use crate::common::user_mod::user_goals::{GoalType, UserGoals};
 use crate::server::routes::workout::ExerciseJson;
 use chrono::NaiveDate;
 use sqlx::Row;
@@ -193,16 +193,18 @@ pub async fn add_user(
 
     add_mascot_to_user(pool, username, "Duck").await?;
 
+    let default_goals = UserGoals::default();
+
     sqlx::query(
         "INSERT INTO user_goals(username, weekly_workouts, weight, water, steps, sleep)
         VALUES(?, ?, ?, ?, ?, ?)",
     )
     .bind(username)
-    .bind(4.0)
-    .bind(60.0)
-    .bind(2000.0)
-    .bind(10000.0)
-    .bind(9.0)
+    .bind(default_goals.weekly_workouts)
+    .bind(default_goals.weight)
+    .bind(default_goals.water)
+    .bind(default_goals.steps)
+    .bind(default_goals.sleep)
     .execute(pool)
     .await?;
 
