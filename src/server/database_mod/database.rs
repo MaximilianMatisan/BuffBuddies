@@ -9,7 +9,7 @@ use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::user_mod::user::{ForeignUser, Gender, UserInformation};
-use crate::common::user_mod::user_goals::{GoalType, UserGoals};
+use crate::common::user_mod::user_goals::UserGoals;
 use crate::server::routes::workout::ExerciseJson;
 use chrono::NaiveDate;
 use sqlx::Row;
