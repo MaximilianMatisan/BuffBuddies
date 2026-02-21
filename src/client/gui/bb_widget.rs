@@ -1,4 +1,5 @@
 pub mod activity_widget;
+pub mod bar_chart;
 pub mod bmi_calculator;
 mod canvas_utils;
 pub mod chart;
@@ -7,7 +8,6 @@ pub mod general_exercise_info_elements;
 pub mod graph;
 pub mod new_widget;
 pub mod pop_up;
-pub mod progress;
 pub mod progress_bar;
 pub mod shop;
 pub mod social_elements;

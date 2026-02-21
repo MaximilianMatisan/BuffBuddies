@@ -26,7 +26,7 @@ const BASE_SPACING_BETWEEN_COLUMNS: f32 = 150.0;
 const FREQUENCY_OF_X_AXIS_LABELS: usize = 6;
 const FREQUENCY_OF_Y_AXIS_LABELS: u32 = 10;
 
-pub struct ProgressWidget<'a, Renderer>
+pub struct BarChart<'a, Renderer>
 where
     Renderer: text::Renderer,
 {
@@ -36,12 +36,12 @@ where
     exercise_manager: &'a ExerciseManager,
     font: <Renderer>::Font,
 }
-impl<'a, Renderer> ProgressWidget<'a, Renderer>
+impl<'a, Renderer> BarChart<'a, Renderer>
 where
     Renderer: text::Renderer<Font = iced::Font>,
 {
     pub fn new(active_mascot: Mascot, exercise_manager: &'a ExerciseManager) -> Self {
-        ProgressWidget {
+        BarChart {
             width: CHART_WIDGET_WIDTH,
             height: CHART_WIDGET_HEIGHT,
             active_mascot,
@@ -56,7 +56,7 @@ where
         self.width
     }
 }
-impl<Message, Renderer> Widget<Message, Theme, Renderer> for ProgressWidget<'_, Renderer>
+impl<Message, Renderer> Widget<Message, Theme, Renderer> for BarChart<'_, Renderer>
 where
     Renderer: renderer::Renderer + text::Renderer,
     Message: Clone,
@@ -334,13 +334,13 @@ where
         }
     }
 }
-impl<'a, Message: 'a, Renderer> From<ProgressWidget<'a, Renderer>>
+impl<'a, Message: 'a, Renderer> From<BarChart<'a, Renderer>>
     for Element<'a, Message, Theme, Renderer>
 where
     Message: Clone,
     Renderer: 'a + renderer::Renderer + text::Renderer,
 {
-    fn from(value: ProgressWidget<'a, Renderer>) -> Self {
+    fn from(value: BarChart<'a, Renderer>) -> Self {
         Self::new(value)
     }
 }

@@ -7,8 +7,8 @@ use crate::client::gui::bb_theme::custom_button::{
 };
 use crate::client::gui::bb_theme::text_format;
 use crate::client::gui::bb_theme::text_format::format_button_text;
+use crate::client::gui::bb_widget::bar_chart::BarChart;
 use crate::client::gui::bb_widget::graph::{GraphWidget, view_graph_widget_settings};
-use crate::client::gui::bb_widget::progress::ProgressWidget;
 use crate::client::gui::bb_widget::stats::exercise_stat_column;
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;
@@ -26,13 +26,13 @@ pub const CHART_WIDGET_HEIGHT: f32 = 500.0;
 pub enum ChartTypes {
     #[default]
     Graph,
-    Progress,
+    Bar,
 }
 
 impl ChartTypes {
     pub fn get_graph_design_name(&self) -> &str {
         match self {
-            ChartTypes::Progress => "Bar",
+            ChartTypes::Bar => "Bar",
             ChartTypes::Graph => "Line",
         }
     }
@@ -60,13 +60,12 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
     .into();
 
     let chart: Element<'a, Message> = match app.widget_manager.graph_widget_state.shown_chart_type {
-        ChartTypes::Progress => {
-            let progress: Element<Message> =
-                ProgressWidget::new(app.mascot_manager.selected_mascot, &app.exercise_manager)
-                    .into();
+        ChartTypes::Bar => {
+            let bar_chart: Element<Message> =
+                BarChart::new(app.mascot_manager.selected_mascot, &app.exercise_manager).into();
             let column = Column::new()
                 .push(Space::with_height(INDENT))
-                .push(progress);
+                .push(bar_chart);
 
             column.into()
         }
@@ -124,7 +123,7 @@ fn chart_type_buttons(app: &App) -> Row<Message> {
     let (line_button_style, bar_button_style) =
         match app.widget_manager.graph_widget_state.shown_chart_type {
             ChartTypes::Graph => (ButtonStyle::Active, ButtonStyle::InactiveTab),
-            ChartTypes::Progress => (ButtonStyle::InactiveTab, ButtonStyle::Active),
+            ChartTypes::Bar => (ButtonStyle::InactiveTab, ButtonStyle::Active),
         };
 
     let line_button = create_text_button(
@@ -137,11 +136,11 @@ fn chart_type_buttons(app: &App) -> Row<Message> {
 
     let bar_button = create_text_button(
         &app.mascot_manager.selected_mascot,
-        ChartTypes::Progress.get_graph_design_name().to_string(),
+        ChartTypes::Bar.get_graph_design_name().to_string(),
         bar_button_style,
         Some(BUTTON_RADIUS_LEFT_ZERO),
     )
-    .on_press(ChangeShownChartType(ChartTypes::Progress));
+    .on_press(ChangeShownChartType(ChartTypes::Bar));
 
     Row::new().push(line_button).push(bar_button)
 }
