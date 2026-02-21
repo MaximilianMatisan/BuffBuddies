@@ -56,7 +56,7 @@ impl Default for UserGoals {
         UserGoals {
             weekly_workouts: 4.0,
             weight: 60.0,
-            water: 2000.0,
+            water: 3.0,
             steps: 10000.0,
             sleep: 9.0,
         }
