@@ -76,7 +76,7 @@ impl UserGoals {
             GoalType::Sleep => &mut self.sleep,
         }
     }
-    /// Update the UserGoals with small incremental/decremental steps 
+    /// Update the UserGoals with small incremental/decremental steps
     pub fn update_user_goals(&mut self, goal_type: &GoalType, increment: bool) {
         let value = self.get_goal_by_type_mut(goal_type);
         let step = goal_type.get_increment_decrement_step();
@@ -88,13 +88,7 @@ impl UserGoals {
 }
 
 /// Only increments/decrements the value as long as its within the bounds (including max min)
-fn safe_increment_decrement_f32(
-    value: &mut f32,
-    step: f32,
-    min: f32,
-    max: f32,
-    increment: bool,
-) {
+fn safe_increment_decrement_f32(value: &mut f32, step: f32, min: f32, max: f32, increment: bool) {
     if increment {
         *value = (*value + step).min(max);
     } else {

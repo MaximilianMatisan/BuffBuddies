@@ -1,8 +1,7 @@
 use crate::client::backend::exercise_manager::ExerciseManager;
+use crate::client::backend::profile_stat_manager::calculate_activity_data;
 use crate::client::backend::widget_state::progress_bar_manager::ProgressBarStateManager;
-use crate::client::gui::bb_widget::activity_widget::activity::{
-    ActivityWidget, calculate_activity_data,
-};
+use crate::client::gui::bb_widget::activity_widget::activity::ActivityWidget;
 use crate::client::gui::bb_widget::bmi_calculator::BMIWidgetState;
 use crate::client::gui::bb_widget::circle_widget::CircleWidgetState;
 use crate::client::gui::bb_widget::graph::GraphWidgetState;

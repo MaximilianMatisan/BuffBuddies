@@ -37,7 +37,7 @@ impl Exercise {
         !self.sets.is_empty()
     }
 
-    /// This function calculates the maximum weight of a set for each tracked day. 
+    /// This function calculates the maximum weight of a set for each tracked day.
     pub fn calculate_max_weight_per_day(&self) -> ExerciseDataPoints {
         let mut results: ExerciseDataPoints = vec![];
         for (date, sets) in &self.sets {
@@ -60,7 +60,7 @@ impl Exercise {
         }
         total_lifted_weight
     }
-    /// Calculates the sum of all reps across all strength sets 
+    /// Calculates the sum of all reps across all strength sets
     pub fn all_time_reps(&self) -> Reps {
         let mut total_reps: Reps = 0;
         for sets_per_day in self.sets.values() {
