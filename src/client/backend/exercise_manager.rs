@@ -23,6 +23,7 @@ pub enum CreateWorkoutError {
 }
 
 pub struct ExerciseManager {
+    /// Every exercise data, including general info and tracked StrengthSets
     pub exercises: Vec<Exercise>,
 
     ///Show further general infos for these exercise_ids in the gui
@@ -33,7 +34,7 @@ pub struct ExerciseManager {
     /// Selection options for a combo_box. Containing all exercises
     pub all_exercise_state: combo_box::State<String>,
 
-    /// Not necessarily a valid exercise_mod name
+    /// Not necessarily a valid exercise name
     pub selected_exercise_name: String,
     //STATS OF SELECTED EXERCISE
     ///representing the heaviest weight used in a set per tracked day
@@ -140,6 +141,9 @@ impl ExerciseManager {
 
         self.update_selected_exercise(selected_exercise)
     }
+    /// Returns a reference to an Exercise, if the name inside of
+    /// ExerciseManager.selected_exercise_name exists
+    /// If the exercise name doesn't exist it returns None
     pub fn get_selected_exercise(&self) -> Option<&Exercise> {
         self.exercises.iter().find(|ex| {
             ex.general_exercise_info
@@ -147,6 +151,7 @@ impl ExerciseManager {
                 .eq_ignore_ascii_case(&self.selected_exercise_name)
         })
     }
+    /// Updates the selected_exercise and stats according to the new_exercise_name
     pub fn update_selected_exercise(&mut self, new_exercise_name: String) {
         self.selected_exercise_name = new_exercise_name;
         let option_selected_exercise = self.get_selected_exercise();

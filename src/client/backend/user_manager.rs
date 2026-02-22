@@ -17,6 +17,7 @@ pub struct UserManager {
     /// Contains information if the user is currently inside of edit mode of the user_info in the settings
     pub pending_user_info_changes: Option<(UserInformation, UserInformationStrings)>,
 
+    /// Info about all loaded non-logged-in users
     pub loaded_users: Vec<ForeignUser>,
     pub most_recently_viewed_user: UserType,
 

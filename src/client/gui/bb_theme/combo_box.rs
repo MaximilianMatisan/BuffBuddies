@@ -28,7 +28,6 @@ pub fn create_text_input_style(
     }
 }
 
-
 /// Styling of the iced combo_box widget's drop down menu
 pub fn create_menu_style(mascot: &Mascot) -> impl Fn(&Theme) -> menu::Style {
     |_theme: &Theme| menu::Style {
