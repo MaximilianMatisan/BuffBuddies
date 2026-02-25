@@ -1,10 +1,14 @@
 use crate::client::gui::bb_tab::workout_creation::WorkoutCreationMessage;
+use crate::client::gui::bb_theme::scrollable::SCROLLBAR_PADDING;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::client::gui::{bb_theme, bb_widget};
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::workout_preset::WorkoutPreset;
-use iced::{Element, event};
 use iced::widget::Row;
+use iced::{Element, event};
+use iced_core::image::Handle;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::Style;
@@ -13,10 +17,6 @@ use iced_core::{
     Clipboard, Event, Image, Layout, Length, Point, Rectangle, Shell, Size, Theme, Widget,
     alignment, image, mouse, text,
 };
-use iced_core::image::Handle;
-use crate::client::gui::bb_theme::scrollable::SCROLLBAR_PADDING;
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
 
 const SCALE: f32 = 1.0;
 pub const DEFAULT_WORKOUT_WIDGET_WIDTH: f32 = 208.0 * SCALE;
@@ -117,21 +117,15 @@ where
         self
     }
 
-    pub fn create_preset_row <'a> (mascot: &Mascot)  -> Row<'a,Message> {
-
+    pub fn create_preset_row<'a>(mascot: &Mascot) -> Row<'a, Message> {
         let mut workout_presets = Row::new()
             .height(DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT + SCROLLBAR_PADDING)
             .spacing(10);
 
         let base_path = "assets/images/";
 
-        let images_endings = [
-            "_bench.png",
-            "_pullup.png",
-            "_squats.png",
-            "_running.png",
-        ];
-        
+        let images_endings = ["_bench.png", "_pullup.png", "_squats.png", "_running.png"];
+
         let lowered_mascot_name = mascot.get_name().to_lowercase();
 
         for image in images_endings {
@@ -142,9 +136,8 @@ where
                     .set_image(Some(Image::new(Handle::from_path(path)))),
             );
         }
-        
-        workout_presets
 
+        workout_presets
     }
 }
 impl<Renderer> Widget<Message, Theme, Renderer> for WorkoutWidget<Renderer>
