@@ -14,6 +14,7 @@ use iced::widget::{container, image, text, Column, Row, Scrollable, Space};
 use iced::{Element, Renderer};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
+use crate::client::gui::size::FRAME_WIDTH;
 
 impl App {
     pub fn homescreen(&self) -> Element<Message> {
@@ -90,9 +91,13 @@ impl App {
             });
 
         Scrollable::new(home_screen_content)
-            .direction(Direction::Vertical(
-                Scrollbar::new().scroller_width(7).margin(4)))
+            .width(FRAME_WIDTH)
             .style(|theme,status|main_style(status, self.mascot_manager.selected_mascot))
+            .direction(Direction::Vertical(
+                Scrollbar::new()
+                    .scroller_width(7).margin(6)))
+
+
             .into()
     }
 }
