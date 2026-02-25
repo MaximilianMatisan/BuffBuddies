@@ -1,174 +1,140 @@
-use iced::widget::scrollable;
-use iced::widget::scrollable::{Rail, Scroller, Status, Style};
-use iced_core::{Border, Color};
+use std::cmp::PartialEq;
+use iced::{Element, Renderer};
+use iced::widget::{scrollable, Scrollable};
+use iced::widget::scrollable::{Direction, Rail, Scrollbar, Scroller, Status, Style};
+use iced_core::{Border, Color, Theme};
 use crate::client::gui::bb_theme::color::HIGHLIGHTED_CONTAINER_COLOR;
+use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 
-pub fn mascot_style(status: Status, mascot: Mascot) ->  Style {
+pub const SCROLLBAR_PADDING: f32 = 15.0;
+pub const TAB_SCROLLABLE_PADDING: f32 = 6.0;
+pub const TAB_SCROLLABLE_WIDTH: f32 = 7.0;
+pub const WIDGET_SCROLLABLE_WIDTH: f32 = 6.0;
 
-    let mut scrollable_style = iced::widget::scrollable::Style {
-        container: Default::default(),
-        vertical_rail: Rail { background:None, border: Default::default(), scroller: Scroller { color: Color::TRANSPARENT, border: Default::default() }},
-        horizontal_rail: Rail { background:None, border: Default::default(), scroller: Scroller { color: Color::TRANSPARENT, border: Default::default() }},
-        gap: None,
-    };
+#[derive(Clone)]
+pub enum ScrollableStyle{
+    Transparent,
+    Mascot,
+    Default
+}
+pub fn create_scrollable<'a>(element: impl Into<Element<'a, Message, Theme, Renderer>>,mascot: Mascot, scrollable_style: ScrollableStyle) -> Scrollable<'a, Message> {
 
-    let mut hovered_color = mascot.get_primary_color();
-    hovered_color.a = 0.4;
-    let mut dragged_color = mascot.get_secondary_color();
-    dragged_color.a = 0.7;
+    Scrollable::new(element)
+        .style(move |theme: &_, status: iced::widget::scrollable::Status| {
+            create_style(status,mascot,scrollable_style.clone())
+    })
+}
 
-    match status {
+pub trait ScrollableExtension {
+    fn add_horizontal_scrollbar(self, width: f32, padding: f32) -> Self;
+    fn add_vertical_scrollbar(self, width: f32, padding: f32) -> Self;
+}
 
-        scrollable::Status::Active => {
-            scrollable_style
-        }
-        scrollable::Status::Hovered{ .. } => {
-            scrollable_style.horizontal_rail = Rail {
-                background: None,
-                border: Default::default(),
-                scroller: Scroller {
-                    color: hovered_color,
-                    border: Border {
-                        color: Color::TRANSPARENT,
-                        width: 0.5,
-                        radius: 6.into()
-                    },
-                }
-            };
+impl <'a> ScrollableExtension for Scrollable<'a,Message> {
+     fn add_horizontal_scrollbar(self, width: f32, padding: f32) -> Scrollable<'a, Message> {
 
-            scrollable_style.vertical_rail = Rail {
-                background: None,
-                border: Default::default(),
-                scroller: Scroller {
-                    color: hovered_color,
-                    border: Border {
-                        color:Color::TRANSPARENT,
-                        width: 0.5,
-                        radius: 6.into()
-                    },
-                }
-            };
-            scrollable_style
-        }
-        scrollable::Status::Dragged{ .. } => {
-            scrollable_style.horizontal_rail = Rail {
-                background: None,
-                border: Default::default(),
-                scroller: Scroller {
-                    color:dragged_color,
-                    border: Border {
-                        color: Color::TRANSPARENT,
-                        width: 0.1,
-                        radius: 6.into()
-                    },
-                }
-            };
-            scrollable_style.vertical_rail = Rail {
-                background: None,
-                border: Default::default(),
-                scroller: Scroller {
-                    color: dragged_color,
-                    border: Border {
-                        color: Color::TRANSPARENT,
-                        width: 0.1,
-                        radius: 6.into()
-                    },
-                }
-            };
+        self.direction(Direction::Horizontal(Scrollbar::new().scroller_width(width).margin(padding)))
+    }
 
-            scrollable_style
-        }
+     fn add_vertical_scrollbar(self, width: f32, padding: f32) -> Scrollable<'a,Message> {
+
+        self.direction(Direction::Vertical(Scrollbar::new().scroller_width(width).margin(padding)))
     }
 }
 
-pub fn transparent_style() ->  Style {
+//STYLES
+
+fn transparent_style() ->  Style {
     let scrollable_style = iced::widget::scrollable::Style {
         container: Default::default(),
         vertical_rail: Rail { background:None, border: Default::default(), scroller: Scroller { color: Color::TRANSPARENT, border: Default::default() }},
         horizontal_rail: Rail { background:None, border: Default::default(), scroller: Scroller { color: Color::TRANSPARENT, border: Default::default() }},
         gap: None,
     };
-    
+
     scrollable_style
 
 }
 
-pub fn main_style (status: Status, mascot: Mascot) ->  Style {
+impl PartialEq<Color> for ScrollableStyle {
+    fn eq(&self, other: &Color) -> bool {
+        todo!()
+    }
+}
 
-    let mut scrollable_style = iced::widget::scrollable::Style {
-        container: Default::default(),
-        vertical_rail: Rail { background:None, border: Default::default(), scroller: Scroller { color: Color::TRANSPARENT, border: Default::default() }},
-        horizontal_rail: Rail { background:None, border: Default::default(), scroller: Scroller { color: Color::TRANSPARENT, border: Default::default() }},
-        gap: None,
+fn create_style(status: Status, mascot: Mascot, scrollable_style: ScrollableStyle) -> Style {
+    let mut result_scrollable_style = transparent_style();
+
+    let mut hovered_color: Color;
+    let mut dragged_color: Color;
+
+    match scrollable_style {
+
+        ScrollableStyle::Mascot => {
+
+            hovered_color = mascot.get_primary_color();
+            hovered_color.a = 0.4;
+
+            dragged_color = mascot.get_secondary_color();
+            dragged_color.a = 0.7;
+        }
+
+        ScrollableStyle::Default => {
+            hovered_color = HIGHLIGHTED_CONTAINER_COLOR;
+            hovered_color.a = 0.4;
+
+            dragged_color = hovered_color; //SAME COLOR BUT HIGHER ALPHA VALUE
+            dragged_color.a = 0.7;
+        },
+        ScrollableStyle::Transparent => {
+            hovered_color = Color::TRANSPARENT;
+            dragged_color = Color::TRANSPARENT
+
+        }
+    }
+
+    let hovered_rail = Rail {
+        background: None,
+        border: Default::default(),
+        scroller: Scroller {
+            color: hovered_color,
+            border: Border {
+                color:Color::TRANSPARENT,
+                width: 0.5,
+                radius: 6.into()
+            }
+        }
     };
-
-    let mut hovered_color = HIGHLIGHTED_CONTAINER_COLOR;//color!(180,180,180);
-    hovered_color.a = 0.4;
-    let mut dragged_color = hovered_color;
-    dragged_color.a = 0.7;
+    let dragged_rail = Rail {
+        scroller: Scroller {
+            color: dragged_color,
+            border: Border {
+                color: Color::TRANSPARENT,
+                width: 0.1,
+                radius: 6.0.into()
+            }
+        },..hovered_rail
+    };
 
     match status {
 
-        scrollable::Status::Active => {
-            scrollable_style
-        }
+        scrollable::Status::Active => {}
+
         scrollable::Status::Hovered{ .. } => {
-            scrollable_style.horizontal_rail = Rail {
-                background: None,
-                border: Default::default(),
-                scroller: Scroller {
-                    color: mascot.get_primary_color(),
-                    border: Border {
-                        color: mascot.get_primary_color(),
-                        width: 0.5,
-                        radius: 6.into()
-                    },
-                }
-            };
 
-            scrollable_style.vertical_rail = Rail {
-                background: None,
-                border: Default::default(),
-                scroller: Scroller {
-                    color: hovered_color,
-                    border: Border {
-                        color:Color::TRANSPARENT,
-                        width: 0.5,
-                        radius: 6.into()
-                    },
-                }
-            };
-            scrollable_style
+            result_scrollable_style.horizontal_rail =  hovered_rail;
+            result_scrollable_style.vertical_rail = hovered_rail
         }
+
         scrollable::Status::Dragged{ .. } => {
-            scrollable_style.horizontal_rail = Rail {
-                background: None,
-                border: Default::default(),
-                scroller: Scroller {
-                    color: mascot.get_secondary_color(),
-                    border: Border {
-                        color: mascot.get_secondary_color(),
-                        width: 0.1,
-                        radius: 6.into()
-                    },
-                }
-            };
-            scrollable_style.vertical_rail = Rail {
-                background: None,
-                border: Default::default(),
-                scroller: Scroller {
-                    color: dragged_color,
-                    border: Border {
-                        color: Color::TRANSPARENT,
-                        width: 0.1,
-                        radius: 6.into()
-                    },
-                }
-            };
-
-            scrollable_style
+            result_scrollable_style.horizontal_rail = dragged_rail;
+            result_scrollable_style.vertical_rail = dragged_rail
         }
-    }
+    };
+
+    result_scrollable_style
+
+
 }

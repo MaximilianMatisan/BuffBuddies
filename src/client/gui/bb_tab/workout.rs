@@ -1,27 +1,26 @@
-use std::time::Duration;
 use crate::client::gui::app::App;
+use crate::client::gui::bb_tab::tab::Tab;
+use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::color::{BACKGROUND_COLOR, CONTAINER_COLOR, TEXT_COLOR};
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
-use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text};
+use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle};
+use crate::client::gui::bb_theme::custom_button::create_button_style;
+use crate::client::gui::bb_theme::scrollable::{create_scrollable, ScrollableExtension, ScrollableStyle, SCROLLBAR_PADDING};
+use crate::client::gui::bb_theme::text_format::{format_description_text, FIRA_SANS_EXTRABOLD};
 use crate::client::gui::bb_widget::general_exercise_info_elements::display_general_exercise_infos;
-use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
-use crate::client::gui::bb_widget::{circle_widget, new_widget, workout};
+use crate::client::gui::bb_widget::widget_utils::LARGE_INDENT;
+use crate::client::gui::bb_widget::workout::{WorkoutWidget, DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT};
+use crate::client::gui::bb_widget::{new_widget, workout};
+use crate::client::gui::size::FRAME_WIDTH;
 use crate::client::gui::user_interface::Message;
-use iced::Element;
 use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{Column, Row, Scrollable, column, container, row, text, image, Space, Stack};
+use iced::widget::{container, text, Column, Row, Scrollable, Space, Stack};
+use iced::Element;
 use iced_anim::Motion;
-use iced_core::{Alignment, Border, Image, Length, Padding, Theme};
 use iced_core::alignment::Vertical;
 use iced_core::border::Radius;
 use iced_core::image::Handle;
-use crate::client::gui::bb_tab::tab::Tab;
-use crate::client::gui::bb_theme::color;
-use crate::client::gui::bb_theme::custom_button::create_button_style;
-use crate::client::gui::bb_theme::scrollable::{main_style, mascot_style};
-use crate::client::gui::bb_widget::workout::WorkoutWidget;
-use crate::client::gui::size::FRAME_WIDTH;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use iced_core::{Alignment, Border, Length, Padding, Theme};
+use std::time::Duration;
 
 impl App {
     pub fn workout_screen(&self) -> Element<Message> {
@@ -61,6 +60,7 @@ impl App {
 
 
         let mut workout_preset_row = Row::new()
+            .height(DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT + SCROLLBAR_PADDING)
             .spacing(10);
 
         for preset in &self.workout_preset_manager.presets {
@@ -69,9 +69,8 @@ impl App {
         }
 
         let workout_preset_scrollable =
-                 Scrollable::new(workout_preset_row).direction(Direction::Horizontal(Scrollbar::new().scroller_width(6))).style(|theme: &_, status: iced::widget::scrollable::Status| {
-                     mascot_style(status,self.mascot_manager.selected_mascot)
-                 });
+        create_scrollable(workout_preset_row,self.mascot_manager.selected_mascot,ScrollableStyle::Mascot)
+            .add_horizontal_scrollbar(6.0,0.0);
 
         let workout_preset_scrollable_with_button =
             Row::new()
@@ -142,10 +141,10 @@ impl App {
                 ..0.0.into()
             });;
 
+
         let scrollable_workout_interface =
-        Scrollable::new(workout_interface)
-            .style(|theme: &Theme, status: iced::widget::scrollable::Status| main_style(status, self.mascot_manager.selected_mascot))
-            .direction(Direction::Vertical(Scrollbar::new().scroller_width(7.0).margin(4)));
+        create_scrollable(workout_interface,self.mascot_manager.selected_mascot,ScrollableStyle::Default)
+            .add_vertical_scrollbar(7.0, 4.0);
 
         scrollable_workout_interface.into()
 
