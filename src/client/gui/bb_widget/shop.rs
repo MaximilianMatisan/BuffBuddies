@@ -23,7 +23,9 @@ use iced_core::widget::Tree;
 use iced_core::{Border, Shadow, image};
 use iced_core::{Image, Point, Theme, alignment};
 
-const INDENT: f32 = DEFAULT_PRESET_HEIGHT / 13.0 * SCALE;
+const PADDING: f32 = DEFAULT_PRESET_HEIGHT / 16.0 * SCALE;
+const INDENT: f32 = DEFAULT_PRESET_HEIGHT / 12.0 * SCALE;
+
 const TITLE_FONT_SIZE: f32 = 27.5 * SCALE;
 const DEFAULT_PRESET_WIDTH: f32 = 389.0 * SCALE;
 const DEFAULT_PRESET_HEIGHT: f32 = 415.0 * SCALE;
@@ -152,7 +154,7 @@ where
             self.image.clone(),
             Rectangle {
                 x: layout.bounds().x + DEFAULT_PRESET_WIDTH / 2.0 - IMAGE_WIDTH / 2.0,
-                y: layout.bounds().y + INDENT,
+                y: layout.bounds().y + PADDING,
                 width: IMAGE_WIDTH,
                 height: IMAGE_HEIGHT,
             },

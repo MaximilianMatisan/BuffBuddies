@@ -83,6 +83,18 @@ pub fn mascot_style(status: Status, mascot: Mascot) ->  Style {
     }
 }
 
+pub fn transparent_style() ->  Style {
+    let scrollable_style = iced::widget::scrollable::Style {
+        container: Default::default(),
+        vertical_rail: Rail { background:None, border: Default::default(), scroller: Scroller { color: Color::TRANSPARENT, border: Default::default() }},
+        horizontal_rail: Rail { background:None, border: Default::default(), scroller: Scroller { color: Color::TRANSPARENT, border: Default::default() }},
+        gap: None,
+    };
+    
+    scrollable_style
+
+}
+
 pub fn main_style (status: Status, mascot: Mascot) ->  Style {
 
     let mut scrollable_style = iced::widget::scrollable::Style {
