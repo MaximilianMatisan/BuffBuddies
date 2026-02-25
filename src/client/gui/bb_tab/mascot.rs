@@ -1,10 +1,12 @@
+use std::fmt::Alignment;
+use chrono::format::Fixed;
 use crate::client::backend::mascot_manager::MascotManager;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, create_element_button, create_text_button,
 };
-use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text};
+use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text, format_button_text};
 use crate::client::gui::bb_widget::shop;
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
@@ -17,179 +19,149 @@ use iced::widget::scrollable::{Direction, Rail, Scrollbar, Scroller, Style};
 use iced::widget::{Column, Row, Scrollable, container, row, text};
 use iced_core::Length::{Fill, FillPortion};
 use iced_core::image::{Handle, Image};
-use iced_core::{Border, Color, Shadow, Theme};
+use iced_core::{Border, Color, Length, Padding, Shadow, Theme};
+use iced_core::alignment::{Horizontal, Vertical};
 use strum::IntoEnumIterator;
+use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
+use crate::client::gui::bb_theme::custom_button::ButtonStyle::Active;
+use crate::client::gui::bb_theme::scrollable::{main_style, mascot_style, transparent_style};
+use crate::client::gui::bb_widget::widget_utils::INDENT;
+use crate::common::mascot_mod::rare_mascot::RareMascot::Chameleon;
+
+const SCROLLABLE_MASCOTS_HEIGHT: f32 = 500.0;
+const MASCOT_IMAGE_HEIGHT: f32 = 360.0;
+const PADDING: f32 = 125.0;
 
 impl App {
     pub fn mascot_screen(&self) -> Element<Message> {
-        let current_mascot_image: Element<Message> = view_active_mascot(&self.mascot_manager);
+        let current_mascot_image = self.mascot_manager.view_active_mascot().
+            width(Fill).height(Length::Fixed(MASCOT_IMAGE_HEIGHT));
 
         let current_mascot_text: Element<Message> =
             text(self.mascot_manager.selected_mascot.get_name())
                 .font(FIRA_SANS_EXTRABOLD)
                 .color(TEXT_COLOR)
-                .size(30)
+                .size(35)
                 .width(Fill)
                 .center()
                 .into();
 
-        let current_mascot: Element<Message> = Column::new()
+        let current_mascot_with_text: Element<Message> = Column::new()
             .push(current_mascot_image)
             .push(current_mascot_text)
-            .width(FillPortion(1))
-            .padding(10)
-            .spacing(10)
+            .spacing(16.0)
+            .align_x(Horizontal::Center)
             .into();
 
-        let my_pet_text: Element<Message> = text("My Pets")
+        let my_mascots_text: Element<Message> = text("My mascots")
             .font(FIRA_SANS_EXTRABOLD)
             .color(TEXT_COLOR)
             .size(30)
             .width(Fill)
-            .center()
             .into();
 
-        let mut pet_selection: Column<Message> = Column::new().spacing(10);
+        let mut mascot_selection: Column<Message> = Column::new().spacing(10).padding(Padding{right: 15.0,..0.0.into()});
 
         for rare_mascot in RareMascot::iter() {
             let mascot: Mascot = rare_mascot.into();
-            pet_selection = pet_selection.push(create_mascot_button(&self.mascot_manager, mascot))
+            mascot_selection = mascot_selection.push(create_mascot_button(&self.mascot_manager, mascot))
         }
 
         for epic_mascot in EpicMascot::iter() {
             let mascot: Mascot = epic_mascot.into();
-            pet_selection = pet_selection.push(create_mascot_button(&self.mascot_manager, mascot))
+            mascot_selection = mascot_selection.push(create_mascot_button(&self.mascot_manager, mascot))
         }
 
-        let scroll: Element<Message> = Scrollable::new(pet_selection)
-            .direction(Direction::Vertical(Scrollbar::new().scroller_width(6)))
+        let scrollable_mascot_selection: Element<Message> =
+        Scrollable::new(mascot_selection)
+            .direction(Direction::Vertical(Scrollbar::new().scroller_width(6).margin(4.0)))
             .style(
-                |_theme: &Theme, _status: iced::widget::scrollable::Status| Style {
-                    container: container::Style {
-                        text_color: None,
-                        background: None,
-                        border: Border {
-                            color: Color::TRANSPARENT,
-                            width: 5.0,
-                            radius: 15.into(),
-                        },
-                        shadow: Shadow::default(),
-                    },
-                    vertical_rail: Rail {
-                        background: None,
-                        border: Border {
-                            color: Color::TRANSPARENT,
-                            width: 5.0,
-                            radius: 15.into(),
-                        },
-                        scroller: Scroller {
-                            color: HIGHLIGHTED_CONTAINER_COLOR,
-                            border: Border {
-                                color: Color::TRANSPARENT,
-                                width: 5.0,
-                                radius: 15.into(),
-                            },
-                        },
-                    },
-                    horizontal_rail: Rail {
-                        background: None,
-                        border: Border {
-                            color: Color::TRANSPARENT,
-                            width: 5.0,
-                            radius: 15.into(),
-                        },
-                        scroller: Scroller {
-                            color: HIGHLIGHTED_CONTAINER_COLOR,
-                            border: Border {
-                                color: Color::TRANSPARENT,
-                                width: 5.0,
-                                radius: 15.into(),
-                            },
-                        },
-                    },
-                    gap: None,
-                },
+                |_,_| transparent_style()
             )
             .into();
 
-        let my_mascots: Element<Message> = Column::new()
+        let title_with_selection: Element<Message> = Column::new()
             .spacing(10)
-            .push(my_pet_text)
-            .push(scroll)
-            .width(FillPortion(1))
+            .push(my_mascots_text)
+            .push(scrollable_mascot_selection)
             .into();
 
         let top_half = Row::new()
-            .push(current_mascot)
-            .push(my_mascots)
-            .height(FillPortion(3));
+            .push(current_mascot_with_text)
+            .push(title_with_selection)
+            .height(SCROLLABLE_MASCOTS_HEIGHT)
+            .padding(Padding{top: 42.5,right:30.0,..0.0.into()});
 
-        let shop_text: Element<Message> = text("Shop")
+        let shop_text: Element<Message> = container(text("Shop")
             .font(FIRA_SANS_EXTRABOLD)
             .color(TEXT_COLOR)
-            .size(30)
-            .width(Fill)
-            .center()
+            .size(29))
+            .padding(Padding{left:PADDING,..0.0.into()})
             .into();
 
-        let shop_widgets: Element<Message> = row![
-            shop::ShopWidget::new(
-                "Random rare pet-egg".to_string(),
-                50,
-                &self.mascot_manager.selected_mascot,
-                Message::BuyMascot(MascotRarity::Rare),
-            )
+        let rare_shop_widget = shop::ShopWidget::new(
+            "Random Rare Mascot".to_string(),
+            50,
+            &self.mascot_manager.selected_mascot,
+            Message::BuyMascot(MascotRarity::Rare),
+        )
             .set_image(Image::new(Handle::from_path(
                 "assets/images/rare_gacha.png"
-            ))),
-            shop::ShopWidget::new(
-                "Random epic pet-egg".to_string(),
-                100,
-                &self.mascot_manager.selected_mascot,
-                Message::BuyMascot(MascotRarity::Epic),
-            )
+            )));
+
+        let epic_shop_widget = shop::ShopWidget::new(
+            "Random Epic Mascot".to_string(),
+            100,
+            &self.mascot_manager.selected_mascot,
+            Message::BuyMascot(MascotRarity::Epic),
+        )
             .set_image(Image::new(Handle::from_path(
                 "assets/images/epic_gacha.png"
-            ))),
-        ]
-        .spacing(30)
-        .padding(20)
+            )));
+
+
+        let shop_widgets: Element<Message> = Row::new()
+            .push(rare_shop_widget)
+            .push(epic_shop_widget)
+            .spacing(60)
         .into();
 
-        let shop_widget_container: Element<Message> = container(shop_widgets).center(Fill).into();
+        let shop_widget_container: Element<Message> = container(shop_widgets)
+            .width(Fill)
+            .align_x(Horizontal::Center).into();
 
         let bottom_column: Element<Message> = Column::new()
             .push(shop_text)
             .push(shop_widget_container)
-            .spacing(10)
+            .spacing(20)
             .into();
 
-        let bottom_half = container(bottom_column).height(FillPortion(4));
+        let bottom_half = container(bottom_column);
 
-        let combined = Column::new().push(top_half).push(bottom_half);
+        let mascot_interface = Column::new()
+            .push(top_half).
+            push(bottom_half);
 
-        container(combined).height(Fill).into()
+        Scrollable::new(mascot_interface)
+            .style(|theme,status|main_style(status, self.mascot_manager.selected_mascot))
+            .direction(Direction::Vertical(
+                Scrollbar::new()
+                    .scroller_width(7).margin(6)))
+            .into()
     }
-}
-
-fn view_active_mascot(mascot_manager: &MascotManager) -> Element<Message> {
-    let image = image(mascot_manager.selected_mascot.get_file_path())
-        .width(Fill)
-        .height(Fill);
-    image.into()
 }
 
 fn mascot_select_box(mascot_manager: &MascotManager, mascot: Mascot) -> Element<'static, Message> {
     let name = mascot.get_name().to_string();
 
-    create_text_button(
+    create_element_button(
         &mascot_manager.selected_mascot,
-        name,
+        format_button_text(text(name.to_string())).size(18).into(),
         ButtonStyle::InactiveTab,
         None,
     )
     .width(Fill)
-    .height(44)
+    .height(46)
     .on_press(Message::SelectMascot(mascot))
     .into()
 }
@@ -197,30 +169,31 @@ fn mascot_select_box(mascot_manager: &MascotManager, mascot: Mascot) -> Element<
 fn mascot_current_box(mascot_manager: &MascotManager, mascot: Mascot) -> Element<'static, Message> {
     let name = mascot.get_name().to_string();
 
-    create_text_button(
+    create_element_button(
         &mascot_manager.selected_mascot,
-        name,
+        format_button_text(text(name.to_string())).size(18).into(),
         ButtonStyle::Active,
         None,
     )
-    .height(44)
+    .height(46)
     .width(Fill)
     .on_press(Message::SelectMascot(mascot))
     .into()
 }
 
 fn mascot_locked_box(mascot_manager: &MascotManager) -> Element<'static, Message> {
+
     create_element_button(
         &mascot_manager.selected_mascot,
         format_description_text(text("???"))
-            .size(15)
+            .size(18)
             .center()
             .into(),
         ButtonStyle::InactiveTab,
         None,
     )
     .width(Fill)
-    .height(44)
+    .height(46)
     .into()
 }
 

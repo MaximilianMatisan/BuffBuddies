@@ -10,7 +10,7 @@ use crate::client::gui::bb_widget::workout::WorkoutWidget;
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{container, image, text, Column, Row, Scrollable, Space};
+use iced::widget::{container, image, row, text, Column, Row, Scrollable, Space};
 use iced::{Element, Renderer};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
@@ -27,7 +27,7 @@ impl App {
             .push(mascot_message_icon)
             .push(mascot_message)
             .spacing(20);
-        let mascot_image = image(self.mascot_manager.selected_mascot.get_file_path());
+        let mascot_image = self.mascot_manager.view_active_mascot();
         let mascot_with_message =
                 Row::new()
                     .push(mascot_image)
@@ -90,14 +90,11 @@ impl App {
                 ..0.0.into()
             });
 
-        Scrollable::new(home_screen_content)
-            .width(FRAME_WIDTH)
+        Scrollable::new(row![home_screen_content,Space::with_width(Length::Fill)]) //the row is needed for the scrollbar to go to the end of the frame
             .style(|theme,status|main_style(status, self.mascot_manager.selected_mascot))
             .direction(Direction::Vertical(
                 Scrollbar::new()
                     .scroller_width(7).margin(6)))
-
-
             .into()
     }
 }

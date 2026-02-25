@@ -26,7 +26,7 @@ use crate::common::mascot_mod::mascot_trait::MascotTrait;
 impl App {
     pub fn workout_screen(&self) -> Element<Message> {
 
-        let selected_mascot_image: iced::widget::Image<Handle> = image(image::Handle::from_path(self.mascot_manager.selected_mascot.get_file_path())).height(200).width(200);
+        let selected_mascot_image: iced::widget::Image<Handle> = self.mascot_manager.view_active_mascot().height(200).width(200);
         let recent_workouts_text = container(text("Recent workouts").font(FIRA_SANS_EXTRABOLD).color(color::TEXT_COLOR).size(32))
             .height(100)
             .align_y(Alignment::End);
