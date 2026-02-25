@@ -224,8 +224,8 @@ impl WorkoutCreationMessage {
                         } else {
                             app.pop_up_manager.new_pop_up(
                                 PopUpType::Minor,
-                                "Buying Mascot failed!".to_string(),
-                                "Log in to buy mascots!".to_string(),
+                                "Saving workout failed!".to_string(),
+                                "Log in to save workouts!".to_string(),
                             );
                         }
                     }

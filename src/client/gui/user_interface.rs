@@ -583,7 +583,7 @@ impl App {
                 background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
                 ..Default::default()
             })
-            .padding(Padding{
+            .padding(Padding {
                 right: 0.0,
                 ..20.0.into()
             })

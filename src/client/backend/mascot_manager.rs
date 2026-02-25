@@ -1,13 +1,10 @@
-use iced::Element;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot::Mascot::Rare;
 use crate::common::mascot_mod::mascot_data_transfer::MascotDataServerClientTransfer;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced::widget::combo_box::State;
-use iced::widget::{image, Image};
-use iced_core::Length::Fill;
-use crate::client::gui::user_interface::Message;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use iced::widget::{Image, image};
 
 pub struct MascotManager {
     pub selected_mascot: Mascot,
