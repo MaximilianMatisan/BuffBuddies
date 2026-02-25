@@ -14,6 +14,7 @@ use iced_core::{
     alignment, image, mouse, text,
 };
 use iced_core::image::Handle;
+use crate::client::gui::bb_theme::scrollable::SCROLLBAR_PADDING;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 
@@ -119,7 +120,8 @@ where
     pub fn create_preset_row <'a> (mascot: &Mascot)  -> Row<'a,Message> {
 
         let mut workout_presets = Row::new()
-            .height(DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT + 15.0).spacing(10);
+            .height(DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT + SCROLLBAR_PADDING)
+            .spacing(10);
 
         let base_path = "assets/images/";
 

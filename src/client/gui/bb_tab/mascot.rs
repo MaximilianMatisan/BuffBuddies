@@ -1,32 +1,25 @@
-use std::fmt::Alignment;
-use chrono::format::Fixed;
 use crate::client::backend::mascot_manager::MascotManager;
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
+use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::custom_button::{
-    ButtonStyle, create_element_button, create_text_button,
+    create_element_button, ButtonStyle,
 };
-use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text, format_button_text};
+use crate::client::gui::bb_theme::text_format::{format_button_text, format_description_text, FIRA_SANS_EXTRABOLD};
 use crate::client::gui::bb_widget::shop;
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
+use iced::widget::scrollable::{Direction, Scrollbar};
+use iced::widget::{container, text, Column, Row, Scrollable};
 use iced::Element;
-use iced::widget::image;
-use iced::widget::scrollable::{Direction, Rail, Scrollbar, Scroller, Style};
-use iced::widget::{Column, Row, Scrollable, container, row, text};
-use iced_core::Length::{Fill, FillPortion};
+use iced_core::alignment::Horizontal;
 use iced_core::image::{Handle, Image};
-use iced_core::{Border, Color, Length, Padding, Shadow, Theme};
-use iced_core::alignment::{Horizontal, Vertical};
+use iced_core::Length::Fill;
+use iced_core::{Length, Padding};
 use strum::IntoEnumIterator;
-use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
-use crate::client::gui::bb_theme::custom_button::ButtonStyle::Active;
-use crate::client::gui::bb_theme::scrollable::{main_style, mascot_style, transparent_style};
-use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::common::mascot_mod::rare_mascot::RareMascot::Chameleon;
+use crate::client::gui::bb_theme::scrollable::{create_scrollable, ScrollableExtension, ScrollableStyle};
 
 const SCROLLABLE_MASCOTS_HEIGHT: f32 = 500.0;
 const MASCOT_IMAGE_HEIGHT: f32 = 360.0;
@@ -73,12 +66,7 @@ impl App {
         }
 
         let scrollable_mascot_selection: Element<Message> =
-        Scrollable::new(mascot_selection)
-            .direction(Direction::Vertical(Scrollbar::new().scroller_width(6).margin(4.0)))
-            .style(
-                |_,_| transparent_style()
-            )
-            .into();
+        create_scrollable(mascot_selection,self.mascot_manager.selected_mascot,ScrollableStyle::Transparent).into();
 
         let title_with_selection: Element<Message> = Column::new()
             .spacing(10)
@@ -142,12 +130,10 @@ impl App {
             .push(top_half).
             push(bottom_half);
 
-        Scrollable::new(mascot_interface)
-            .style(|theme,status|main_style(status, self.mascot_manager.selected_mascot))
-            .direction(Direction::Vertical(
-                Scrollbar::new()
-                    .scroller_width(7).margin(6)))
+        create_scrollable(mascot_interface,self.mascot_manager.selected_mascot, ScrollableStyle::Default)
+            .add_vertical_scrollbar(7.0,6.0)
             .into()
+
     }
 }
 
