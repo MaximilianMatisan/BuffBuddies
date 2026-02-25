@@ -1,7 +1,11 @@
 use crate::client::backend::mascot_manager::MascotManager;
 use crate::client::gui::app::App;
+use crate::client::gui::bb_tab::workout_creation::WorkoutCreationMessage;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
-use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
+use crate::client::gui::bb_theme::custom_button::ButtonStyle::Active;
+use crate::client::gui::bb_theme::custom_button::{
+    ButtonStyle, create_element_button, create_text_button,
+};
 use crate::client::gui::bb_theme::scrollable::{
     ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH,
     create_scrollable,
@@ -16,15 +20,16 @@ use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
+use crate::common::mascot_mod::rare_mascot::RareMascot::Chameleon;
 use iced::Element;
-use iced::widget::{Column, Row, container, text};
+use iced::widget::{Column, Row, Space, container, image, row, text};
 use iced_core::Length::Fill;
-use iced_core::alignment::Horizontal;
+use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::{Handle, Image};
 use iced_core::{Length, Padding};
 use strum::IntoEnumIterator;
 
-const SCROLLABLE_MASCOTS_HEIGHT: f32 = 500.0;
+const SCROLLABLE_MASCOTS_HEIGHT: f32 = 540.0;
 const MASCOT_IMAGE_HEIGHT: f32 = 360.0;
 const PADDING: f32 = 125.0;
 const MASCOT_BOX_HEIGHT: u16 = 46;
@@ -48,9 +53,34 @@ impl App {
                 .center()
                 .into();
 
+        let randomize_text = format_button_text(text("Randomize")).size(18);
+
+        let dice_image = image(Handle::from_path("assets/images/dice.png"))
+            .width(23)
+            .height(23);
+
+        let randomize_text_with_image = container(row![
+            dice_image,
+            Space::with_width(Length::Fixed(5.0)),
+            randomize_text
+        ])
+        .align_y(Vertical::Center)
+        .center_x(Fill);
+
+        let randomize_button = create_element_button(
+            &self.mascot_manager.selected_mascot,
+            randomize_text_with_image.into(),
+            Active,
+            Some(7.5.into()),
+        )
+        .on_press(Message::SelectMascot(self.mascot_manager.get_random_owned_mascot()))
+        .height(37.0)
+        .width(210.0);
+
         let current_mascot_with_text: Element<Message> = Column::new()
             .push(current_mascot_image)
             .push(current_mascot_text)
+            .push(randomize_button)
             .spacing(16.0)
             .align_x(Horizontal::Center)
             .into();
@@ -154,7 +184,7 @@ impl App {
 
         let bottom_half = container(bottom_column);
 
-        let mascot_interface = Column::new().push(top_half).push(bottom_half);
+        let mascot_interface = Column::new().push(top_half).push(bottom_half).spacing(20.0);
 
         create_scrollable(
             mascot_interface,
