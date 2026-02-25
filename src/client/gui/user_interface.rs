@@ -49,7 +49,7 @@ use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
 use iced_core::keyboard::Key;
 use iced_core::window::{Position, Settings};
-use iced_core::{Length, Size, Theme};
+use iced_core::{Length, Padding, Size, Theme};
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -583,7 +583,10 @@ impl App {
                 background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
                 ..Default::default()
             })
-            .padding(20)
+            .padding(Padding{
+                right: 0.0,
+                ..20.0.into()
+            })
             .into()
     }
 }
