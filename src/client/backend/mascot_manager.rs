@@ -5,6 +5,7 @@ use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced::widget::combo_box::State;
 use iced::widget::{Image, image};
+use rand::random_range;
 
 pub struct MascotManager {
     pub selected_mascot: Mascot,
@@ -44,5 +45,17 @@ impl MascotManager {
     pub fn view_active_mascot(&self) -> Image {
         let image = image(self.selected_mascot.get_file_path());
         image
+    }
+
+    pub fn get_random_owned_mascot(&self) -> Mascot {
+
+        if self.owned_mascots.len() < 1 { // Avoid calling random_range with 0..0, which would panic if no mascots are owned
+            return Mascot::Rare(RareMascot::Duck);
+        }
+
+        let enumerated_mascots: Vec<(usize,&Mascot)> = self.owned_mascots.iter().enumerate().collect();
+        let random_number = random_range(0..enumerated_mascots.len());
+
+        *enumerated_mascots.get(random_number).unwrap().1
     }
 }
