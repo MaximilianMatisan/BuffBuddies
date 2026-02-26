@@ -67,7 +67,7 @@ pub fn total_lifted_weight(exercise_data: &Vec<Exercise>) -> Kg {
 }
 /// Calculates the exercise name and weight of the set with
 /// the highest tracked weight across all exercises <br>
-/// Returns (None,0) if no StrengthSet is tracked
+/// Returns ("None",0) if no StrengthSet is tracked
 pub fn highest_weight_pr(exercise_data: &Vec<Exercise>) -> (String, Kg) {
     let mut result: (String, Kg) = ("None".to_string(), 0.0);
 

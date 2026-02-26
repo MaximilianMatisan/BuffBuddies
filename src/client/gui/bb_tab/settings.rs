@@ -9,7 +9,7 @@ use crate::client::gui::bb_theme::custom_button::{
     BUTTON_RADIUS_LEFT_ZERO, BUTTON_RADIUS_RIGHT_ZERO, ButtonStyle, create_element_button,
     create_text_button,
 };
-use crate::client::gui::bb_theme::separator::separator_line;
+use crate::client::gui::bb_theme::separator::{separator_line, DEFAULT_SEPARATOR_HEIGHT};
 use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, cm_to_string, format_button_text, format_description_text, kg_to_string,
 };
@@ -403,7 +403,7 @@ fn create_settings_sub_header<'a>(
     mascot: &'a Mascot,
     header_text: &'a str,
 ) -> Column<'a, SettingsMessage> {
-    let separator = separator_line(mascot, 3.0);
+    let separator = separator_line(mascot, DEFAULT_SEPARATOR_HEIGHT);
     let user_data_title = format_button_text(text(header_text)).size(TITLE_SIZE);
 
     Column::new()

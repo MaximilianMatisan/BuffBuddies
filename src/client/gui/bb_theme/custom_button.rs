@@ -174,7 +174,7 @@ pub fn create_button_style(
         }
     }
 }
-/// Create an iced button containing a centered white fira sans text and a specified ButtonStyle
+/// Create an iced button containing a styled text and a specified ButtonStyle
 pub fn create_text_button<'a, Msg>(
     mascot: &Mascot,
     text: String,
@@ -190,7 +190,7 @@ where
     create_element_button(mascot, text_elem, button_style, custom_border_radius)
 }
 
-/// Create a iced button containing an iced element and a specified ButtonStyle
+/// Create an iced button containing an iced element and a specified ButtonStyle
 pub fn create_element_button<'a, Msg>(
     mascot: &Mascot,
     element: Element<'a, Msg, Theme, Renderer>,
