@@ -6,6 +6,7 @@ use crate::common::exercise_mod::general_exercise::{
 };
 use crate::common::exercise_mod::set::StrengthSet;
 use crate::common::exercise_mod::weight::Kg;
+use crate::common::login::RequestValidUserAnswer;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::user_mod::user::{ForeignUser, Gender, UserInformation};
@@ -176,18 +177,19 @@ pub async fn add_user(
     username: &str,
     password: &str,
 ) -> Result<(), sqlx::Error> {
+    let default_info = UserInformation::default(&Vec::new());
     sqlx::query("INSERT INTO users (username, user_password, weekly_workout_streak, coin_balance, weight, height, gender, favorite_mascot, selected_mascot, profile_picture)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         .bind(username)
         .bind(password)
-        .bind(0)
-        .bind(0)
-        .bind(0)
-        .bind(0)
-        .bind("Male")
-        .bind("Duck")
-        .bind("Duck")
-        .bind("")
+        .bind(default_info.weekly_workout_streak)
+        .bind(default_info.coin_balance)
+        .bind(default_info.weight)
+        .bind(default_info.height)
+        .bind(default_info.gender.to_string())
+        .bind(Mascot::default().to_string())
+        .bind(Mascot::default().to_string())
+        .bind(default_info.profile_picture_path)
         .execute(pool)
         .await?;
 
@@ -210,41 +212,35 @@ pub async fn add_user(
 
     Ok(())
 }
-pub enum ValidUser {
-    UserNotFound,
-    WrongPassword,
-    Valid,
-}
 #[allow(dead_code)]
 pub async fn check_user(
     pool: &SqlitePool,
     username: &str,
     password: &str,
-) -> Result<ValidUser, sqlx::Error> {
+) -> Result<RequestValidUserAnswer, sqlx::Error> {
     let user = sqlx::query("SELECT user_password FROM users WHERE username == ? ")
         .bind(username)
         .fetch_optional(pool)
         .await?;
     match user {
-        None => Ok(ValidUser::UserNotFound),
+        None => Ok(RequestValidUserAnswer::UserNotFound),
         Some(row) => {
             let saved_password: String = row.get("user_password");
             if saved_password == password {
-                Ok(ValidUser::Valid)
+                Ok(RequestValidUserAnswer::Valid(username.to_string()))
             } else {
-                Ok(ValidUser::WrongPassword)
+                Ok(RequestValidUserAnswer::WrongPassword)
             }
         }
     }
 }
 #[allow(dead_code)]
-pub async fn get_all_usernames(pool: &SqlitePool) -> Result<String, sqlx::Error> {
+pub async fn get_all_usernames(pool: &SqlitePool) -> Result<Vec<String>, sqlx::Error> {
     let rows = sqlx::query("SELECT * from users").fetch_all(pool).await?;
-    let mut names: String = String::from("User: ");
+    let mut names: Vec<String> = Vec::new();
     for row in rows {
         let user: String = row.get("username");
-        names.push_str(&user);
-        names.push(' ');
+        names.push(user.to_string());
     }
     Ok(names)
 }
