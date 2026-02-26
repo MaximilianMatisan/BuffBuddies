@@ -23,6 +23,7 @@ pub enum ApiError {
     InvalidInput(String),
     InternalError,
     DatabaseError,
+    HashError(argon2::password_hash::Error),
 }
 impl From<sqlx::Error> for ApiError {
     fn from(value: sqlx::Error) -> Self {
@@ -30,6 +31,12 @@ impl From<sqlx::Error> for ApiError {
             sqlx::Error::RowNotFound => ApiError::NotFound,
             _ => ApiError::DatabaseError,
         }
+    }
+}
+
+impl From<argon2::password_hash::Error> for ApiError {
+    fn from(error: argon2::password_hash::Error) -> Self {
+        ApiError::HashError(error)
     }
 }
 impl IntoResponse for ApiError {
@@ -45,6 +52,7 @@ impl IntoResponse for ApiError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Database error".to_string(),
             ),
+            ApiError::HashError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Hash error".to_string()),
         };
 
         let body = Json(json!({

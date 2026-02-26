@@ -7,8 +7,8 @@ pub enum LoginStateError {
 impl LoginStateError {
     pub fn to_error_message(&self) -> String {
         let slice = match self {
-            LoginStateError::UsernameEmpty => "Password can't be empty!",
-            LoginStateError::PasswordEmpty => "Username can't be empty!",
+            LoginStateError::UsernameEmpty => "Username can't be empty!",
+            LoginStateError::PasswordEmpty => "Password can't be empty!",
         };
         slice.to_string()
     }

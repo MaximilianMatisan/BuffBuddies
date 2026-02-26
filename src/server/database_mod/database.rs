@@ -6,7 +6,6 @@ use crate::common::exercise_mod::general_exercise::{
 };
 use crate::common::exercise_mod::set::StrengthSet;
 use crate::common::exercise_mod::weight::Kg;
-use crate::common::login::RequestValidUserAnswer;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::user_mod::user::{ForeignUser, Gender, UserInformation};
@@ -212,26 +211,23 @@ pub async fn add_user(
 
     Ok(())
 }
+pub enum RequestPasswordAnswer {
+    UserNotFound,
+    Password(String),
+}
+
 #[allow(dead_code)]
-pub async fn check_user(
+pub async fn get_password(
     pool: &SqlitePool,
     username: &str,
-    password: &str,
-) -> Result<RequestValidUserAnswer, sqlx::Error> {
+) -> Result<RequestPasswordAnswer, sqlx::Error> {
     let user = sqlx::query("SELECT user_password FROM users WHERE username == ? ")
         .bind(username)
         .fetch_optional(pool)
         .await?;
     match user {
-        None => Ok(RequestValidUserAnswer::UserNotFound),
-        Some(row) => {
-            let saved_password: String = row.get("user_password");
-            if saved_password == password {
-                Ok(RequestValidUserAnswer::Valid(username.to_string()))
-            } else {
-                Ok(RequestValidUserAnswer::WrongPassword)
-            }
-        }
+        None => Ok(RequestPasswordAnswer::UserNotFound),
+        Some(row) => Ok(RequestPasswordAnswer::Password(row.get("user_password"))),
     }
 }
 #[allow(dead_code)]
