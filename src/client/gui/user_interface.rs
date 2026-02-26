@@ -75,7 +75,7 @@ pub enum Message {
     RemoveUserAsFriend(String),
     ViewProfile(UserType),
 
-    // PopUpMessage?
+    // PopUpMessage
     ResetPopUp,
 
     // SettingsMessage (Can stay)
