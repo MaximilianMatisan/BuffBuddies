@@ -3,7 +3,7 @@ use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::health::HealthTabMessage;
 use crate::client::gui::bb_tab::loading::view_loading_screen;
-use crate::client::gui::bb_tab::login::view_login;
+use crate::client::gui::bb_tab::login::{LoginMessage, view_login};
 use crate::client::gui::bb_tab::preset_creation::PresetCreationMessage;
 use crate::client::gui::bb_tab::settings::SettingsMessage;
 use crate::client::gui::bb_tab::tab::Tab;
@@ -29,14 +29,11 @@ use crate::client::server_communication::exercise_communicator::ServerRequestErr
 use crate::client::server_communication::mascot_communicator::{
     buy_mascot, update_selected_mascot_on_server,
 };
-use crate::client::server_communication::request_data::{
-    LoginServerRequestData, request_login_data,
-};
-use crate::client::server_communication::server_communicator::{SaveWorkoutError, valid_login};
+use crate::client::server_communication::request_data::LoginServerRequestData;
+use crate::client::server_communication::server_communicator::SaveWorkoutError;
 use crate::client::server_communication::user_communicator::{
     add_foreign_user_as_friend_on_server, remove_foreign_user_as_friend_on_server,
 };
-use crate::common::login::RequestValidUserError;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
@@ -60,15 +57,6 @@ pub enum Message {
     BuyMascot(MascotRarity),
     SaveMascot(Result<Mascot, ServerRequestError>),
     SelectMascot(Mascot),
-
-    // LoginMessage (Combine)
-    TryRegister,
-    TryLogin,
-    RequestValidUser(Result<String, RequestValidUserError>),
-    RequestLoginData(Result<Arc<LoginServerRequestData>, ServerRequestError>), //Arc necessary to receive non-cloneable Vec<Exercise>
-    UsernameEntered(String),
-    PasswordEntered(String),
-
     // ChartMessage (Combine) maybe include in WidgetMessage?
     SelectExercise(String),
     Graph(GraphMessage),
@@ -102,6 +90,8 @@ pub enum Message {
 
     // PresetMessage (Can stay)
     PresetCreation(PresetCreationMessage),
+    Login(LoginMessage),
+    RequestLoginData(Result<Arc<LoginServerRequestData>, ServerRequestError>), //Arc necessary to receive non-cloneable Vec<Exercise>
 }
 
 impl App {
@@ -211,72 +201,6 @@ impl App {
             }
             Message::Activity(activity_message) => {
                 self.widget_manager.activity_widget.update(activity_message)
-            }
-            Message::TryRegister => {
-                self.login_state.state = LoginStates::LoggedIn;
-                Task::none()
-            }
-            Message::TryLogin => {
-                match self.login_state.try_login() {
-                    Err(err) => {
-                        self.login_state.error_text = err.to_error_message();
-                        Task::none()
-                    }
-                    //TODO check with server database
-                    Ok(login_request) => {
-                        Task::perform(valid_login(login_request), Message::RequestValidUser)
-                    }
-                }
-            }
-            Message::RequestValidUser(Ok(jwt)) => {
-                self.jsonwebtoken = Some(jwt);
-                self.login_state.state = LoginStates::FetchingLoginData;
-                Task::perform(
-                    request_login_data(self.jsonwebtoken.clone()),
-                    Message::RequestLoginData,
-                )
-            }
-            Message::RequestLoginData(Ok(data)) => {
-                match Arc::try_unwrap(data) {
-                    Ok(data) => {
-                        self.update_app_on_login(data);
-                    }
-                    Err(_) => self.login_state.error_text = "Internal error: Arc".to_string(),
-                }
-                self.login_state.state = LoginStates::LoggedIn;
-                Task::none()
-            }
-            Message::RequestLoginData(Err(_err)) => {
-                self.login_state.error_text =
-                    "Could not fetch login data from the server.".to_string();
-                Task::none()
-            }
-            Message::RequestValidUser(Err(request_valid_error)) => {
-                match request_valid_error {
-                    RequestValidUserError::WrongPassword => {
-                        self.login_state.password = "".to_string();
-                        self.login_state.error_text = "Wrong password!".to_string();
-                    }
-                    RequestValidUserError::UserNotFound => {
-                        self.login_state.username = "".to_string();
-                        self.login_state.password = "".to_string();
-                        self.login_state.error_text = "No user with that username!".to_string();
-                    }
-                    RequestValidUserError::ServerError => {
-                        println!("Server had err during user login check")
-                    }
-                }
-                Task::none()
-            }
-            Message::UsernameEntered(new_username) => {
-                let username = &mut self.login_state.username;
-                *username = new_username;
-                Task::none()
-            }
-            Message::PasswordEntered(new_password) => {
-                let password = &mut self.login_state.password;
-                *password = new_password;
-                Task::none()
             }
             Message::SelectExercise(exercise) => {
                 self.exercise_manager.update_selected_exercise(exercise);
@@ -461,6 +385,22 @@ impl App {
             }
             Message::SaveWorkout(Ok(())) => Task::none(),
             Message::PresetCreation(preset_creation_msg) => preset_creation_msg.update(self),
+            Message::Login(login_msg) => login_msg.update(self),
+            Message::RequestLoginData(Ok(data)) => {
+                match Arc::try_unwrap(data) {
+                    Ok(data) => {
+                        self.update_app_on_login(data);
+                    }
+                    Err(_) => self.login_state.error_text = "Internal error: Arc".to_string(),
+                }
+                self.login_state.state = LoginStates::LoggedIn;
+                Task::none()
+            }
+            Message::RequestLoginData(Err(_err)) => {
+                self.login_state.error_text =
+                    "Could not fetch login data from the server.".to_string();
+                Task::none()
+            }
         }
     }
     fn view(&self) -> Element<'_, Message> {

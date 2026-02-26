@@ -1,7 +1,7 @@
 use crate::server::database_mod::database;
 use crate::server::database_mod::database::init_db;
 use crate::server::routes::foreign_users::{add_friend, get_foreign_users, remove_friend};
-use crate::server::routes::login::check_login;
+use crate::server::routes::login::{check_login, register};
 use crate::server::routes::mascot_manager::{buy_mascot, get_mascot_data, select_mascot};
 use crate::server::routes::user_exercises::get_user_exercises;
 use crate::server::routes::user_info::{get_user_info, update_user_info};
@@ -76,6 +76,7 @@ fn create_app(pool: SqlitePool) -> Router {
     Router::new()
         .route("/server", get(health_check))
         .route("/user/login", post(check_login))
+        .route("/user/register", post(register))
         .route("/mascot/buy", post(buy_mascot))
         .route("/mascot/get", get(get_mascot_data))
         .route("/mascot/select", post(select_mascot))
