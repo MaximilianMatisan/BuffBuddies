@@ -1,11 +1,8 @@
-use crate::client::backend::mascot_manager::MascotManager;
 use crate::client::gui::app::App;
-use crate::client::gui::bb_tab::workout_creation::WorkoutCreationMessage;
+use crate::client::gui::bb_tab::mascot::BoxType::Locked;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
-use crate::client::gui::bb_theme::custom_button::ButtonStyle::Active;
-use crate::client::gui::bb_theme::custom_button::{
-    ButtonStyle, create_element_button, create_text_button,
-};
+use crate::client::gui::bb_theme::custom_button::ButtonStyle::{Active, InactiveTab};
+use crate::client::gui::bb_theme::custom_button::create_element_button;
 use crate::client::gui::bb_theme::scrollable::{
     ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH,
     create_scrollable,
@@ -20,7 +17,6 @@ use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
-use crate::common::mascot_mod::rare_mascot::RareMascot::Chameleon;
 use iced::Element;
 use iced::widget::{Column, Row, Space, container, image, row, text};
 use iced_core::Length::Fill;
@@ -31,9 +27,9 @@ use strum::IntoEnumIterator;
 
 const SCROLLABLE_MASCOTS_HEIGHT: f32 = 540.0;
 const MASCOT_IMAGE_HEIGHT: f32 = 360.0;
-const PADDING: f32 = 125.0;
 const MASCOT_BOX_HEIGHT: u16 = 46;
 const MASCOT_BOX_TEXT_SIZE: u16 = 18;
+const BOX_PADDING: f32 = 12.5;
 const HEADERS_TEXT_SIZE: u16 = 30;
 
 impl App {
@@ -73,7 +69,9 @@ impl App {
             Active,
             Some(7.5.into()),
         )
-        .on_press(Message::SelectMascot(self.mascot_manager.get_random_owned_mascot()))
+        .on_press(Message::SelectMascot(
+            self.mascot_manager.get_random_owned_mascot(),
+        ))
         .height(37.0)
         .width(210.0);
 
@@ -100,14 +98,12 @@ impl App {
 
         for rare_mascot in RareMascot::iter() {
             let mascot: Mascot = rare_mascot.into();
-            mascot_selection =
-                mascot_selection.push(create_mascot_button(&self.mascot_manager, mascot))
+            mascot_selection = mascot_selection.push(create_mascot_button(self, mascot))
         }
 
         for epic_mascot in EpicMascot::iter() {
             let mascot: Mascot = epic_mascot.into();
-            mascot_selection =
-                mascot_selection.push(create_mascot_button(&self.mascot_manager, mascot))
+            mascot_selection = mascot_selection.push(create_mascot_button(self, mascot))
         }
 
         let scrollable_mascot_selection: Element<Message> = create_scrollable(
@@ -139,10 +135,6 @@ impl App {
                 .color(TEXT_COLOR)
                 .size(HEADERS_TEXT_SIZE),
         )
-        .padding(Padding {
-            left: PADDING,
-            ..0.0.into()
-        })
         .into();
 
         let rare_shop_widget = shop::ShopWidget::new(
@@ -179,7 +171,8 @@ impl App {
         let bottom_column: Element<Message> = Column::new()
             .push(shop_text)
             .push(shop_widget_container)
-            .spacing(20)
+            .spacing(30)
+            .align_x(Horizontal::Center)
             .into();
 
         let bottom_half = container(bottom_column);
@@ -196,63 +189,76 @@ impl App {
     }
 }
 
-fn mascot_select_box(mascot_manager: &MascotManager, mascot: Mascot) -> Element<'static, Message> {
-    let name = mascot.get_name().to_string();
-
-    create_element_button(
-        &mascot_manager.selected_mascot,
-        format_button_text(text(name.to_string()))
-            .size(MASCOT_BOX_TEXT_SIZE)
-            .into(),
-        ButtonStyle::InactiveTab,
-        None,
-    )
-    .width(Fill)
-    .height(MASCOT_BOX_HEIGHT)
-    .on_press(Message::SelectMascot(mascot))
-    .into()
+#[derive(PartialEq)]
+enum BoxType {
+    Selectable,
+    Current,
+    Locked,
 }
 
-fn mascot_current_box(mascot_manager: &MascotManager, mascot: Mascot) -> Element<'static, Message> {
-    let name = mascot.get_name().to_string();
+fn create_mascot_box(app: &App, mascot: Mascot, box_type: BoxType) -> Element<'static, Message> {
+    let mut content = Row::new()
+        .push(Space::with_width(Length::Fixed(BOX_PADDING)))
+        .spacing(INDENT)
+        .align_y(Vertical::Center)
+        .height(Fill);
 
-    create_element_button(
-        &mascot_manager.selected_mascot,
-        format_button_text(text(name.to_string()))
-            .size(MASCOT_BOX_TEXT_SIZE)
-            .into(),
-        ButtonStyle::Active,
+    let mascot_handle = app
+        .image_manager
+        .cropped_mascot_head_handles
+        .get(&mascot)
+        .unwrap();
+
+    let mascot_head_image = image(mascot_handle);
+
+    match box_type {
+        BoxType::Locked => {
+            content = content.push(
+                format_description_text(text("???"))
+                    .size(MASCOT_BOX_TEXT_SIZE)
+                    .center(),
+            );
+        }
+
+        _ => {
+            let name = mascot.get_name().to_string();
+
+            content = content
+                .push(mascot_head_image)
+                .push(format_button_text(text(name.to_string())).size(MASCOT_BOX_TEXT_SIZE))
+        }
+    }
+
+    let button_style = match box_type {
+        BoxType::Selectable => InactiveTab,
+        BoxType::Current => Active,
+        BoxType::Locked => InactiveTab,
+    };
+
+    let mut mascot_box = create_element_button(
+        &app.mascot_manager.selected_mascot,
+        content.into(),
+        button_style,
         None,
     )
     .height(MASCOT_BOX_HEIGHT)
-    .width(Fill)
-    .on_press(Message::SelectMascot(mascot))
-    .into()
+    .width(Fill);
+
+    if box_type != Locked {
+        mascot_box = mascot_box.on_press(Message::SelectMascot(mascot))
+    }
+
+    mascot_box.into()
 }
 
-fn mascot_locked_box(mascot_manager: &MascotManager) -> Element<'static, Message> {
-    create_element_button(
-        &mascot_manager.selected_mascot,
-        format_description_text(text("???"))
-            .size(MASCOT_BOX_TEXT_SIZE)
-            .center()
-            .into(),
-        ButtonStyle::InactiveTab,
-        None,
-    )
-    .width(Fill)
-    .height(MASCOT_BOX_HEIGHT)
-    .into()
-}
-
-fn create_mascot_button(mascot_manager: &MascotManager, mascot: Mascot) -> Element<Message> {
-    if mascot_manager.owns_mascot(mascot) {
-        if mascot_manager.selected_mascot == mascot {
-            mascot_current_box(mascot_manager, mascot)
+fn create_mascot_button(app: &App, mascot: Mascot) -> Element<Message> {
+    if app.mascot_manager.owns_mascot(mascot) {
+        if app.mascot_manager.selected_mascot == mascot {
+            create_mascot_box(app, mascot, BoxType::Current)
         } else {
-            mascot_select_box(mascot_manager, mascot)
+            create_mascot_box(app, mascot, BoxType::Selectable)
         }
     } else {
-        mascot_locked_box(mascot_manager)
+        create_mascot_box(app, mascot, BoxType::Locked)
     }
 }

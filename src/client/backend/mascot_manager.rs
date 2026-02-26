@@ -48,12 +48,13 @@ impl MascotManager {
     }
 
     pub fn get_random_owned_mascot(&self) -> Mascot {
-
-        if self.owned_mascots.len() < 1 { // Avoid calling random_range with 0..0, which would panic if no mascots are owned
+        if self.owned_mascots.is_empty() {
+            // Avoid calling random_range with 0..0, which would panic if no mascots are owned
             return Mascot::Rare(RareMascot::Duck);
         }
 
-        let enumerated_mascots: Vec<(usize,&Mascot)> = self.owned_mascots.iter().enumerate().collect();
+        let enumerated_mascots: Vec<(usize, &Mascot)> =
+            self.owned_mascots.iter().enumerate().collect();
         let random_number = random_range(0..enumerated_mascots.len());
 
         *enumerated_mascots.get(random_number).unwrap().1
