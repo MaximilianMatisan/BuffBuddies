@@ -1,3 +1,4 @@
+use std::f32::consts::PI;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color;
 use crate::common::mascot_mod::mascot::Mascot;
@@ -8,7 +9,9 @@ use iced::widget::{Button, button};
 use iced::{Background, Color, Element, Gradient, Renderer};
 use iced_core::border::Radius;
 use iced_core::widget::text;
-use iced_core::{Border, Theme};
+use iced_core::{color, Border, Shadow, Theme, Vector};
+use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, DARK_SHADOW, HIGHLIGHTED_CONTAINER_COLOR};
+use crate::client::gui::bb_widget::activity_widget::date_utils::Offset;
 
 pub const TAB_BUTTON_WIDTH: f32 = 225.0;
 pub const TAB_BUTTON_HEIGHT: f32 = 45.0;
@@ -171,5 +174,77 @@ where
             mascot.get_secondary_color(),
             custom_border_radius,
         ),
+    }
+}
+
+pub fn create_gradient_mascot_style(
+    status: Status,
+    mascot: Mascot
+) -> iced::widget::button::Style {
+
+    let active_color = HIGHLIGHTED_CONTAINER_COLOR;
+    let pressed_color = mascot.get_primary_color();
+    let hovered_color = mascot.get_secondary_color();
+
+
+    let active_color_stops =  [
+        ColorStop {
+        offset: 0.0,
+        color: active_color,
+        },
+        ColorStop {
+            offset: 1.0,
+            color: active_color,
+        }
+    ];
+
+    let pressed_color_stops =  [
+        ColorStop {
+            offset: 0.0,
+            color: pressed_color,
+        },
+        ColorStop {
+            offset: 1.0,
+            color: pressed_color,
+        }
+    ];
+
+    let hovered_color_stops = [
+        ColorStop {
+            offset: 0.0,
+            color: hovered_color,
+        },
+        ColorStop {
+            offset: 0.7,
+            color: CONTAINER_COLOR,
+        },
+    ];
+
+    let gradient =
+        match status {
+            Status::Active => Gradient::Linear(Linear::new(0)
+                .add_stops(active_color_stops)),
+
+            Status::Disabled => Gradient::Linear(Linear::new(0.0)
+                .add_stops([ColorStop{..Default::default()}])), //buttons using this gradient never are disabled
+
+            button::Status::Pressed => Gradient::Linear(Linear::new(0.0)
+                .add_stops(pressed_color_stops)),
+
+            Status::Hovered => Gradient::Linear(Linear::new(0.0)
+                .add_stops(hovered_color_stops)),
+        };
+
+    iced::widget::button::Style {
+        background: Some(Background::Gradient(gradient)),
+
+        border: match status {
+            Status::Active => Border::default()
+                .color(pressed_color)
+                .rounded(10),
+            _ => Border::default().width(2.5).color(Color::WHITE).rounded(24),
+        },
+
+        ..Default::default()
     }
 }

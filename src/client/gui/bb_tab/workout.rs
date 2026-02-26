@@ -56,7 +56,7 @@ impl App {
         .width(FRAME_WIDTH);
 
         let recent_workouts_row = Row::new()
-            .push(new_widget::new_workout_widget_button())
+            .push(new_widget::new_workout_widget_button(self.mascot_manager.selected_mascot))
             .push(WorkoutWidget::default_recent_workout_widget())
             .push(WorkoutWidget::default_recent_workout_widget())
             .push(WorkoutWidget::default_recent_workout_widget())
@@ -87,7 +87,7 @@ impl App {
         .add_horizontal_scrollbar(WIDGET_SCROLLBAR_WIDTH, 0.0);
 
         let workout_preset_scrollable_with_button = Row::new()
-            .push(new_widget::new_preset_widget_button())
+            .push(new_widget::new_preset_widget_button(self.mascot_manager.selected_mascot))
             .push(workout_preset_scrollable)
             .spacing(INDENT);
 
