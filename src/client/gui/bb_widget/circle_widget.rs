@@ -42,7 +42,11 @@ impl<'a> CircleWidget<'a> {
         CircleWidget {
             active_mascot: app.mascot_manager.selected_mascot,
             circle_widget_state: &app.widget_manager.circle_widget_state,
-            completed_exercises: 2,
+            completed_exercises: app
+                .user_manager
+                .user_info
+                .profile_stat_manager
+                .workouts_this_week,
             total_exercises: app.user_manager.user_info.user_goals.weekly_workouts as u32, //CANNOT BE ZERO OR ELSE APP CRASHES
         }
     }

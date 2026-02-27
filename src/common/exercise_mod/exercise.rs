@@ -168,7 +168,7 @@ pub fn get_maximum_weight(data_points: &ExerciseDataPoints) -> Option<f32> {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
     use crate::common::exercise_mod::set::Reps;
 
@@ -211,7 +211,7 @@ mod tests {
         )
     }
 
-    const MOCK_DATES: [NaiveDate; 2] = [
+    pub const MOCK_DATES: [NaiveDate; 2] = [
         NaiveDate::from_ymd_opt(2025, 1, 1).unwrap(),
         NaiveDate::from_ymd_opt(2025, 1, 2).unwrap(),
     ];
@@ -224,7 +224,7 @@ mod tests {
         [55.0, MOCK_BEST_WEIGHT_DAY_TWO, 57.5],
     ];
     const MOCK_REPS: [[Reps; MOCK_SETS_PER_DAY]; MOCK_DAYS] = [[13, 12, 10], [15, 15, 11]];
-    fn mock_exercise() -> Exercise {
+    pub fn mock_exercise() -> Exercise {
         let mut exercise = Exercise::new(GeneralExerciseInfo::test_obj());
 
         for day in 0..MOCK_DAYS {

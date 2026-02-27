@@ -410,7 +410,8 @@ impl App {
                 self.pop_up_manager.new_pop_up(
                     PopUpType::Major,
                     "Error while fetching login data!".to_string(),
-                    "There was an error while fetching the login data. \nTry again later!".to_string(),
+                    "There was an error while fetching the login data. \nTry again later!"
+                        .to_string(),
                 );
                 Task::none()
             }
@@ -486,7 +487,7 @@ impl App {
         });
 
         let tab_window: Option<Element<Message>> = match self.screen {
-            Tab::Loading => { return self.view_loading_screen() }
+            Tab::Loading => return self.view_loading_screen(),
             Tab::Home => Some(self.homescreen()),
             Tab::Workout => Some(self.workout_screen()),
             Tab::Health => Some(self.health_screen()),

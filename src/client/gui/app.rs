@@ -76,7 +76,7 @@ impl App {
             .progress_bar_state_manager
             .update_goals(&self.user_manager.user_info)
     }
-    
+
     /// This function updates the screen and login state <br>
     /// Call this AFTER the user got their login data successfully
     pub fn login_if_fetching_login_data_successful(&mut self) {

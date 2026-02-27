@@ -12,7 +12,6 @@ use crate::client::gui::{
     user_interface::Message,
 };
 
-
 impl App {
     pub fn view_loading_screen(&self) -> Element<'_, Message> {
         let loading_text = format_description_text(text("loading...")).center();

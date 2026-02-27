@@ -1,5 +1,6 @@
 use crate::client::gui::bb_widget::activity_widget::activity::SquareDimensions;
 use chrono::{Datelike, Days, Duration, Months, NaiveDate, Weekday};
+use std::collections::HashSet;
 use strum_macros::{Display, EnumIter};
 
 pub const DAYS_PER_WEEK: u32 = 7;
@@ -114,16 +115,47 @@ pub fn started_weeks_in_period(start: NaiveDate, end: NaiveDate) -> u32 {
     if start > end {
         return 0;
     }
-    let mut first_week_monday_finder = start;
-    while first_week_monday_finder.weekday() != Weekday::Mon {
-        first_week_monday_finder -= Duration::days(1);
-    }
-    let mut last_week_sunday_finder = end;
-    while last_week_sunday_finder.weekday() != Weekday::Sun {
-        last_week_sunday_finder += Duration::days(1);
+    let monday_of_first_week = get_monday_of_week_belonging_to_date(start);
+    let sunday_of_last_week = get_sunday_of_week_belonging_to_date(end);
+
+    (((sunday_of_last_week - monday_of_first_week).num_days() + 1) / 7) as u32
+}
+
+/// Calculates the date of monday for the week the given `date` belongs to
+pub fn get_monday_of_week_belonging_to_date(date: NaiveDate) -> NaiveDate {
+    let mut monday_finder = date;
+
+    while monday_finder.weekday() != Weekday::Mon {
+        monday_finder -= Duration::days(1);
     }
 
-    (((last_week_sunday_finder - first_week_monday_finder).num_days() + 1) / 7) as u32
+    monday_finder
+}
+
+/// Calculates the date of sunday for the week the given `date` belongs to
+pub fn get_sunday_of_week_belonging_to_date(date: NaiveDate) -> NaiveDate {
+    let mut sunday_finder = date;
+
+    while sunday_finder.weekday() != Weekday::Sun {
+        sunday_finder += Duration::days(1);
+    }
+
+    sunday_finder
+}
+
+/// Returns the dates of the week in which the given `date` falls
+pub fn get_dates_of_week_belonging_to_date(date: NaiveDate) -> HashSet<NaiveDate> {
+    let mut dates: HashSet<NaiveDate> = HashSet::new();
+
+    let mut monday_date_week = get_monday_of_week_belonging_to_date(date);
+    let sunday_date_week = get_sunday_of_week_belonging_to_date(date);
+
+    while monday_date_week <= sunday_date_week {
+        dates.insert(monday_date_week);
+        monday_date_week += Duration::days(1);
+    }
+
+    dates
 }
 
 #[cfg(test)]
@@ -287,5 +319,63 @@ mod tests {
             NaiveDate::from_ymd_opt(2026, 1, 27).unwrap(),
         );
         assert_eq!(weeks, 1);
+    }
+    #[test]
+    fn monday_of_week_if_date_is_monday() {
+        let date = NaiveDate::from_ymd_opt(2026, 2, 23).unwrap();
+
+        assert_eq!(get_monday_of_week_belonging_to_date(date), date)
+    }
+
+    #[test]
+    fn monday_of_week_if_date_is_sunday() {
+        let searched_monday = NaiveDate::from_ymd_opt(2026, 2, 23).unwrap();
+        let date = NaiveDate::from_ymd_opt(2026, 3, 1).unwrap();
+
+        assert_eq!(get_monday_of_week_belonging_to_date(date), searched_monday)
+    }
+
+    #[test]
+    fn sunday_of_week_if_date_is_sunday() {
+        let date = NaiveDate::from_ymd_opt(2026, 3, 1).unwrap();
+
+        assert_eq!(get_sunday_of_week_belonging_to_date(date), date)
+    }
+
+    #[test]
+    fn sunday_of_week_if_date_is_monday() {
+        let searched_sunday = NaiveDate::from_ymd_opt(2026, 3, 1).unwrap();
+        let date = NaiveDate::from_ymd_opt(2026, 2, 23).unwrap();
+
+        assert_eq!(get_sunday_of_week_belonging_to_date(date), searched_sunday)
+    }
+    #[test]
+    fn days_of_week_equals_seven() {
+        let date = NaiveDate::from_ymd_opt(2025, 12, 31).unwrap();
+        let dates_hash_set = get_dates_of_week_belonging_to_date(date);
+
+        assert_eq!(dates_hash_set.len(), 7);
+    }
+
+    #[test]
+    fn dates_of_week_check() {
+        let date = NaiveDate::from_ymd_opt(2026, 2, 27).unwrap();
+        let dates_hash_set = get_dates_of_week_belonging_to_date(date);
+
+        let real_dates_of_week = [
+            NaiveDate::from_ymd_opt(2026, 2, 23).unwrap(),
+            NaiveDate::from_ymd_opt(2026, 2, 24).unwrap(),
+            NaiveDate::from_ymd_opt(2026, 2, 25).unwrap(),
+            NaiveDate::from_ymd_opt(2026, 2, 26).unwrap(),
+            NaiveDate::from_ymd_opt(2026, 2, 27).unwrap(),
+            NaiveDate::from_ymd_opt(2026, 2, 28).unwrap(),
+            NaiveDate::from_ymd_opt(2026, 3, 1).unwrap(),
+        ];
+
+        assert_eq!(dates_hash_set.len(), 7);
+
+        for real_date in real_dates_of_week {
+            assert!(dates_hash_set.contains(&real_date));
+        }
     }
 }
