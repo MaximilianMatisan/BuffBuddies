@@ -1,5 +1,3 @@
-use crate::client::gui::app::App;
-use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::server_communication::server_communicator::LoginRequest;
 
 pub enum LoginStateError {
