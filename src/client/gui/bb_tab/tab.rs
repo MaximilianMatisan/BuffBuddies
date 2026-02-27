@@ -1,8 +1,9 @@
 use strum_macros::Display;
 
-#[derive(Debug, Clone, PartialEq, Display)]
+#[derive(Default, Debug, Clone, PartialEq, Display)]
 pub enum Tab {
     //TAB-BUTTONS
+    #[default]
     Home,
     Workout,
     Health,
@@ -12,6 +13,7 @@ pub enum Tab {
     Exit,
     //Further frames
     ViewProfile,
+    Loading,
     CreateWorkout,
     CreatePreset,
 }

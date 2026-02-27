@@ -1,3 +1,5 @@
+use crate::client::gui::app::App;
+use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::server_communication::server_communicator::LoginRequest;
 
 pub enum LoginStateError {
@@ -13,11 +15,10 @@ impl LoginStateError {
         slice.to_string()
     }
 }
-#[derive(Default, Debug)]
+#[derive(Eq, PartialEq, Default, Debug)]
 pub enum LoginStates {
     #[default]
     NotLoggedIn,
-    FetchingLoginData,
     LoggedIn,
 }
 
