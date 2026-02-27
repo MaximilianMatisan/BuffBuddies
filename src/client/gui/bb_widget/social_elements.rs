@@ -40,7 +40,9 @@ pub fn friend_user_button<'a>(
     let name = format_button_text(text(cropped_username)).size(24);
     let streak = format_description_text(text(format!(
         "{}-week-streak",
-        user.user_information.weekly_workout_streak
+        user.user_information
+            .profile_stat_manager
+            .weekly_workout_streak
     )));
 
     let mascot_handle = app
@@ -88,7 +90,9 @@ pub fn user_profile_button<'a>(
     let name = format_button_text(text(&user.user_information.username));
     let streak = format_description_text(text(format!(
         "{}-week-streak",
-        user.user_information.weekly_workout_streak
+        user.user_information
+            .profile_stat_manager
+            .weekly_workout_streak
     )));
 
     let text_column = Column::new().push(name).push(streak);
@@ -141,7 +145,10 @@ pub fn profile_tab_button(app: &App) -> iced_anim::widget::Button<Message> {
             format_button_text(
                 iced::widget::text(format!(
                     "{} week streak",
-                    app.user_manager.user_info.weekly_workout_streak
+                    app.user_manager
+                        .user_info
+                        .profile_stat_manager
+                        .weekly_workout_streak
                 ))
                 .size(12)
             )

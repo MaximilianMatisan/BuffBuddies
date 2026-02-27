@@ -31,7 +31,6 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         "CREATE TABLE IF NOT EXISTS users (
     username TEXT PRIMARY KEY,
     user_password TEXT NOT NULL,
-    weekly_workout_streak INTEGER NOT NULL,
     coin_balance INTEGER NOT NULL,
     weight FLOAT NOT NULL,
     height FLOAT NOT NULL,
@@ -178,11 +177,10 @@ pub async fn add_user(
     password: &str,
 ) -> Result<(), sqlx::Error> {
     let default_info = UserInformation::default(&Vec::new());
-    sqlx::query("INSERT INTO users (username, user_password, weekly_workout_streak, coin_balance, weight, height, gender, favorite_mascot, selected_mascot, profile_picture)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    sqlx::query("INSERT INTO users (username, user_password, coin_balance, weight, height, gender, favorite_mascot, selected_mascot, profile_picture)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
         .bind(username)
         .bind(password)
-        .bind(default_info.weekly_workout_streak)
         .bind(default_info.coin_balance)
         .bind(default_info.weight)
         .bind(default_info.height)
@@ -241,7 +239,6 @@ pub async fn get_all_usernames(pool: &SqlitePool) -> Result<Vec<String>, sqlx::E
     }
     Ok(names)
 }
-#[allow(dead_code)]
 pub async fn update_user_goals(
     pool: &SqlitePool,
     username: &str,
@@ -828,6 +825,8 @@ pub async fn get_single_foreign_user(
         owned_mascots.push(mascot_from_string(&mascot_name));
     }
 
+    let user_goals = get_user_goals(pool, target_username).await?;
+
     Ok(ForeignUser {
         user_information: UserInformation {
             username: row.get("username"),
@@ -839,11 +838,13 @@ pub async fn get_single_foreign_user(
                 "Female" => Gender::Female,
                 _ => Gender::Male,
             },
-            weekly_workout_streak: row.get::<i64, _>("weekly_workout_streak") as u32,
             coin_balance: row.get::<i64, _>("coin_balance") as u32,
             favorite_mascot: mascot_from_string(row.get("favorite_mascot")),
-            user_goals: get_user_goals(pool, target_username).await?,
-            profile_stat_manager: ProfileStatManager::new(&exercise_stats),
+            profile_stat_manager: ProfileStatManager::new(
+                &exercise_stats,
+                user_goals.weekly_workouts as u32,
+            ),
+            user_goals,
         },
         selected_mascot: mascot_from_string(row.get("selected_mascot")),
         owned_mascots,
@@ -1211,6 +1212,8 @@ pub async fn get_user_information(
 
     let exercise_stats = get_exercises_stats(pool, username).await?;
 
+    let user_goals = get_user_goals(pool, username).await?;
+
     Ok(UserInformation {
         username: row.get("username"),
         description: row.get("description"),
@@ -1221,10 +1224,12 @@ pub async fn get_user_information(
             "Female" => Gender::Female,
             _ => Gender::Male,
         },
-        weekly_workout_streak: row.get::<i64, _>("weekly_workout_streak") as u32,
         coin_balance: row.get::<i64, _>("coin_balance") as u32,
         favorite_mascot: mascot_from_string(row.get("favorite_mascot")),
-        user_goals: get_user_goals(pool, username).await?,
-        profile_stat_manager: ProfileStatManager::new(&exercise_stats),
+        profile_stat_manager: ProfileStatManager::new(
+            &exercise_stats,
+            user_goals.weekly_workouts as u32,
+        ),
+        user_goals,
     })
 }
