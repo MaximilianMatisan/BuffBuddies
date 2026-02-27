@@ -2,7 +2,8 @@ use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::client::server_communication::server_communicator::SetJson;
 use crate::common::exercise_mod::exercise::Exercise;
 use crate::common::exercise_mod::general_exercise::{
-    ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Muscle,
+    ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Id,
+    Muscle,
 };
 use crate::common::exercise_mod::set::StrengthSet;
 use crate::common::exercise_mod::weight::Kg;
@@ -699,7 +700,7 @@ pub async fn add_workout_to_exercise_log(
     username: &str,
     workout: Vec<ExerciseJson>,
     date: NaiveDate,
-) -> Result<(), sqlx::Error> {
+) -> Result<Id, sqlx::Error> {
     let mut transaction = pool.begin().await?;
 
     let max_id_row = sqlx::query("SELECT MAX(workout_id) as max_id FROM exerciseLog")
@@ -740,7 +741,7 @@ pub async fn add_workout_to_exercise_log(
 
     transaction.commit().await?;
 
-    Ok(())
+    Ok(next_id as Id)
 }
 
 pub async fn get_exercises_stats(
@@ -748,7 +749,7 @@ pub async fn get_exercises_stats(
     username: &str,
 ) -> Result<Vec<Exercise>, sqlx::Error> {
     let exercise_row_for_user = sqlx::query(
-        "SELECT date,reps,weight_in_kg,exercise_id FROM exerciseLog WHERE username = ? ",
+        "SELECT date,reps,weight_in_kg,exercise_id,workout_id FROM exerciseLog WHERE username = ? ",
     )
     .bind(username)
     .fetch_all(pool)
@@ -773,6 +774,7 @@ pub async fn get_exercises_stats(
 
     for exercise_log_counter in exercise_row_for_user {
         let exercise_id: i64 = exercise_log_counter.get("exercise_id");
+        let workout_id: Id = exercise_log_counter.get("workout_id");
         let reps: u32 = exercise_log_counter.get("reps");
         let weight: Kg = exercise_log_counter.get("weight_in_kg");
         let date: &str = exercise_log_counter.get("date");
@@ -783,7 +785,11 @@ pub async fn get_exercises_stats(
             if exercise_ids[i] == exercise_id {
                 let exercise = &mut exercises[i];
                 exercise.sets.entry(real_date).or_insert_with(Vec::new);
-                let set = StrengthSet { weight, reps };
+                let set = StrengthSet {
+                    workout_id,
+                    weight,
+                    reps,
+                };
                 //exercise.name = real_name;
                 exercise.sets.get_mut(&real_date).unwrap().push(set);
             }

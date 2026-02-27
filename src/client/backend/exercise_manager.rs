@@ -1,4 +1,6 @@
-use crate::client::backend::exercise_create::{ExerciseCreate, ExerciseCreateString};
+use crate::client::backend::exercise_create::{
+    ExerciseCreate, ExerciseCreateString, WorkoutCreate,
+};
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
 use crate::client::gui::bb_theme::combo_box::{
@@ -8,7 +10,8 @@ use crate::common::exercise_mod::exercise::{
     Exercise, ExerciseDataPoints, generate_example_exercise,
 };
 use crate::common::exercise_mod::general_exercise::{
-    ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Muscle,
+    ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Id,
+    Muscle,
 };
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
@@ -45,7 +48,7 @@ pub struct ExerciseManager {
     pub weight_personal_record: Kg,
     pub set_with_most_total_lifted_weight: (NaiveDate, Kg),
     // Needed for exercise creation menu
-    pub workout_in_creation: Option<Vec<ExerciseCreate>>,
+    pub workout_in_creation: Option<WorkoutCreate>,
     pub exercise_in_edit_number: Option<ExerciseNumber>,
     pub exercise_in_edit_strings: Option<ExerciseCreateString>,
 }
@@ -141,7 +144,7 @@ impl ExerciseManager {
 
         self.update_selected_exercise(selected_exercise)
     }
-    /// Returns a reference to an Exercise, if the name inside of
+    /// Returns a reference to an Exercise, if the name inside
     /// ExerciseManager.selected_exercise_name exists
     /// If the exercise name doesn't exist it returns None
     pub fn get_selected_exercise(&self) -> Option<&Exercise> {
@@ -181,31 +184,31 @@ impl ExerciseManager {
 
     pub fn save_workout(
         &mut self,
-        workout: &Vec<ExerciseCreate>,
+        workout: &WorkoutCreate,
+        workout_id: Id,
         user_info: &mut UserInformation,
-    ) -> Result<bool, ()> {
-        let mut first_workout_today: bool = true;
+    ) {
         let local_time = Local::now().date_naive();
+        let first_workout_today: bool = !self.is_set_tracked_on_date(&local_time);
         for exercise_data in &mut self.exercises {
-            if exercise_data.sets.contains_key(&local_time) {
-                first_workout_today = false;
-            }
-            for exercise in workout {
-                if exercise.name == exercise_data.general_exercise_info.name
-                    && !exercise.sets.is_empty()
+            for exercise_create in workout {
+                if exercise_create.name == exercise_data.general_exercise_info.name
+                    && !exercise_create.sets.is_empty()
                 {
-                    match exercise_data.sets.get(&local_time) {
-                        None => {
-                            exercise_data.sets.insert(local_time, exercise.sets.clone());
-                        }
-                        Some(old_sets_same_day) => {
-                            let mut new_vec = old_sets_same_day.clone();
-                            for set in &exercise.sets {
-                                new_vec.push(set.clone());
-                            }
-                            exercise_data.sets.remove(&local_time);
-                            exercise_data.sets.insert(local_time, new_vec);
-                        }
+                    let workout_sets: Vec<StrengthSet> = exercise_create
+                        .sets
+                        .iter()
+                        .map(|set_create| {
+                            StrengthSet::from_strength_set_create(set_create, workout_id)
+                        })
+                        .collect();
+
+                    for workout_set in workout_sets {
+                        exercise_data
+                            .sets
+                            .entry(local_time)
+                            .or_default()
+                            .push(workout_set);
                     }
                 }
             }
@@ -213,10 +216,21 @@ impl ExerciseManager {
         if first_workout_today {
             user_info.coin_balance += 5;
         }
+        // Update stats based on new exercise data
         self.update_selected_exercise(self.selected_exercise_name.clone());
         user_info.profile_stat_manager = ProfileStatManager::new(&self.exercises);
         self.tracked_exercise_state = get_combo_box_tracked_exercise_state(&self.exercises);
-        Ok(first_workout_today)
+    }
+
+    /// Returns whether a set of any exercise was tracked on the given day or not
+    pub fn is_set_tracked_on_date(&self, date: &NaiveDate) -> bool {
+        let mut first_workout_today = false;
+        for exercise_data in &self.exercises {
+            if exercise_data.sets.contains_key(date) {
+                first_workout_today = true;
+            }
+        }
+        first_workout_today
     }
 
     pub fn clear_workout(&mut self) {
@@ -299,7 +313,7 @@ mod tests {
         let mut test_stats: BTreeMap<NaiveDate, Vec<StrengthSet>> = BTreeMap::new();
         test_stats.insert(
             NaiveDate::default(),
-            vec![StrengthSet::new(ExerciseWeight::Kg(10.0), 1)],
+            vec![StrengthSet::new(0, ExerciseWeight::Kg(10.0), 1)],
         );
         let mock_exercise = Exercise {
             general_exercise_info: GeneralExerciseInfo {
