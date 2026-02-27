@@ -40,8 +40,6 @@ pub async fn get_exercise_data_from_server(
         .error_for_status()
         .map_err(|_| ServerRequestError::HTTPError)?;
 
-    //println!("{}", response.status());
-
     let data = response
         .json::<Vec<Exercise>>()
         .await

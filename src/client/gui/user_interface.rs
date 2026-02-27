@@ -1,3 +1,4 @@
+use crate::client::backend::exercise_create::WorkoutCreate;
 use crate::client::backend::login_state::LoginStates;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
@@ -30,10 +31,10 @@ use crate::client::server_communication::mascot_communicator::{
     buy_mascot, update_selected_mascot_on_server,
 };
 use crate::client::server_communication::request_data::LoginServerRequestData;
-use crate::client::server_communication::server_communicator::SaveWorkoutError;
 use crate::client::server_communication::user_communicator::{
     add_foreign_user_as_friend_on_server, remove_foreign_user_as_friend_on_server,
 };
+use crate::common::exercise_mod::general_exercise::Id;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
@@ -86,7 +87,7 @@ pub enum Message {
 
     // WorkoutMessage (Combine)
     WorkoutCreation(WorkoutCreationMessage),
-    SaveWorkout(Result<(), SaveWorkoutError>),
+    SaveWorkout(Result<Id, ServerRequestError>, WorkoutCreate),
 
     // PresetMessage (Can stay)
     PresetCreation(PresetCreationMessage),
@@ -373,17 +374,23 @@ impl App {
                 Task::none()
             }
             Message::WorkoutCreation(workout_creation_msg) => workout_creation_msg.update(self),
-            Message::SaveWorkout(Err(err)) => {
-                match err {
-                    SaveWorkoutError::ServerError => self.pop_up_manager.new_pop_up(
-                        PopUpType::Minor,
-                        "Error while sending workout to server!".to_string(),
-                        "Server offline or had internal error \nTry again later".to_string(),
-                    ),
-                }
+            Message::SaveWorkout(Err(_), _) => {
+                self.pop_up_manager.new_pop_up(
+                    PopUpType::Minor,
+                    "Error while sending workout to server!".to_string(),
+                    "Server offline or had internal error \nTry again later".to_string(),
+                );
                 Task::none()
             }
-            Message::SaveWorkout(Ok(())) => Task::none(),
+            Message::SaveWorkout(Ok(id), workout_create) => {
+                self.exercise_manager.save_workout(
+                    &workout_create,
+                    id,
+                    &mut self.user_manager.user_info,
+                );
+                Task::none()
+            }
+
             Message::PresetCreation(preset_creation_msg) => preset_creation_msg.update(self),
             Message::Login(login_msg) => login_msg.update(self),
             Message::RequestLoginData(Ok(data)) => {

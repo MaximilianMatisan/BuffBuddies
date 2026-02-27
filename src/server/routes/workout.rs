@@ -1,3 +1,4 @@
+use crate::common::exercise_mod::general_exercise::Id;
 use crate::server::database_mod::database::{
     add_workout_to_exercise_log, get_user_coin_balance, update_user_coin_balance,
 };
@@ -31,8 +32,8 @@ pub async fn save_workout(
     user_authentication: UserAuthenticationRequestPath,
     State(pool): State<SqlitePool>,
     Json(workout): Json<WorkoutJson>,
-) -> Result<(), ApiError> {
-    add_workout_to_exercise_log(
+) -> Result<Json<Id>, ApiError> {
+    let workout_id = add_workout_to_exercise_log(
         &pool,
         &user_authentication.username,
         workout.workout,
@@ -45,5 +46,6 @@ pub async fn save_workout(
         update_user_coin_balance(&pool, &user_authentication.username, current_coins + 5).await?;
     }
     println!("{}: Workout received", user_authentication.username);
-    Ok(())
+
+    Ok(Json(workout_id))
 }

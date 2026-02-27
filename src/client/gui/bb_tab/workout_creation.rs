@@ -1,4 +1,4 @@
-use crate::client::backend::exercise_create::ExerciseCreate;
+use crate::client::backend::exercise_create::{ExerciseCreate, StrengthSetCreate, WorkoutCreate};
 use crate::client::backend::exercise_manager::CreateWorkoutError;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
@@ -14,9 +14,9 @@ use crate::client::gui::bb_theme::text_format::{
 };
 use crate::client::gui::user_interface::Message;
 use crate::client::server_communication::server_communicator::save_workout;
-use crate::common::exercise_mod::set::StrengthSet;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::workout_preset::WorkoutPreset;
+use chrono::Local;
 use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{
     Column, Row, Scrollable, Space, combo_box, container, image, row, stack, text, text_input,
@@ -191,43 +191,31 @@ impl WorkoutCreationMessage {
                     }
                 }
 
-                let mut err: bool = false;
-                let mut workout_clone: Option<Vec<ExerciseCreate>> = None;
-                let mut first_workout = false;
+                let mut workout_clone: Option<WorkoutCreate> = None;
+                let local_date = Local::now().date_naive();
+                let is_first_workout_today =
+                    !app.exercise_manager.is_set_tracked_on_date(&local_date);
+
                 if let Some(workout) = &app.exercise_manager.workout_in_creation {
                     workout_clone = Some(workout.clone());
-                    if let Ok(first_work) = app
-                        .exercise_manager
-                        .save_workout(&workout.clone(), &mut app.user_manager.user_info)
-                    {
-                        first_workout = first_work;
-                    } else {
-                        err = true;
-                        app.pop_up_manager.new_pop_up(
-                            PopUpType::Minor,
-                            "Failed Saving Workout".to_string(),
-                            "Something went wrong during the saving progress of your workout"
-                                .to_string(),
-                        );
-                    }
                 }
+
+                //TODO move and change to loading screen
                 app.exercise_manager.clear_workout();
                 app.screen = Tab::Workout;
+
                 if let Some(workout) = workout_clone {
-                    if !err {
-                        let workout_clone = workout.clone();
-                        if let Some(jwt) = &app.jsonwebtoken {
-                            return Task::perform(
-                                save_workout(jwt.clone(), workout_clone, first_workout),
-                                Message::SaveWorkout,
-                            );
-                        } else {
-                            app.pop_up_manager.new_pop_up(
-                                PopUpType::Minor,
-                                "Saving workout failed!".to_string(),
-                                "Log in to save workouts!".to_string(),
-                            );
-                        }
+                    if let Some(jwt) = &app.jsonwebtoken {
+                        return Task::perform(
+                            save_workout(jwt.clone(), workout.clone(), is_first_workout_today),
+                            move |result| Message::SaveWorkout(result, workout.clone()),
+                        );
+                    } else {
+                        app.pop_up_manager.new_pop_up(
+                            PopUpType::Minor,
+                            "Saving Workout failed".to_string(),
+                            "Log in to save workout".to_string(),
+                        );
                     }
                 }
                 Task::none()
@@ -273,10 +261,12 @@ impl WorkoutCreationMessage {
 }
 
 pub fn add_set(app: &mut App, exercise_name: &String) {
-    let set = app
+    let set: StrengthSetCreate = app
         .exercise_manager
         .get_last_done_set(exercise_name)
-        .unwrap_or_default();
+        .unwrap_or_default()
+        .into();
+
     if let Some(workout) = &mut app.exercise_manager.workout_in_creation {
         let exercise_sets =
             &mut workout[app.exercise_manager.exercise_in_edit_number.unwrap() - 1].sets;
@@ -491,7 +481,7 @@ pub fn view_delete_button(exercise_number: ExerciseNumber, app: &App) -> Element
     .into()
 }
 
-pub fn view_set_no_edit(set: &StrengthSet, number: SetNumber) -> Element<Message> {
+pub fn view_set_no_edit(set: &StrengthSetCreate, number: SetNumber) -> Element<Message> {
     let set_number: Element<Message> = container(format_button_text(text(number.to_string())))
         .width(FillPortion(1))
         .center(Fill)

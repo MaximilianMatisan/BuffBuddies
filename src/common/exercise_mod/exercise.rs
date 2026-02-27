@@ -1,4 +1,4 @@
-use crate::common::exercise_mod::general_exercise::GeneralExerciseInfo;
+use crate::common::exercise_mod::general_exercise::{GeneralExerciseInfo, Id};
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 use chrono::{Duration, Local, NaiveDate};
@@ -143,14 +143,14 @@ pub fn generate_example_exercise(
     let variation: Kg = 1.1;
     let mut rand = rand::rng();
 
-    for _ in 0..sets_on_different_days {
+    for day in 0..sets_on_different_days {
         let random_number = rand.random_range(-1..=2);
         weight += variation * random_number as Kg;
         exercise.sets.insert(
             cur_day,
             vec![
-                StrengthSet::new(ExerciseWeight::Kg(weight), 10),
-                StrengthSet::new(ExerciseWeight::Kg(weight), 10),
+                StrengthSet::new(day as Id, ExerciseWeight::Kg(weight), 10),
+                StrengthSet::new(day as Id, ExerciseWeight::Kg(weight), 10),
             ],
         );
         cur_day += Duration::days(1)
@@ -185,13 +185,14 @@ mod tests {
     ) -> Exercise {
         let mut exercise = Exercise::new(GeneralExerciseInfo::test_obj());
         let mut date = first_tracked_day;
-        for _ in 0..tracked_days {
+        for day in 0..tracked_days {
             for _ in 0..sets_per_day {
                 exercise
                     .sets
                     .entry(date)
                     .or_default()
                     .push(StrengthSet::new(
+                        day,
                         ExerciseWeight::Kg(weight_per_set),
                         reps_per_set,
                     ))
@@ -233,6 +234,7 @@ mod tests {
                     .entry(MOCK_DATES[day])
                     .or_default()
                     .push(StrengthSet::new(
+                        day as Id,
                         ExerciseWeight::Kg(MOCK_WEIGHT[day][set]),
                         MOCK_REPS[day][set],
                     ));

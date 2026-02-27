@@ -1,5 +1,7 @@
-use crate::client::backend::exercise_create::ExerciseCreate;
-use crate::common::exercise_mod::set::{Reps, StrengthSet};
+use crate::client::backend::exercise_create::{ExerciseCreate, StrengthSetCreate, WorkoutCreate};
+use crate::client::server_communication::exercise_communicator::ServerRequestError;
+use crate::common::exercise_mod::general_exercise::Id;
+use crate::common::exercise_mod::set::Reps;
 use crate::common::exercise_mod::weight::Kg;
 use serde::{Deserialize, Serialize};
 
@@ -13,11 +15,6 @@ impl From<(String, String)> for LoginRequest {
     fn from((username, password): (String, String)) -> Self {
         LoginRequest { username, password }
     }
-}
-
-#[derive(Clone, Debug)]
-pub enum SaveWorkoutError {
-    ServerError,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -68,8 +65,8 @@ pub struct SetJson {
     pub(crate) reps: Reps,
 }
 
-impl From<StrengthSet> for SetJson {
-    fn from(strength_set: StrengthSet) -> Self {
+impl From<StrengthSetCreate> for SetJson {
+    fn from(strength_set: StrengthSetCreate) -> Self {
         SetJson {
             weight: strength_set.weight,
             reps: strength_set.reps,
@@ -79,18 +76,26 @@ impl From<StrengthSet> for SetJson {
 
 pub async fn save_workout(
     jwt: String,
-    workout: Vec<ExerciseCreate>,
+    workout: WorkoutCreate,
     first_workout: bool,
-) -> Result<(), SaveWorkoutError> {
+) -> Result<Id, ServerRequestError> {
     let workout_json: WorkoutJson = WorkoutJson::new(workout, first_workout);
-    let res = reqwest::Client::new()
+    let response = reqwest::Client::new()
         .post("http://127.0.0.1:3000/workout/save")
         .json(&workout_json)
         .header("Authorization", format!("Token {jwt}"))
         .send()
-        .await;
-    match res {
-        Ok(_) => Ok(()),
-        Err(_server_error) => Err(SaveWorkoutError::ServerError),
-    }
+        .await
+        .map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
+
+    let response = response
+        .error_for_status()
+        .map_err(|_| ServerRequestError::HTTPError)?;
+
+    let data = response
+        .json::<Id>()
+        .await
+        .map_err(|_| ServerRequestError::CouldNotRetrieveData)?;
+
+    Ok(data)
 }
