@@ -14,21 +14,34 @@ use crate::client::gui::user_interface::Message;
 use crate::client::server_communication::exercise_communicator::ServerRequestError;
 use crate::client::server_communication::preset_communicator::save_preset;
 use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::workout_preset::PresetImage;
 use iced::Color;
 use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{Column, Row, Scrollable, combo_box, container, image, row, text, text_input};
+use iced::widget::{
+    Column, Row, Scrollable, Space, combo_box, container, image, row, text, text_input,
+};
 use iced::{Element, Task};
-use iced_core::Length::{Fill, FillPortion, Shrink};
+use iced_core::Length::{Fill, FillPortion, Fixed, Shrink};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
 use iced_core::text::LineHeight;
 use iced_core::{Alignment, Length, Pixels};
+use strum::IntoEnumIterator;
+
+const ADD_EXERCISE_HEIGHT: f32 = 30.0;
+const BOTTOM_SEGMENT_HEIGHT: f32 = ADD_EXERCISE_HEIGHT + 70.0;
+const MEDIUM_PRESET_PICTURE_WIDTH: f32 = 75.0;
+//times 0.7 to adjust for image scaling which is normally 200x133 so about 7:10
+//if we didn't multiply the image would be bigger than necessary
+const MEDIUM_PRESET_PICTURE_HEIGHT: f32 = MEDIUM_PRESET_PICTURE_WIDTH * 0.7;
 
 #[derive(Clone, Debug)]
 pub enum PresetCreationMessage {
     StartTitleEdit,
     EndTitleEdit,
+    StartImageEdit,
     EditTitle(String),
+    EditImage(PresetImage),
     AddExercise(String),
     DeleteExercise(ExerciseNumber),
     FinishPresetCreation,
@@ -53,12 +66,25 @@ impl PresetCreationMessage {
                 }
                 Task::none()
             }
+            PresetCreationMessage::StartImageEdit => {
+                if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
+                    preset.edit_image = true;
+                }
+                Task::none()
+            }
             PresetCreationMessage::EditTitle(str) => {
                 if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
                     let new_title = str.to_string();
-                    if new_title.len() <= 30 {
+                    if new_title.len() <= 15 {
                         preset.workout_preset.name = new_title;
                     }
+                }
+                Task::none()
+            }
+            PresetCreationMessage::EditImage(new_preset_image) => {
+                if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
+                    preset.workout_preset.image = new_preset_image.clone();
+                    preset.edit_image = false;
                 }
                 Task::none()
             }
@@ -191,6 +217,21 @@ impl App {
         let mut title_row = Row::new();
 
         if let Some(preset) = &self.workout_preset_manager.preset_in_creation {
+            let selected_image = image(Handle::from_path(
+                preset.workout_preset.image.get_file_path(),
+            ))
+            .width(MEDIUM_PRESET_PICTURE_WIDTH)
+            .height(MEDIUM_PRESET_PICTURE_HEIGHT);
+            let selected_image_button = create_element_button(
+                &self.mascot_manager.selected_mascot,
+                selected_image.into(),
+                ButtonStyle::InactiveTransparent,
+                None,
+            )
+            .on_press(Message::PresetCreation(
+                PresetCreationMessage::StartImageEdit,
+            ));
+
             if preset.edit_title {
                 let title: Element<Message> = container(
                     text_input("Enter title...", &preset.workout_preset.name)
@@ -217,12 +258,17 @@ impl App {
                 )
                 .on_press(Message::PresetCreation(PresetCreationMessage::EndTitleEdit))
                 .into();
-                title_row = Row::new().push(title).push(done_button).spacing(INDENT);
+                title_row = Row::new()
+                    .push(selected_image_button)
+                    .push(title)
+                    .push(done_button)
+                    .spacing(INDENT);
             } else {
                 let title_text = format_button_text(text(preset_name))
                     .size(40)
                     .width(300.0)
-                    .height(50.0);
+                    .height(50.0)
+                    .center();
                 let edit_image = image(Handle::from_path("assets/images/edit.png")).into();
                 let edit_button: Element<Message> = create_element_button(
                     &self.mascot_manager.selected_mascot,
@@ -235,21 +281,35 @@ impl App {
                 ))
                 .into();
                 title_row = Row::new()
+                    .push(selected_image_button)
                     .push(title_text)
                     .push(edit_button)
                     .spacing(INDENT);
             }
         }
-        let title_container = container(title_row).center(Fill).height(Shrink).width(Fill);
+        let title_container = container(title_row.align_y(Vertical::Center))
+            .center(Fill)
+            .height(Shrink)
+            .width(Fill);
 
         let separator = separator_line(&self.mascot_manager.selected_mascot, Length::Fixed(5.0));
 
-        let mut column = Column::new().spacing(INDENT);
+        let mut image_selection: Column<Message> = Column::new();
+
+        if let Some(preset) = &self.workout_preset_manager.preset_in_creation {
+            if preset.edit_image {
+                image_selection = image_selection.push(view_preset_image_selection(
+                    &self.mascot_manager.selected_mascot,
+                ))
+            }
+        }
+
+        let mut exercises = Column::new().spacing(INDENT);
 
         if let Some(current_preset) = &self.workout_preset_manager.preset_in_creation {
             let mut counter: ExerciseNumber = 1;
             for exercise in current_preset.workout_preset.exercises.clone() {
-                column = column.push(view_exercise_preset(
+                exercises = exercises.push(view_exercise_preset(
                     exercise,
                     counter,
                     &self.mascot_manager.selected_mascot,
@@ -258,11 +318,11 @@ impl App {
             }
         }
 
-        let exercises = Scrollable::new(column)
+        let exercises_scrollable = Scrollable::new(exercises)
             .direction(Direction::Vertical(Scrollbar::new()))
             .height(FillPortion(5));
 
-        let add_exercise: Element<Message> = combo_box(
+        let add_exercise_search_bar: Element<Message> = combo_box(
             &self.exercise_manager.all_exercise_state,
             "Search for exercise...",
             None,
@@ -276,7 +336,7 @@ impl App {
             BACKGROUND_COLOR,
         ))
         .font(FIRA_SANS_EXTRABOLD)
-        .line_height(LineHeight::Absolute(Pixels(30.0)))
+        .line_height(LineHeight::Absolute(Pixels(ADD_EXERCISE_HEIGHT)))
         .into();
 
         let finish_preset_text = format_button_text(text("Finish Preset Creation"))
@@ -301,26 +361,28 @@ impl App {
         .into();
 
         let add_exercise_and_finish: Column<Message> = Column::new()
-            .push(add_exercise)
+            .push(add_exercise_search_bar)
             .push(finish_preset_button)
             .spacing(10)
-            .height(FillPortion(1))
+            .height(Fixed(BOTTOM_SEGMENT_HEIGHT))
             .width(Fill);
 
-        let exercises_and_bottom_stuff = Column::new()
+        let preset_creation_content = Column::new()
             .push(title_container)
+            .push(image_selection)
             .push(separator)
-            .push(exercises)
+            .push(Space::with_height(INDENT))
+            .push(exercises_scrollable)
             .push(add_exercise_and_finish)
-            .spacing(20);
+            .spacing(INDENT);
 
-        let inner_container = container(exercises_and_bottom_stuff)
+        let preset_creation_formatted = container(preset_creation_content)
             .height(Fill)
             .width(Fill)
             .padding(20)
             .style(create_container_style(ContainerStyle::Default, None, None));
 
-        container(inner_container)
+        container(preset_creation_formatted)
             .width(Fill)
             .height(Fill)
             .style(create_container_style(
@@ -331,4 +393,24 @@ impl App {
             .padding(50)
             .into()
     }
+}
+
+pub fn view_preset_image_selection(mascot: &Mascot) -> Element<Message> {
+    let mut preset_selection_buttons = Row::new();
+    for preset_image in PresetImage::iter() {
+        let image_path = preset_image.get_file_path();
+
+        let image = image(Handle::from_path(image_path.clone()))
+            .width(MEDIUM_PRESET_PICTURE_WIDTH)
+            .height(MEDIUM_PRESET_PICTURE_HEIGHT);
+
+        let image_button =
+            create_element_button(mascot, image.into(), ButtonStyle::InactiveTransparent, None)
+                .on_press(Message::PresetCreation(PresetCreationMessage::EditImage(
+                    preset_image,
+                )));
+
+        preset_selection_buttons = preset_selection_buttons.push(image_button);
+    }
+    container(preset_selection_buttons).center(Fill).into()
 }

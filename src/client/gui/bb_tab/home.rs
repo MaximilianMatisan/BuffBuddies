@@ -1,4 +1,5 @@
 use crate::client::gui::app::App;
+use crate::client::gui::bb_tab::workout::view_presets;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::scrollable::{
     ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH,
@@ -10,10 +11,9 @@ use crate::client::gui::bb_widget::bmi_calculator::BMIWidget;
 use crate::client::gui::bb_widget::chart::chart_environment_widget;
 use crate::client::gui::bb_widget::circle_widget;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::client::gui::bb_widget::workout::WorkoutWidget;
 use crate::client::gui::user_interface::Message;
+use iced::Element;
 use iced::widget::{Column, Row, Space, container, row, text};
-use iced::{Element, Renderer};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
 
@@ -63,12 +63,31 @@ impl App {
                     .into(),
             };
 
-        let track_new_workout_text = text("Track a new workout!")
-            .font(FIRA_SANS_EXTRABOLD)
-            .color(color::TEXT_COLOR)
-            .size(SECONDARY_TEXT_SIZE);
+        let mut track_new_workout_and_presets = Column::new();
 
-        let workout_presets = WorkoutWidget::<Renderer>::create_preset_row();
+        if !self.workout_preset_manager.presets.is_empty() {
+            let track_new_workout_text = text("Track a new workout!")
+                .font(FIRA_SANS_EXTRABOLD)
+                .color(color::TEXT_COLOR)
+                .size(SECONDARY_TEXT_SIZE);
+
+            let workout_presets = view_presets(
+                &self.mascot_manager.selected_mascot,
+                &self.workout_preset_manager.presets,
+            );
+            track_new_workout_and_presets = track_new_workout_and_presets
+                .push(track_new_workout_text)
+                .push(Space::with_height(Length::Fixed(SPACING)))
+                .push(
+                    create_scrollable(
+                        workout_presets,
+                        self.mascot_manager.selected_mascot,
+                        ScrollableStyle::Mascot,
+                    )
+                    .add_horizontal_scrollbar(WIDGET_SCROLLBAR_WIDTH, 0.0),
+                )
+                .push(Space::with_height(Length::Fixed(INDENT)))
+        }
 
         let stats_text = format_button_text(text("Stats")).size(SECONDARY_TEXT_SIZE);
 
@@ -88,17 +107,7 @@ impl App {
         let home_screen_content = Column::new()
             .push(activity_widget_with_mascot)
             .push(Space::with_height(Length::Fixed(SPACING)))
-            .push(track_new_workout_text)
-            .push(Space::with_height(Length::Fixed(SPACING)))
-            .push(
-                create_scrollable(
-                    workout_presets,
-                    self.mascot_manager.selected_mascot,
-                    ScrollableStyle::Mascot,
-                )
-                .add_horizontal_scrollbar(WIDGET_SCROLLBAR_WIDTH, 0.0),
-            )
-            .push(Space::with_height(Length::Fixed(INDENT)))
+            .push(track_new_workout_and_presets)
             .push(stats_text)
             .push(Space::with_height(Length::Fixed(SPACING)))
             .push(chart_widget_with_circle_widget)
