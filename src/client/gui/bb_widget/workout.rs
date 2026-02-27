@@ -3,6 +3,7 @@ use crate::client::gui::bb_theme::scrollable::SCROLLBAR_PADDING;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::client::gui::{bb_theme, bb_widget};
+use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::common::workout_preset::WorkoutPreset;
@@ -26,6 +27,7 @@ const IMAGE_HEIGHT: f32 = 125.0 * SCALE;
 //FONT
 const DEFAULT_TITLE_FONT_SIZE: f32 = 17.0 * SCALE;
 const DEFAULT_DESCRIPTION_FONT_SIZE: f32 = 15.0 * SCALE;
+const MAX_EXERCISE_NAME_LENGTH: usize = 20;
 
 pub struct WorkoutWidget<Renderer>
 where
@@ -73,7 +75,7 @@ where
             width: DEFAULT_WORKOUT_WIDGET_WIDTH,
             height: DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT,
             image: Some(Image::new(image::Handle::from_path(
-                "assets/images/default_preset.png",
+                preset.image.get_file_path(),
             ))),
             title: preset.name.clone(),
             title_font_size: DEFAULT_TITLE_FONT_SIZE,
@@ -117,7 +119,7 @@ where
         self
     }
 
-    pub fn create_preset_row<'a>() -> Row<'a, Message> {
+    pub fn create_example_preset_row<'a>(_mascot: &Mascot) -> Row<'a, Message> {
         let mut workout_presets = Row::new()
             .height(DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT + SCROLLBAR_PADDING)
             .spacing(10);
@@ -231,6 +233,12 @@ where
             }
             std::cmp::Ordering::Greater => printable_exercises.push(". . .".to_string()),
             std::cmp::Ordering::Less => {}
+        }
+
+        for exercise in &mut printable_exercises {
+            if exercise.len() > MAX_EXERCISE_NAME_LENGTH {
+                *exercise = format!("{}...", &exercise[0..MAX_EXERCISE_NAME_LENGTH]);
+            }
         }
 
         for (description_lines, description_exercise) in printable_exercises.into_iter().enumerate()

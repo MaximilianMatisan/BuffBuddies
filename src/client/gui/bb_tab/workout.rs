@@ -15,6 +15,8 @@ use crate::client::gui::bb_widget::workout::{DEFAULT_WORKOUT_PRESET_WIDGET_HEIGH
 use crate::client::gui::bb_widget::{new_widget, workout};
 use crate::client::gui::size::FRAME_WIDTH;
 use crate::client::gui::user_interface::Message;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::workout_preset::WorkoutPreset;
 use iced::Element;
 use iced::widget::{Column, Row, Space, Stack, container, text};
 use iced_anim::Motion;
@@ -72,21 +74,10 @@ impl App {
             .push(background_mascot_with_text)
             .push(aligned_recent_workouts);
 
-        let mut workout_preset_row = Row::new()
-            .height(DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT + SCROLLBAR_PADDING)
-            .spacing(INDENT);
-
-        for preset in &self.workout_preset_manager.presets {
-            workout_preset_row =
-                workout_preset_row.push(workout::WorkoutWidget::new_workout_preset_widget(preset));
-        }
-
-        let workout_preset_scrollable = create_scrollable(
-            workout_preset_row,
-            self.mascot_manager.selected_mascot,
-            ScrollableStyle::Mascot,
-        )
-        .add_horizontal_scrollbar(WIDGET_SCROLLBAR_WIDTH, 0.0);
+        let workout_preset_scrollable = view_presets(
+            &self.mascot_manager.selected_mascot,
+            &self.workout_preset_manager.presets,
+        );
 
         let workout_preset_scrollable_with_button = Row::new()
             .push(new_widget::new_preset_widget_button(
@@ -168,4 +159,19 @@ impl App {
 
         scrollable_workout_interface.into()
     }
+}
+
+pub fn view_presets<'a>(mascot: &Mascot, presets: &'a Vec<WorkoutPreset>) -> Element<'a, Message> {
+    let mut workout_preset_row = Row::new()
+        .height(DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT + SCROLLBAR_PADDING)
+        .spacing(INDENT);
+
+    for preset in presets {
+        workout_preset_row =
+            workout_preset_row.push(workout::WorkoutWidget::new_workout_preset_widget(preset));
+    }
+
+    create_scrollable(workout_preset_row, *mascot, ScrollableStyle::Mascot)
+        .add_horizontal_scrollbar(WIDGET_SCROLLBAR_WIDTH, 0.0)
+        .into()
 }
