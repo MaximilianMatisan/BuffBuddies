@@ -1,6 +1,6 @@
 use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::backend::image_manager::ImageManager;
-use crate::client::backend::login_state::LoginState;
+use crate::client::backend::login_state::{LoginState, LoginStates};
 use crate::client::backend::mascot_manager::MascotManager;
 use crate::client::backend::pop_up_manager::PopUpManager;
 use crate::client::backend::user_manager::UserManager;
@@ -75,5 +75,12 @@ impl App {
         self.widget_manager
             .progress_bar_state_manager
             .update_goals(&self.user_manager.user_info)
+    }
+    
+    /// This function updates the screen and login state <br>
+    /// Call this AFTER the user got their login data successfully
+    pub fn login_if_fetching_login_data_successful(&mut self) {
+        self.login_state.state = LoginStates::LoggedIn;
+        self.screen = Tab::default();
     }
 }

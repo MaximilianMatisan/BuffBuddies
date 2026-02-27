@@ -200,9 +200,8 @@ impl WorkoutCreationMessage {
                     workout_clone = Some(workout.clone());
                 }
 
-                //TODO move and change to loading screen
+                app.screen = Tab::Loading;
                 app.exercise_manager.clear_workout();
-                app.screen = Tab::Workout;
 
                 if let Some(workout) = workout_clone {
                     if let Some(jwt) = &app.jsonwebtoken {
@@ -211,6 +210,7 @@ impl WorkoutCreationMessage {
                             move |result| Message::SaveWorkout(result, workout.clone()),
                         );
                     } else {
+                        app.screen = Tab::Workout;
                         app.pop_up_manager.new_pop_up(
                             PopUpType::Minor,
                             "Saving Workout failed".to_string(),

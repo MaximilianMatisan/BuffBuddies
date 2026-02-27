@@ -14,6 +14,7 @@ use iced::widget::{Column, Space, container, text, text_input};
 use iced::{Element, Task};
 use iced_core::Length::Fill;
 use iced_core::Theme;
+use crate::client::gui::bb_tab::tab::Tab;
 
 const MAX_USERNAME_LENGTH: usize = 15;
 const MAX_PASSWORD_LENGTH: usize = 100;
@@ -55,7 +56,7 @@ impl LoginMessage {
             },
             LoginMessage::RequestValidUser(Ok(jwt)) => {
                 app.jsonwebtoken = Some(jwt.clone());
-                app.login_state.state = LoginStates::FetchingLoginData;
+                app.screen = Tab::Loading;
                 Task::perform(
                     request_login_data(app.jsonwebtoken.clone()),
                     Message::RequestLoginData,
@@ -63,7 +64,7 @@ impl LoginMessage {
             }
             LoginMessage::RequestValidRegister(Ok(jwt)) => {
                 app.jsonwebtoken = Some(jwt.clone());
-                app.login_state.state = LoginStates::FetchingLoginData;
+                app.screen = Tab::Loading;
                 Task::perform(
                     request_login_data(app.jsonwebtoken.clone()),
                     Message::RequestLoginData,

@@ -3,7 +3,6 @@ use crate::client::backend::login_state::LoginStates;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::health::HealthTabMessage;
-use crate::client::gui::bb_tab::loading::view_loading_screen;
 use crate::client::gui::bb_tab::login::{LoginMessage, view_login};
 use crate::client::gui::bb_tab::preset_creation::PresetCreationMessage;
 use crate::client::gui::bb_tab::settings::SettingsMessage;
@@ -375,6 +374,7 @@ impl App {
             }
             Message::WorkoutCreation(workout_creation_msg) => workout_creation_msg.update(self),
             Message::SaveWorkout(Err(_), _) => {
+                self.screen = Tab::Workout;
                 self.pop_up_manager.new_pop_up(
                     PopUpType::Minor,
                     "Error while sending workout to server!".to_string(),
@@ -388,6 +388,7 @@ impl App {
                     id,
                     &mut self.user_manager.user_info,
                 );
+                self.screen = Tab::Workout;
                 Task::none()
             }
 
@@ -400,12 +401,17 @@ impl App {
                     }
                     Err(_) => self.login_state.error_text = "Internal error: Arc".to_string(),
                 }
-                self.login_state.state = LoginStates::LoggedIn;
+                self.login_if_fetching_login_data_successful();
                 Task::none()
             }
             Message::RequestLoginData(Err(_err)) => {
-                self.login_state.error_text =
-                    "Could not fetch login data from the server.".to_string();
+                *self = App::default();
+                //TODO FIX MAJOR POPUP BACKGROUND
+                self.pop_up_manager.new_pop_up(
+                    PopUpType::Major,
+                    "Error while fetching login data!".to_string(),
+                    "There was an error while fetching the login data. \nTry again later!".to_string(),
+                );
                 Task::none()
             }
         }
@@ -414,12 +420,10 @@ impl App {
         if self.pop_up_manager.major_pop_up {
             return view_pop_up(self);
         }
-        match self.login_state.state {
-            // COULD BE INTEGRATED AS A TAB
-            LoginStates::NotLoggedIn => return view_login(self),
-            LoginStates::FetchingLoginData => return view_loading_screen(self),
-            LoginStates::LoggedIn => (),
+        if self.login_state.state == LoginStates::NotLoggedIn && self.screen != Tab::Loading {
+            return view_login(self);
         }
+
         let mut tab_buttons: Column<Message> =
             Column::new().padding(INDENT).align_x(Horizontal::Center);
         tab_buttons = tab_buttons.push(profile_tab_button(self));
@@ -482,6 +486,7 @@ impl App {
         });
 
         let tab_window: Option<Element<Message>> = match self.screen {
+            Tab::Loading => { return self.view_loading_screen() }
             Tab::Home => Some(self.homescreen()),
             Tab::Workout => Some(self.workout_screen()),
             Tab::Health => Some(self.health_screen()),

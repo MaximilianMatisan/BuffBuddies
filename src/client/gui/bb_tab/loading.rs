@@ -12,18 +12,21 @@ use crate::client::gui::{
     user_interface::Message,
 };
 
-pub fn view_loading_screen(_app: &App) -> Element<'_, Message> {
-    let loading_text = format_description_text(text("loading...")).center();
-    let contents = Column::new().push(loading_text);
 
-    container(contents)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center(Length::Fill)
-        .style(create_container_style(
-            ContainerStyle::Background,
-            Some(0.0.into()),
-            None,
-        ))
-        .into()
+impl App {
+    pub fn view_loading_screen(&self) -> Element<'_, Message> {
+        let loading_text = format_description_text(text("loading...")).center();
+        let contents = Column::new().push(loading_text);
+
+        container(contents)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center(Length::Fill)
+            .style(create_container_style(
+                ContainerStyle::Background,
+                Some(0.0.into()),
+                None,
+            ))
+            .into()
+    }
 }
