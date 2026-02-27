@@ -65,7 +65,7 @@ impl App {
         let mut content = Column::new()
             .align_x(Horizontal::Center)
             .spacing(INDENT)
-            .padding(INDENT);
+            .padding(20.0);
         if !friends.is_empty() {
             content = content.push(friend_container)
         }

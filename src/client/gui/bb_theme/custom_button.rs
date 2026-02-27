@@ -1,17 +1,23 @@
-use std::f32::consts::PI;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color;
+use crate::client::gui::bb_theme::color::{
+    CONTAINER_COLOR, DARK_SHADOW, HIGHLIGHTED_CONTAINER_COLOR, create_color_stops,
+    create_new_gradient_background,
+};
+use crate::client::gui::bb_widget::activity_widget::date_utils::Offset;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::gradient::{ColorStop, Linear};
 use iced::widget::button::{Status, Style};
-use iced::widget::{Button, button};
 use iced::{Background, Color, Element, Gradient, Renderer};
+use iced_anim::Motion;
+use iced_anim::animated::Mode;
+use iced_anim::widget::button;
 use iced_core::border::Radius;
 use iced_core::widget::text;
-use iced_core::{color, Border, Shadow, Theme, Vector};
-use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, DARK_SHADOW, HIGHLIGHTED_CONTAINER_COLOR};
-use crate::client::gui::bb_widget::activity_widget::date_utils::Offset;
+use iced_core::{Border, Shadow, Theme, Vector, color};
+use std::f32::consts::PI;
+use std::time::Duration;
 
 pub const TAB_BUTTON_WIDTH: f32 = 225.0;
 pub const TAB_BUTTON_HEIGHT: f32 = 45.0;
@@ -30,6 +36,11 @@ pub const BUTTON_RADIUS_RIGHT_ZERO: Radius = Radius {
     bottom_right: 0.0,
     bottom_left: DEFAULT_BUTTON_RADIUS,
 };
+pub const ANIMATION_MOTION: Motion = Motion {
+    response: Duration::from_millis(400),
+    damping: Motion::BOUNCY.damping,
+};
+
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ButtonStyle {
     #[default]
@@ -45,7 +56,7 @@ pub fn create_preset_button<Msg>(
     disabled_color: Color,
     hovered_color: Color,
     custom_border_radius: Option<Radius>,
-) -> Button<Msg, Theme, Renderer>
+) -> iced_anim::widget::Button<Msg, Theme, Renderer>
 where
     Msg: Clone,
 {
@@ -54,14 +65,16 @@ where
     } else {
         DEFAULT_BUTTON_RADIUS.into()
     };
-    button(element).style(move |_, status: Status| {
-        let border = Border {
-            color: iced::color!(0, 0, 0),
-            width: 0.0,
-            radius,
-        };
-        create_button_style(status, border, active_color, disabled_color, hovered_color)
-    })
+    button(element)
+        .style(move |_, status: Status| {
+            let border = Border {
+                color: Color::WHITE,
+                width: 0.0,
+                radius,
+            };
+            create_button_style(status, border, active_color, disabled_color, hovered_color)
+        })
+        .animation(ANIMATION_MOTION)
 }
 
 pub fn create_button_style(
@@ -77,37 +90,32 @@ pub fn create_button_style(
     };
     match status {
         Status::Active => {
-            style.background = Some(Background::Color(active_color));
+            style.background = Some(create_new_gradient_background(
+                0,
+                create_color_stops(vec![(active_color, 0.0), (active_color, 1.0)]),
+            ));
             style
         }
         Status::Disabled => {
-            style.background = Some(Background::Color(disabled_color));
+            style.background = Some(create_new_gradient_background(
+                0,
+                create_color_stops(vec![(disabled_color, 0.0), (disabled_color, 1.0)]),
+            ));
             style
         }
         Status::Hovered => {
-            style.background = Some(Background::Color(hovered_color));
+            style.background = Some(create_new_gradient_background(
+                0,
+                create_color_stops(vec![(hovered_color, 0.0), (hovered_color, 1.0)]),
+            ));
             style
         }
         Status::Pressed => {
-            let mut linear = Linear::new(0);
-            linear.stops = [
-                Some(ColorStop {
-                    offset: 0.0,
-                    color: hovered_color,
-                }),
-                Some(ColorStop {
-                    offset: 1.0,
-                    color: disabled_color,
-                }),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            ];
-
-            style.background = Some(Background::Gradient(Gradient::Linear(linear)));
+            style.background = Some(create_new_gradient_background(
+                PI / 2.0,
+                create_color_stops(vec![(disabled_color, 0.0), (hovered_color, 1.0)]),
+            ));
+            style.border = morph_border(style.border, 15.0);
             style
         }
     }
@@ -118,7 +126,7 @@ pub fn create_text_button<'a, Msg>(
     text: String,
     button_style: ButtonStyle,
     custom_border_radius: Option<Radius>,
-) -> Button<'a, Msg, Theme, Renderer>
+) -> iced_anim::widget::Button<'a, Msg, Theme, Renderer>
 where
     Msg: Clone,
 {
@@ -134,7 +142,7 @@ pub fn create_element_button<'a, Msg>(
     element: Element<'a, Msg, Theme, Renderer>,
     button_style: ButtonStyle,
     custom_border_radius: Option<Radius>,
-) -> Button<'a, Msg, Theme, Renderer>
+) -> iced_anim::widget::Button<'a, Msg, Theme, Renderer>
 where
     Msg: Clone,
 {
@@ -156,7 +164,7 @@ where
         ButtonStyle::InactiveTransparent => create_preset_button(
             element,
             Color::TRANSPARENT,
-            mascot.get_dark_color(),
+            mascot.get_secondary_color(),
             mascot.get_primary_color(),
             custom_border_radius,
         ),
@@ -170,81 +178,69 @@ where
         ButtonStyle::Active => create_preset_button(
             element,
             mascot.get_primary_color(),
-            mascot.get_dark_color(),
+            mascot.get_primary_color(),
             mascot.get_secondary_color(),
             custom_border_radius,
         ),
     }
 }
 
-pub fn create_gradient_mascot_style(
-    status: Status,
-    mascot: Mascot
-) -> iced::widget::button::Style {
-
+pub fn create_gradient_mascot_style(status: Status, mascot: Mascot) -> iced::widget::button::Style {
     let active_color = HIGHLIGHTED_CONTAINER_COLOR;
     let pressed_color = mascot.get_primary_color();
     let hovered_color = mascot.get_secondary_color();
 
+    let active_color_stops = create_color_stops(vec![(active_color, 0.0), (active_color, 1.0)]);
 
-    let active_color_stops =  [
-        ColorStop {
-        offset: 0.0,
-        color: active_color,
-        },
-        ColorStop {
-            offset: 1.0,
-            color: active_color,
+    let pressed_color_stops = create_color_stops(vec![(pressed_color, 0.0), (pressed_color, 1.0)]);
+
+    let hovered_color_stops =
+        create_color_stops(vec![(hovered_color, 0.0), (CONTAINER_COLOR, 0.7)]);
+
+    let gradient = match status {
+        Status::Active => Gradient::Linear(Linear::new(0).add_stops(active_color_stops)),
+
+        Status::Disabled => Gradient::Linear(Linear::new(0.0).add_stops([ColorStop {
+            ..Default::default()
+        }])), //buttons using this gradient never are disabled
+
+        button::Status::Pressed => {
+            Gradient::Linear(Linear::new(0.0).add_stops(pressed_color_stops))
         }
-    ];
 
-    let pressed_color_stops =  [
-        ColorStop {
-            offset: 0.0,
-            color: pressed_color,
-        },
-        ColorStop {
-            offset: 1.0,
-            color: pressed_color,
-        }
-    ];
-
-    let hovered_color_stops = [
-        ColorStop {
-            offset: 0.0,
-            color: hovered_color,
-        },
-        ColorStop {
-            offset: 0.7,
-            color: CONTAINER_COLOR,
-        },
-    ];
-
-    let gradient =
-        match status {
-            Status::Active => Gradient::Linear(Linear::new(0)
-                .add_stops(active_color_stops)),
-
-            Status::Disabled => Gradient::Linear(Linear::new(0.0)
-                .add_stops([ColorStop{..Default::default()}])), //buttons using this gradient never are disabled
-
-            button::Status::Pressed => Gradient::Linear(Linear::new(0.0)
-                .add_stops(pressed_color_stops)),
-
-            Status::Hovered => Gradient::Linear(Linear::new(0.0)
-                .add_stops(hovered_color_stops)),
-        };
+        Status::Hovered => Gradient::Linear(Linear::new(0.0).add_stops(hovered_color_stops)),
+    };
 
     iced::widget::button::Style {
         background: Some(Background::Gradient(gradient)),
 
         border: match status {
-            Status::Active => Border::default()
-                .color(pressed_color)
-                .rounded(10),
+            Status::Active => Border::default().color(pressed_color).rounded(10),
             _ => Border::default().width(2.5).color(Color::WHITE).rounded(24),
         },
 
+        ..Default::default()
+    }
+}
+
+///Takes a border and returns a new one with a customized radius.
+/// You should pass a radius value which is not negative
+fn morph_border(border: Border, radius: f32) -> Border {
+    let mut border_radius = border.radius;
+    if (border_radius.top_right) > 0.0 {
+        border_radius.top_right = radius
+    }
+    if (border_radius.top_left) > 0.0 {
+        border_radius.top_left = radius
+    }
+    if (border_radius.bottom_right) > 0.0 {
+        border_radius.bottom_right = radius
+    }
+    if (border_radius.bottom_left) > 0.0 {
+        border_radius.bottom_left = radius
+    }
+    Border {
+        radius: border_radius,
         ..Default::default()
     }
 }

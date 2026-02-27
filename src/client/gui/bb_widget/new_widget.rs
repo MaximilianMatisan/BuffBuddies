@@ -2,7 +2,9 @@ use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::color::{
     CONTAINER_COLOR, HIGHLIGHTED_CONTAINER_COLOR, LIGHTER_CONTAINER_COLOR,
 };
-use crate::client::gui::bb_theme::custom_button::{create_button_style, create_gradient_mascot_style};
+use crate::client::gui::bb_theme::custom_button::{
+    create_button_style, create_gradient_mascot_style,
+};
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::workout::{
     DEFAULT_RECENT_WORKOUT_WIDGET_HEIGHT, DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT,
@@ -57,19 +59,15 @@ pub fn new_workout_widget_button<'a>(
             response: Duration::from_millis(300),
             damping: Motion::SMOOTH.damping(),
         })
-        .style(move |_, status| {
-            create_gradient_mascot_style(
-                status,
-                mascot
-            )
-        })
+        .style(move |_, status| create_gradient_mascot_style(status, mascot))
         .width(BUTTONS_WIDTH)
         .height(NEW_WORKOUT_BUTTON_HEIGHT)
         .on_press(Message::Select(Tab::CreateWorkout))
 }
 
-pub fn new_preset_widget_button<'a>(mascot: Mascot) -> iced_anim::widget::Button<'a, Message, Theme, Renderer> {
-
+pub fn new_preset_widget_button<'a>(
+    mascot: Mascot,
+) -> iced_anim::widget::Button<'a, Message, Theme, Renderer> {
     let content = Column::new()
         .push(Space::with_height(Length::Fill))
         .push(format_button_text(text("New preset")).size(DEFAULT_TITLE_FONT_SIZE))
@@ -84,13 +82,8 @@ pub fn new_preset_widget_button<'a>(mascot: Mascot) -> iced_anim::widget::Button
             damping: Motion::SMOOTH.damping,
             response: Duration::from_millis(350),
         })
-    .style(move |_, status| {
-        create_gradient_mascot_style(
-            status,
-            mascot
-        )
-    })
-    .width(BUTTONS_WIDTH)
-    .height(NEW_PRESET_BUTTON_HEIGHT)
-    .on_press(Message::Select(Tab::CreatePreset))
+        .style(move |_, status| create_gradient_mascot_style(status, mascot))
+        .width(BUTTONS_WIDTH)
+        .height(NEW_PRESET_BUTTON_HEIGHT)
+        .on_press(Message::Select(Tab::CreatePreset))
 }
