@@ -23,6 +23,7 @@ use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::rare_mascot::RareMascot::{Chameleon, Whale};
 use iced::widget::{Column, Row, Space, row, text};
 use iced::{Element, Task};
+use iced_core::Padding;
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 
@@ -176,7 +177,10 @@ impl App {
                 &Mascot::Epic(Capybara),
                 edit_mode,
             ))
-            .padding(LARGE_INDENT)
+            .padding(Padding {
+                top: LARGE_INDENT,
+                ..0.0.into()
+            })
             .spacing(LARGE_INDENT)
             .into()
     }

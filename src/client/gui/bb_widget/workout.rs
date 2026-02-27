@@ -5,6 +5,7 @@ use crate::client::gui::user_interface::Message;
 use crate::client::gui::{bb_theme, bb_widget};
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::common::workout_preset::WorkoutPreset;
 use iced::widget::Row;
 use iced::{Element, event};
@@ -126,10 +127,11 @@ where
 
         let images_endings = ["_bench.png", "_pullup.png", "_squats.png", "_running.png"];
 
-        let lowered_mascot_name = mascot.get_name().to_lowercase();
+        // let lowered_mascot_name = mascot.get_name().to_lowercase(); TODO: ADD IMAGES WITH CORRECT NAMES
+        let duck_mascot_name = RareMascot::Duck.get_name().to_lowercase();
 
         for image in images_endings {
-            let path = format!("{base_path}{lowered_mascot_name}{image}");
+            let path = format!("{base_path}{duck_mascot_name}{image}"); //TODO: replace duck_mascot_name with lowered_mascot_name
 
             workout_presets = workout_presets.push(
                 WorkoutWidget::default_workout_preset_widget()

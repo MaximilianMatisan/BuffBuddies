@@ -43,7 +43,7 @@ use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::common::user_mod::friend_request::FriendRequest;
 use crate::common::user_mod::user::UserType;
-use iced::widget::{Column, Space, Stack, container, row};
+use iced::widget::{Column, Row, Space, Stack, container, row};
 use iced::{Element, Task};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
@@ -493,7 +493,7 @@ impl App {
                 .on_press(Message::Select(tab)),
             );
         }
-        let money_button: iced::widget::Button<'_, Message, Theme, iced::Renderer> =
+        let money_button: iced_anim::widget::Button<'_, Message, Theme, iced::Renderer> =
             create_element_button(
                 &self.mascot_manager.selected_mascot,
                 row![
@@ -520,7 +520,7 @@ impl App {
         tab_buttons = tab_buttons.push(Space::with_height(Length::Fill));
         tab_buttons = tab_buttons.push(lower_tab_container_buttons);
 
-        let tab_container = container(tab_buttons.spacing(INDENT))
+        let mut tab_container = container(tab_buttons.spacing(INDENT))
             .style(bb_theme::container::create_container_style(
                 ContainerStyle::Default,
                 None,
@@ -528,6 +528,11 @@ impl App {
             ))
             .height(Length::Fill)
             .width(310);
+
+        tab_container = container(tab_container).padding(Padding {
+            right: 0.0,
+            ..15.into()
+        });
 
         let tab_window: Option<Element<Message>> = match self.screen {
             Tab::Home => Some(self.homescreen()),
@@ -564,15 +569,19 @@ impl App {
                 }
             }
         };
-        let mut stack = Stack::new();
-        let content = if let Some(tab_content) = tab_window {
-            stack = stack.push(tab_content);
+
+        let mut content = Row::new().push(tab_container).spacing(20);
+
+        if let Some(tab_content) = tab_window {
             if self.pop_up_manager.minor_pop_up {
-                stack = stack.push(view_pop_up(self));
+                let mut tab_window_with_popup = Stack::new();
+                tab_window_with_popup = tab_window_with_popup.push(tab_content);
+                tab_window_with_popup = tab_window_with_popup.push(view_pop_up(self));
+
+                content = content.push(tab_window_with_popup);
+            } else {
+                content = content.push(tab_content);
             }
-            row![tab_container, stack]
-        } else {
-            row![tab_container]
         };
 
         container(content)
@@ -582,10 +591,6 @@ impl App {
                 text_color: None,
                 background: Some(iced::Background::Color(color::BACKGROUND_COLOR)),
                 ..Default::default()
-            })
-            .padding(Padding {
-                right: 0.0,
-                ..20.0.into()
             })
             .into()
     }

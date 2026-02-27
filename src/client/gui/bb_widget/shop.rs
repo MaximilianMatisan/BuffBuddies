@@ -64,7 +64,7 @@ where
         self
     }
     pub(crate) fn new(name: String, price: usize, mascot: &Mascot, message: Message) -> Self {
-        let buy_button: iced::widget::Button<'_, Message, Theme, iced::Renderer> =
+        let buy_button: iced_anim::widget::Button<'_, Message, Theme, iced::Renderer> =
             create_element_button(
                 mascot,
                 row![

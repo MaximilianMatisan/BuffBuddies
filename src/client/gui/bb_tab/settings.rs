@@ -60,6 +60,10 @@ impl App {
             .push(Space::with_width(Length::FillPortion(1)))
             .push(content)
             .push(Space::with_width(Length::FillPortion(1)))
+            .padding(Padding {
+                top: 20.0,
+                ..0.0.into()
+            })
             .into();
 
         padded_content
@@ -140,7 +144,7 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
         .color(TEXT_COLOR)
         .size(40);
 
-    let edit_profile_button: Button<SettingsMessage> = create_element_button(
+    let edit_profile_button: iced_anim::widget::Button<SettingsMessage> = create_element_button(
         &app.mascot_manager.selected_mascot,
         image(Handle::from_path("assets/images/edit.png")).into(),
         ButtonStyle::InactiveTransparent,

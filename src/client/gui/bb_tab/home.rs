@@ -105,7 +105,6 @@ impl App {
             .push(chart_widget_with_circle_widget)
             .padding(Padding {
                 top: SPACING,
-                left: SPACING,
                 ..0.0.into()
             });
 
