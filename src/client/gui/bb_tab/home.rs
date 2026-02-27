@@ -68,8 +68,7 @@ impl App {
             .color(color::TEXT_COLOR)
             .size(SECONDARY_TEXT_SIZE);
 
-        let workout_presets =
-            WorkoutWidget::<Renderer>::create_preset_row(&self.mascot_manager.selected_mascot);
+        let workout_presets = WorkoutWidget::<Renderer>::create_preset_row();
 
         let stats_text = format_button_text(text("Stats")).size(SECONDARY_TEXT_SIZE);
 

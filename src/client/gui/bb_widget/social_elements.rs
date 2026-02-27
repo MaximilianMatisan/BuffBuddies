@@ -10,7 +10,7 @@ use crate::common::profile_picture::{
 };
 use crate::common::user_mod::user::{ForeignUser, UserType};
 use iced::Element;
-use iced::widget::{Button, Column, Row, Space, column, image, text};
+use iced::widget::{Column, Row, Space, column, image, text};
 use iced_core::Length;
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;

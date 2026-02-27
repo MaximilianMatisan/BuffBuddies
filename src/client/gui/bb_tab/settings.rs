@@ -29,8 +29,7 @@ use crate::common::user_mod::user::{
 };
 use crate::common::user_mod::user_goals::GoalType;
 use iced::widget::{
-    Button, Column, Container, Image, Row, Space, TextInput, combo_box, container, image, text,
-    text_input,
+    Column, Container, Image, Row, Space, TextInput, combo_box, container, image, text, text_input,
 };
 use iced::{Element, Task};
 use iced_core::alignment::Vertical;

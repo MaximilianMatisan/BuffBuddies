@@ -1,21 +1,22 @@
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::color::{
-    CONTAINER_COLOR, DARK_SHADOW, HIGHLIGHTED_CONTAINER_COLOR, create_color_stops,
-    create_new_gradient_background,
+    CONTAINER_COLOR, HIGHLIGHTED_CONTAINER_COLOR, create_color_stops,
+    create_new_gradient_background, create_one_colored_stops,
 };
-use crate::client::gui::bb_widget::activity_widget::date_utils::Offset;
+use crate::client::gui::bb_theme::custom_button::ButtonType::{Normal, Special};
+use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced::gradient::{ColorStop, Linear};
 use iced::widget::button::{Status, Style};
 use iced::{Background, Color, Element, Gradient, Renderer};
 use iced_anim::Motion;
-use iced_anim::animated::Mode;
 use iced_anim::widget::button;
 use iced_core::border::Radius;
 use iced_core::widget::text;
-use iced_core::{Border, Shadow, Theme, Vector, color};
+use iced_core::{Border, Theme};
 use std::f32::consts::PI;
 use std::time::Duration;
 
@@ -49,13 +50,28 @@ pub enum ButtonStyle {
     Active,
     InactiveTransparent,
     InactiveSolid,
+    Rainbow,
 }
+
+/// Represents the button style category.
+///
+/// `Special` is currently intended for the Rainbow style only.
+/// All other styles belong to the `Normal` category.
+///
+/// Note: This may be expanded in the future if additional special styles are introduced
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ButtonType {
+    Normal,
+    Special,
+}
+
 pub fn create_preset_button<Msg>(
     element: Element<Msg, Theme, Renderer>,
     active_color: Color,
     disabled_color: Color,
     hovered_color: Color,
     custom_border_radius: Option<Radius>,
+    button_type: ButtonType,
 ) -> iced_anim::widget::Button<Msg, Theme, Renderer>
 where
     Msg: Clone,
@@ -72,7 +88,15 @@ where
                 width: 0.0,
                 radius,
             };
-            create_button_style(status, border, active_color, disabled_color, hovered_color)
+
+            create_button_style(
+                status,
+                border,
+                active_color,
+                disabled_color,
+                hovered_color,
+                button_type,
+            )
         })
         .animation(ANIMATION_MOTION)
 }
@@ -83,6 +107,7 @@ pub fn create_button_style(
     active_color: Color,
     disabled_color: Color,
     hovered_color: Color,
+    button_type: ButtonType,
 ) -> Style {
     let mut style = Style {
         border,
@@ -90,9 +115,15 @@ pub fn create_button_style(
     };
     match status {
         Status::Active => {
+            let color_offset_tuples = match button_type {
+                Normal => {
+                    vec![(active_color, 0.0), (active_color, 1.0)]
+                }
+                Special => create_one_colored_stops(active_color, rainbow_style().len()),
+            };
             style.background = Some(create_new_gradient_background(
                 0,
-                create_color_stops(vec![(active_color, 0.0), (active_color, 1.0)]),
+                create_color_stops(color_offset_tuples),
             ));
             style
         }
@@ -104,16 +135,39 @@ pub fn create_button_style(
             style
         }
         Status::Hovered => {
-            style.background = Some(create_new_gradient_background(
-                0,
-                create_color_stops(vec![(hovered_color, 0.0), (hovered_color, 1.0)]),
-            ));
+            match button_type {
+                Normal => {
+                    style.background = Some(create_new_gradient_background(
+                        0,
+                        create_color_stops(vec![(hovered_color, 0.0), (hovered_color, 1.0)]),
+                    ));
+                }
+                Special => {
+                    style.background = Some(create_new_gradient_background(
+                        PI / 2.0,
+                        create_color_stops(rainbow_style()),
+                    ));
+                }
+            }
+
             style
         }
         Status::Pressed => {
+            let color_offset_tuples;
+            let angle = match button_type {
+                Normal => {
+                    color_offset_tuples = vec![(disabled_color, 0.0), (hovered_color, 1.0)];
+                    PI / 2.0
+                }
+                Special => {
+                    color_offset_tuples = rainbow_style();
+                    PI / 3.0
+                }
+            };
+
             style.background = Some(create_new_gradient_background(
-                PI / 2.0,
-                create_color_stops(vec![(disabled_color, 0.0), (hovered_color, 1.0)]),
+                angle,
+                create_color_stops(color_offset_tuples),
             ));
             style.border = morph_border(style.border, 15.0);
             style
@@ -153,6 +207,7 @@ where
             color::CONTAINER_COLOR,
             color::HIGHLIGHTED_CONTAINER_COLOR,
             custom_border_radius,
+            Normal,
         ),
         ButtonStyle::ActiveTab => create_preset_button(
             element,
@@ -160,6 +215,7 @@ where
             color::CONTAINER_COLOR,
             color::HIGHLIGHTED_CONTAINER_COLOR,
             custom_border_radius,
+            Normal,
         ),
         ButtonStyle::InactiveTransparent => create_preset_button(
             element,
@@ -167,6 +223,7 @@ where
             mascot.get_secondary_color(),
             mascot.get_primary_color(),
             custom_border_radius,
+            Normal,
         ),
         ButtonStyle::InactiveSolid => create_preset_button(
             element,
@@ -174,6 +231,7 @@ where
             mascot.get_dark_color(),
             mascot.get_primary_color(),
             custom_border_radius,
+            Normal,
         ),
         ButtonStyle::Active => create_preset_button(
             element,
@@ -181,6 +239,15 @@ where
             mascot.get_primary_color(),
             mascot.get_secondary_color(),
             custom_border_radius,
+            Normal,
+        ),
+        ButtonStyle::Rainbow => create_preset_button(
+            element,
+            mascot.get_primary_color(),
+            mascot.get_primary_color(),
+            mascot.get_secondary_color(),
+            custom_border_radius,
+            Special,
         ),
     }
 }
@@ -223,6 +290,24 @@ pub fn create_gradient_mascot_style(status: Status, mascot: Mascot) -> iced::wid
     }
 }
 
+pub fn rainbow_style() -> Vec<(Color, f32)> {
+    let red: Color = EpicMascot::Reindeer.get_primary_color();
+    let orange: Color = RareMascot::Duck.get_primary_color();
+    let yellow: Color = RareMascot::Duck.get_secondary_color();
+    let blue: Color = RareMascot::Whale.get_primary_color();
+    let green: Color = RareMascot::Chameleon.get_primary_color();
+    let violet: Color = EpicMascot::Capybara.get_primary_color();
+
+    let colors: Vec<Color> = vec![red, orange, yellow, blue, green, violet];
+
+    let colors_with_offsets: Vec<(Color, f32)> = colors
+        .iter()
+        .enumerate()
+        .map(|(index, color)| (*color, index as f32 / colors.len() as f32))
+        .collect();
+
+    colors_with_offsets
+}
 ///Takes a border and returns a new one with a customized radius.
 /// You should pass a radius value which is not negative
 fn morph_border(border: Border, radius: f32) -> Border {
