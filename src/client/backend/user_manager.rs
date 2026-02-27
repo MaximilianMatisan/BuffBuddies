@@ -27,6 +27,7 @@ pub struct UserManager {
 impl UserManager {
     pub fn new(exercise_data: &Vec<Exercise>) -> Self {
         //TODO delete examples
+        let default_weekly_workout_goal = UserGoals::default().weekly_workouts as u32;
         let user1_exercises = vec![generate_example_exercise(
             GeneralExerciseInfo::test_obj(),
             49,
@@ -41,11 +42,13 @@ impl UserManager {
                 weight: 75.0,
                 height: 187,
                 gender: Gender::Male,
-                weekly_workout_streak: 12,
                 coin_balance: 12381,
                 favorite_mascot: Mascot::Rare(RareMascot::Chameleon),
                 user_goals: UserGoals::default(),
-                profile_stat_manager: ProfileStatManager::new(&user1_exercises),
+                profile_stat_manager: ProfileStatManager::new(
+                    &user1_exercises,
+                    default_weekly_workout_goal,
+                ),
             },
             selected_mascot: Mascot::Rare(RareMascot::Chameleon),
             owned_mascots: user1_mascots,
@@ -68,11 +71,13 @@ impl UserManager {
                 weight: 70.0,
                 height: 178,
                 gender: Gender::Male,
-                weekly_workout_streak: 19,
                 coin_balance: 2972,
                 favorite_mascot: Mascot::Rare(RareMascot::Whale),
                 user_goals: UserGoals::default(),
-                profile_stat_manager: ProfileStatManager::new(&user2_exercises),
+                profile_stat_manager: ProfileStatManager::new(
+                    &user2_exercises,
+                    default_weekly_workout_goal,
+                ),
             },
             selected_mascot: Mascot::Rare(RareMascot::Duck),
             owned_mascots: user2_mascots,
@@ -91,11 +96,13 @@ impl UserManager {
                 weight: 68.0,
                 height: 188,
                 gender: Gender::Male,
-                weekly_workout_streak: 9,
                 coin_balance: 90,
                 favorite_mascot: Mascot::Epic(EpicMascot::Capybara),
                 user_goals: UserGoals::default(),
-                profile_stat_manager: ProfileStatManager::new(&user3_exercises),
+                profile_stat_manager: ProfileStatManager::new(
+                    &user3_exercises,
+                    default_weekly_workout_goal,
+                ),
             },
             selected_mascot: Mascot::Rare(RareMascot::Dog),
             owned_mascots: user3_mascots,
@@ -114,11 +121,13 @@ impl UserManager {
                 weight: 100.0,
                 height: 150,
                 gender: Gender::Male,
-                weekly_workout_streak: 2,
                 coin_balance: 200,
                 favorite_mascot: Mascot::Epic(EpicMascot::Shark),
                 user_goals: UserGoals::default(),
-                profile_stat_manager: ProfileStatManager::new(&user4_exercises),
+                profile_stat_manager: ProfileStatManager::new(
+                    &user4_exercises,
+                    default_weekly_workout_goal,
+                ),
             },
             selected_mascot: Mascot::Rare(RareMascot::Duck),
             owned_mascots: user4_mascots,

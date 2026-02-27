@@ -218,7 +218,8 @@ impl ExerciseManager {
         }
         // Update stats based on new exercise data
         self.update_selected_exercise(self.selected_exercise_name.clone());
-        user_info.profile_stat_manager = ProfileStatManager::new(&self.exercises);
+        user_info.profile_stat_manager =
+            ProfileStatManager::new(&self.exercises, user_info.user_goals.weekly_workouts as u32);
         self.tracked_exercise_state = get_combo_box_tracked_exercise_state(&self.exercises);
     }
 

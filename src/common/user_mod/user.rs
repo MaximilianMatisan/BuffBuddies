@@ -32,7 +32,6 @@ pub struct UserInformation {
     pub weight: Kg,
     pub height: u32,
     pub gender: Gender,
-    pub weekly_workout_streak: u32,
     pub coin_balance: u32,
     pub favorite_mascot: Mascot,
     pub user_goals: UserGoals,
@@ -41,6 +40,7 @@ pub struct UserInformation {
 }
 impl UserInformation {
     pub fn default(exercise_data: &Vec<Exercise>) -> Self {
+        let default_user_goals = UserGoals::default();
         UserInformation {
             username: "Default_user".to_string(),
             description: "".to_string(),
@@ -48,11 +48,13 @@ impl UserInformation {
             weight: 60.0,
             height: 170,
             gender: Gender::Male,
-            weekly_workout_streak: 0,
             coin_balance: 400,
             favorite_mascot: Mascot::default(),
-            user_goals: UserGoals::default(),
-            profile_stat_manager: ProfileStatManager::new(exercise_data),
+            profile_stat_manager: ProfileStatManager::new(
+                exercise_data,
+                default_user_goals.weekly_workouts as u32,
+            ),
+            user_goals: default_user_goals,
         }
     }
 }

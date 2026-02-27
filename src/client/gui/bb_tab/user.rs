@@ -83,7 +83,7 @@ pub fn view_profile<'a>(
 
     let streak_stat = profile_stat_container(
         Handle::from_path("assets/images/stats/flame.png"),
-        user.weekly_workout_streak.to_string(),
+        user.profile_stat_manager.weekly_workout_streak.to_string(),
         "week",
         "streak",
     );

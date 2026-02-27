@@ -176,7 +176,7 @@ pub(crate) mod tests {
     const CUSTOM_SETS_PER_DAY: u32 = 10;
     const CUSTOM_WEIGHT_PER_SET: Kg = 80.0;
     const CUSTOM_REPS_PER_SET: Reps = 12;
-    fn create_custom_exercise(
+    pub fn create_custom_exercise(
         first_tracked_day: NaiveDate,
         tracked_days: u32,
         sets_per_day: u32,
