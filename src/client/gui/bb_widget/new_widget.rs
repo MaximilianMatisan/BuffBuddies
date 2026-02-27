@@ -1,10 +1,5 @@
 use crate::client::gui::bb_tab::tab::Tab;
-use crate::client::gui::bb_theme::color::{
-    CONTAINER_COLOR, HIGHLIGHTED_CONTAINER_COLOR, LIGHTER_CONTAINER_COLOR,
-};
-use crate::client::gui::bb_theme::custom_button::{
-    create_button_style, create_gradient_mascot_style,
-};
+use crate::client::gui::bb_theme::custom_button::create_gradient_mascot_style;
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::workout::{
     DEFAULT_RECENT_WORKOUT_WIDGET_HEIGHT, DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT,
@@ -12,15 +7,13 @@ use crate::client::gui::bb_widget::workout::{
 };
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::Renderer;
-use iced::widget::{Button, text};
-use iced::widget::{Column, column};
-use iced::widget::{Space, button};
+use iced::widget::Column;
+use iced::widget::Space;
+use iced::widget::text;
 use iced_anim::Motion;
 use iced_core::alignment::Horizontal;
-use iced_core::border::Radius;
-use iced_core::{Border, Length, Theme};
+use iced_core::{Length, Theme};
 use std::time::Duration;
 
 const SCALE: f32 = 0.9;
@@ -28,19 +21,7 @@ const BUTTONS_WIDTH: f32 = DEFAULT_WORKOUT_WIDGET_WIDTH;
 const NEW_WORKOUT_BUTTON_HEIGHT: f32 = DEFAULT_RECENT_WORKOUT_WIDGET_HEIGHT;
 const NEW_PRESET_BUTTON_HEIGHT: f32 = DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT;
 const DEFAULT_TITLE_FONT_SIZE: f32 = 24.0 * SCALE;
-const BUTTON_BORDER_SIZE: f32 = 1.2;
 const ADD_SYMBOL_SIZE: f32 = 72.0 * SCALE;
-
-const BORDER: Border = Border {
-    color: iced::color!(146, 142, 142),
-    width: BUTTON_BORDER_SIZE,
-    radius: Radius {
-        top_left: 10.0,
-        top_right: 10.0,
-        bottom_right: 10.0,
-        bottom_left: 10.0,
-    },
-};
 
 pub fn new_workout_widget_button<'a>(
     mascot: Mascot,

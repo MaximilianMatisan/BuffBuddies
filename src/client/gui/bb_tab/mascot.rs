@@ -1,7 +1,7 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::mascot::BoxType::Locked;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
-use crate::client::gui::bb_theme::custom_button::ButtonStyle::{Active, InactiveTab};
+use crate::client::gui::bb_theme::custom_button::ButtonStyle::{Active, InactiveTab, Rainbow};
 use crate::client::gui::bb_theme::custom_button::create_element_button;
 use crate::client::gui::bb_theme::scrollable::{
     ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH,
@@ -66,7 +66,7 @@ impl App {
         let randomize_button = create_element_button(
             &self.mascot_manager.selected_mascot,
             randomize_text_with_image.into(),
-            Active,
+            Rainbow,
             Some(7.5.into()),
         )
         .on_press(Message::SelectMascot(

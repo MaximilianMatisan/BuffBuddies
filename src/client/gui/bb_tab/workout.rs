@@ -3,7 +3,7 @@ use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::color::{BACKGROUND_COLOR, CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
-use crate::client::gui::bb_theme::custom_button::create_button_style;
+use crate::client::gui::bb_theme::custom_button::{ButtonType, create_button_style};
 use crate::client::gui::bb_theme::scrollable::{
     SCROLLBAR_PADDING, ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING,
     TAB_SCROLLBAR_WIDTH, WIDGET_SCROLLBAR_WIDTH, create_scrollable,
@@ -118,6 +118,7 @@ impl App {
                 BACKGROUND_COLOR,
                 CONTAINER_COLOR,
                 CONTAINER_COLOR,
+                ButtonType::Normal,
             )
         });
 

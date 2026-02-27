@@ -3,7 +3,6 @@ use crate::client::gui::bb_theme::scrollable::SCROLLBAR_PADDING;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::client::gui::{bb_theme, bb_widget};
-use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::common::workout_preset::WorkoutPreset;
@@ -118,7 +117,7 @@ where
         self
     }
 
-    pub fn create_preset_row<'a>(mascot: &Mascot) -> Row<'a, Message> {
+    pub fn create_preset_row<'a>() -> Row<'a, Message> {
         let mut workout_presets = Row::new()
             .height(DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT + SCROLLBAR_PADDING)
             .spacing(10);
