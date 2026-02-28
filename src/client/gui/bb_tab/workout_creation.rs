@@ -107,15 +107,6 @@ impl WorkoutCreationMessage {
                 Task::none()
             }
             WorkoutCreationMessage::FinishExerciseEdit => {
-                if let Some(workout) = workout_in_creation {
-                    let mut filtered_sets = Vec::new();
-                    for set in &workout[exercise_in_edit_number.unwrap() - 1].sets {
-                        if set.reps > 0 && set.weight > 0.0 {
-                            filtered_sets.push(set.clone());
-                        }
-                    }
-                    workout[exercise_in_edit_number.unwrap() - 1].sets = filtered_sets;
-                }
                 *exercise_in_edit_number = None;
                 *exercise_in_edit_strings = None;
                 Task::none()
@@ -179,18 +170,7 @@ impl WorkoutCreationMessage {
                 Task::none()
             }
             WorkoutCreationMessage::FinishWorkoutCreation => {
-                if let Some(num) = exercise_in_edit_number {
-                    if let Some(workout) = workout_in_creation {
-                        let mut filtered_sets = Vec::new();
-                        for set in &workout[*num - 1].sets {
-                            if set.reps > 0 && set.weight > 0.0 {
-                                filtered_sets.push(set.clone());
-                            }
-                        }
-                        workout[*num - 1].sets = filtered_sets;
-                    }
-                }
-
+                app.exercise_manager.filter_workout_creation();
                 let mut workout_clone: Option<WorkoutCreate> = None;
                 let local_date = Local::now().date_naive();
                 let is_first_workout_today =
