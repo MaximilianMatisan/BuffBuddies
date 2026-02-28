@@ -146,6 +146,7 @@ impl ExerciseManager {
         self.selected_exercise_name = selected_exercise.clone();
         self.tracked_exercise_state = get_combo_box_tracked_exercise_state(&self.exercises);
         self.all_exercise_state = get_combo_box_all_exercises_state(&self.exercises);
+        self.recent_workouts = get_up_to_three_most_recent_workout_exercise_names(&self.exercises);
 
         self.update_selected_exercise(selected_exercise)
     }
@@ -221,14 +222,18 @@ impl ExerciseManager {
                 }
             }
         }
+        self.update_app_data_after_save_workout(user_info, first_workout_today);
+    }
+    
+    fn update_app_data_after_save_workout(&mut self, user_info: &mut UserInformation, first_workout_today: bool) {
         if first_workout_today {
             user_info.coin_balance += 5;
         }
-        // Update stats based on new exercise data
         self.update_selected_exercise(self.selected_exercise_name.clone());
         user_info.profile_stat_manager =
             ProfileStatManager::new(&self.exercises, user_info.user_goals.weekly_workouts as u32);
         self.tracked_exercise_state = get_combo_box_tracked_exercise_state(&self.exercises);
+        self.recent_workouts = get_up_to_three_most_recent_workout_exercise_names(&self.exercises);
     }
 
     ///Filters out the sets with 0 weight or reps in current workout_in_creation

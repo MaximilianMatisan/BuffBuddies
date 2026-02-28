@@ -18,6 +18,7 @@ use iced_core::{
     Clipboard, Event, Image, Layout, Length, Point, Rectangle, Shell, Size, Theme, Widget,
     alignment, image, mouse, text,
 };
+use crate::client::backend::recent_workouts::RecentWorkoutVisualization;
 
 const SCALE: f32 = 1.0;
 pub const DEFAULT_WORKOUT_WIDGET_WIDTH: f32 = 208.0 * SCALE;
@@ -106,6 +107,19 @@ where
                 //"Leg Extension".to_string(),
                 // "Hamstring Curls".to_string(),
             ],
+            description_font_size: DEFAULT_DESCRIPTION_FONT_SIZE,
+            font: bb_theme::text_format::FIRA_SANS_EXTRABOLD,
+            on_press: None,
+        }
+    }
+    pub fn new_recent_workout_widget(recent_workout: &RecentWorkoutVisualization) -> Self {
+        WorkoutWidget {
+            width: DEFAULT_WORKOUT_WIDGET_WIDTH,
+            height: DEFAULT_RECENT_WORKOUT_WIDGET_HEIGHT,
+            image: None,
+            title: recent_workout.date.format("%d.%m.%Y").to_string(),
+            title_font_size: DEFAULT_TITLE_FONT_SIZE,
+            exercises: recent_workout.exercise_names.clone(),
             description_font_size: DEFAULT_DESCRIPTION_FONT_SIZE,
             font: bb_theme::text_format::FIRA_SANS_EXTRABOLD,
             on_press: None,
