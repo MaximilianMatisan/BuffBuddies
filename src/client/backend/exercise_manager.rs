@@ -20,6 +20,7 @@ use crate::common::workout_preset::WorkoutPreset;
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
+use crate::client::backend::recent_workouts::{get_up_to_three_most_recent_workout_exercise_names, RecentWorkoutVisualization};
 
 pub enum CreateWorkoutError {
     WorkoutAlreadyInCreation,
@@ -39,6 +40,7 @@ pub struct ExerciseManager {
 
     /// Not necessarily a valid exercise name
     pub selected_exercise_name: String,
+
     //STATS OF SELECTED EXERCISE
     ///representing the heaviest weight used in a set per tracked day
     pub data_points: ExerciseDataPoints,
@@ -51,6 +53,8 @@ pub struct ExerciseManager {
     pub workout_in_creation: Option<WorkoutCreate>,
     pub exercise_in_edit_number: Option<ExerciseNumber>,
     pub exercise_in_edit_strings: Option<ExerciseCreateString>,
+    /// Contains the exercise data for the visualization of up to three most recent workouts
+    pub recent_workouts: Vec<RecentWorkoutVisualization>,
 }
 impl Default for ExerciseManager {
     fn default() -> Self {
@@ -105,6 +109,7 @@ Repeat for the recommended amount of repetitions.".to_string(),
 
         let selected_exercise_name = "Bench press".to_string();
         let mut exercise_manager = ExerciseManager {
+            recent_workouts: get_up_to_three_most_recent_workout_exercise_names(&exercises),
             exercises,
             extended_general_exercise_infos: HashSet::new(),
             selected_exercise_name: selected_exercise_name.clone(),
@@ -182,6 +187,9 @@ impl ExerciseManager {
         }
     }
 
+    // --------------------
+    // Workout logic
+    // --------------------
     pub fn save_workout(
         &mut self,
         workout: &WorkoutCreate,
