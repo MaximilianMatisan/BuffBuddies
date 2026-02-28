@@ -2,6 +2,7 @@ use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::common::exercise_mod::exercise::Exercise;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::profile_picture::ProfilePictureTypes;
 use crate::common::user_mod::user_goals::UserGoals;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter, EnumString};
@@ -44,11 +45,11 @@ impl UserInformation {
         UserInformation {
             username: "Default_user".to_string(),
             description: "".to_string(),
-            profile_picture_path: "assets/images/profile_picture.png".to_string(),
+            profile_picture_path: ProfilePictureTypes::ManBuff.get_image_path(),
             weight: 60.0,
             height: 170,
             gender: Gender::Male,
-            coin_balance: 400,
+            coin_balance: 0,
             favorite_mascot: Mascot::default(),
             profile_stat_manager: ProfileStatManager::new(
                 exercise_data,

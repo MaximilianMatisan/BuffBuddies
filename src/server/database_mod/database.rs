@@ -321,19 +321,6 @@ pub async fn update_user_gender(
         .await?;
     Ok(())
 }
-#[allow(dead_code)]
-pub async fn update_user_weekly_workout_streak(
-    pool: &SqlitePool,
-    username: &str,
-    new_streak: u32,
-) -> Result<(), sqlx::Error> {
-    sqlx::query("UPDATE users SET weekly_workout_streak = ? WHERE username = ?")
-        .bind(new_streak)
-        .bind(username)
-        .execute(pool)
-        .await?;
-    Ok(())
-}
 pub async fn update_user_coin_balance(
     pool: &SqlitePool,
     username: &str,
@@ -615,18 +602,6 @@ pub async fn get_user_gender(pool: &SqlitePool, username: &str) -> Result<Gender
     let exercise_force = Gender::from_str(&gender_string).unwrap_or(Gender::default());
 
     Ok(exercise_force)
-}
-#[allow(dead_code)]
-pub async fn get_user_weekly_workout_streak(
-    pool: &SqlitePool,
-    username: &str,
-) -> Result<u32, sqlx::Error> {
-    let row = sqlx::query("SELECT weekly_workout_streak FROM users WHERE username = ?")
-        .bind(username)
-        .fetch_one(pool)
-        .await?;
-
-    Ok(row.get("weekly_workout_streak"))
 }
 pub async fn get_user_coin_balance(pool: &SqlitePool, username: &str) -> Result<u32, sqlx::Error> {
     let row = sqlx::query("SELECT coin_balance FROM users WHERE username = ?")
