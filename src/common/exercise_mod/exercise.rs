@@ -4,7 +4,7 @@ use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 use chrono::{Duration, Local, NaiveDate};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::fmt::{Display, Formatter};
 
 pub type ExerciseDataPoints = Vec<(NaiveDate, Kg)>;
@@ -35,6 +35,35 @@ impl Exercise {
 
     pub fn is_tracked(&self) -> bool {
         !self.sets.is_empty()
+    }
+
+    /// Returns whether a set of this exercise is tracked with the given `workout_id` or not
+    pub fn contains_set_with_workout_id(&self, workout_id: Id) -> bool {
+        self.sets.iter()
+            .flat_map(|(_, sets)| sets.iter())
+            .any(|set| set.workout_id == workout_id)
+    }
+    pub fn get_date_of_workout_id(&self, workout_id: Id) -> Option<NaiveDate> {
+        self.sets.iter()
+            .find(|(_, sets)|
+                sets.iter().any(|set| set.workout_id == workout_id)
+            ).map(|(date, _)| *date)
+    }
+    pub fn get_up_to_three_largest_workout_ids(&self) -> Vec<Id> {
+        let mut result = Vec::new();
+        let ids = self.sets.iter()
+            .flat_map(|(_, sets)| sets.iter())
+            .map(|set| set.workout_id);
+
+        for id in ids {
+           if !result.contains(&id) {
+               result.push(id);
+           }
+        }
+        result.sort_by(|a, b| b.cmp(a));
+        result.truncate(3);
+
+        result
     }
 
     /// This function calculates the maximum weight of a set for each tracked day.
