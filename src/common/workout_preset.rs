@@ -1,7 +1,7 @@
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use serde::{Deserialize, Serialize};
-use strum_macros::EnumIter;
+use strum_macros::{Display, EnumIter};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkoutPreset {
@@ -27,7 +27,7 @@ pub struct PresetCreation {
     pub edit_image: bool,
 }
 
-#[derive(Default, Clone, Debug, Serialize, Deserialize, EnumIter)]
+#[derive(Default, Clone, PartialEq, Display, Debug, Serialize, Deserialize, EnumIter)]
 pub enum PresetImage {
     #[default]
     Default,
@@ -53,6 +53,18 @@ impl PresetImage {
             format!("{base_path}{image_endings}")
         } else {
             format!("{base_path}{mascot_name_lowered}{image_endings}")
+        }
+    }
+}
+
+impl From<String> for PresetImage {
+    fn from(string: String) -> Self {
+        match string.as_str() {
+            "Bench" => PresetImage::Bench,
+            "Pullup" => PresetImage::Pullup,
+            "Running" => PresetImage::Running,
+            "Squats" => PresetImage::Squats,
+            _ => PresetImage::Default,
         }
     }
 }
