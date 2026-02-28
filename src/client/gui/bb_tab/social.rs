@@ -10,6 +10,7 @@ use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{Column, Row, Scrollable, Space, container, text};
 use iced_core::Length;
 use iced_core::alignment::Horizontal;
+use crate::client::gui::bb_theme::scrollable::{create_scrollable, ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH};
 
 impl App {
     pub fn social_screen(&self) -> Element<Message> {
@@ -78,8 +79,8 @@ impl App {
             .push(content)
             .push(Space::with_width(Length::Fill));
 
-        Scrollable::new(aligned_content)
-            .direction(Direction::Vertical(Scrollbar::new()))
+        create_scrollable(aligned_content, self.mascot_manager.selected_mascot, ScrollableStyle::Default)
+            .add_vertical_scrollbar(TAB_SCROLLBAR_WIDTH, TAB_SCROLLBAR_PADDING)
             .into()
     }
 }

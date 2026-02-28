@@ -14,7 +14,7 @@ use crate::common::profile_picture::LARGE_PROFILE_PICTURE_DIMENSION;
 use crate::common::user_mod::user::UserInformation;
 use iced::Element;
 use iced::widget::{Column, Container, Row, Space, column, container, image, row, text};
-use iced_core::Length;
+use iced_core::{Length, Padding};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
 
@@ -162,7 +162,10 @@ pub fn view_profile<'a>(
     let content = column![header, activity_widget, stat_mascot_row]
         .align_x(Horizontal::Center)
         .spacing(LARGE_INDENT)
-        .padding(INDENT);
+        .padding(Padding {
+            left: 0.0,
+            ..LARGE_INDENT.into()
+        });
 
     content.into()
 }
