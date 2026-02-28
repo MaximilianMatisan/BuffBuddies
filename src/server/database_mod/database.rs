@@ -11,6 +11,7 @@ use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::user_mod::user::{ForeignUser, Gender, UserInformation};
 use crate::common::user_mod::user_goals::UserGoals;
+use crate::common::workout_preset::WorkoutPreset;
 use crate::server::routes::workout::ExerciseJson;
 use chrono::NaiveDate;
 use sqlx::Row;
@@ -71,7 +72,7 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS exercise (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     exercise_force_name TEXT,
     exercise_level_name TEXT NOT NULL,
     exercise_equipment_name TEXT,
@@ -102,10 +103,24 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS preset (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    PresetName TEXT NOT NULL,
+    preset_name TEXT NOT NULL,
+    preset_image TEXT NOT NULL,
     number_of_exercises INTEGER NOT NULL,
     estimated_duration INTEGER NOT NULL,
     description TEXT
+    );",
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS preset_exercise(
+    preset_id INTEGER NOT NULL,
+    exercise_name TEXT NOT NULL,
+    PRIMARY KEY (preset_id, exercise_name),
+
+    FOREIGN KEY (exercise_name) REFERENCES exercise (name),
+    FOREIGN KEY (preset_id) REFERENCES preset (id)
     );",
     )
     .execute(pool)
@@ -366,6 +381,112 @@ pub async fn add_weight_log(
 
     Ok(())
 }
+#[allow(dead_code)]
+pub async fn add_preset(
+    pool: &SqlitePool,
+    preset_name: &str,
+    workout_preset: &WorkoutPreset,
+    estimated_duration: i64,
+) -> Result<(), sqlx::Error> {
+    let mut transaction = pool.begin().await?;
+
+    let preset_insert = sqlx::query(
+        "INSERT INTO preset (preset_name, preset_image, number_of_exercises, estimated_duration)
+                        VALUES (?, ?,?, ?)",
+    )
+    .bind(preset_name)
+    .bind(workout_preset.image.to_string())
+    .bind(workout_preset.exercises.len() as i64)
+    .bind(estimated_duration)
+    .execute(&mut *transaction)
+    .await?;
+
+    let preset_id = preset_insert.last_insert_rowid();
+
+    for exercises in workout_preset.exercises.iter() {
+        sqlx::query(
+            "INSERT INTO preset_exercise (preset_id, exercise_name)
+                        VALUES (?, ?)",
+        )
+        .bind(preset_id)
+        .bind(exercises)
+        .execute(&mut *transaction)
+        .await?;
+    }
+
+    transaction.commit().await?;
+
+    Ok(())
+}
+#[allow(dead_code)]
+pub async fn get_presets_for_user(
+    pool: &SqlitePool,
+    username: &str,
+) -> Result<Vec<WorkoutPreset>, sqlx::Error> {
+    let preset_id_rows = sqlx::query("SELECT preset_id FROM user_preset WHERE username = ? ")
+        .bind(username)
+        .fetch_all(pool)
+        .await?;
+
+    let mut workout_presets = Vec::new();
+
+    for preset_id_row in preset_id_rows {
+        let temp_id: i64 = preset_id_row.get("preset_id");
+
+        let preset_row = sqlx::query(
+            "SELECT preset.preset_name, preset.preset_image, preset_exercise.exercise_name
+                FROM preset
+                JOIN preset_exercise ON preset.id = preset_exercise.preset_id
+                WHERE preset.id = ?",
+        )
+        .bind(temp_id)
+        .fetch_all(pool)
+        .await?;
+
+        let temp_preset_name: String = preset_row[0].get("preset_name");
+        let temp_image: String = preset_row[0].get("preset_image");
+
+        let mut exercises = Vec::new();
+
+        for exercise_row in preset_row {
+            let temp_exercise_name: String = exercise_row.get("exercise_name");
+            exercises.push(temp_exercise_name);
+        }
+
+        let temp_workout_preset = WorkoutPreset {
+            name: temp_preset_name,
+            image: temp_image.into(),
+            exercises,
+        };
+
+        workout_presets.push(temp_workout_preset);
+    }
+
+    Ok(workout_presets)
+}
+#[allow(dead_code)]
+pub async fn delete_preset(pool: &SqlitePool, preset_id: i64) -> Result<(), sqlx::Error> {
+    let mut transaction = pool.begin().await?;
+
+    sqlx::query("DELETE FROM user_preset WHERE preset_id = ?")
+        .bind(preset_id)
+        .execute(&mut *transaction)
+        .await?;
+
+    sqlx::query("DELETE FROM preset_exercise WHERE preset_id = ?")
+        .bind(preset_id)
+        .execute(&mut *transaction)
+        .await?;
+
+    sqlx::query("DELETE FROM preset WHERE id = ?")
+        .bind(preset_id)
+        .execute(&mut *transaction)
+        .await?;
+
+    transaction.commit().await?;
+
+    Ok(())
+}
 
 #[allow(dead_code)]
 pub async fn add_preset_to_user(
@@ -568,6 +689,9 @@ pub async fn reset_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         .execute(pool)
         .await?;
     sqlx::query("DROP TABLE IF EXISTS weightLog")
+        .execute(pool)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS preset_exercise")
         .execute(pool)
         .await?;
     init_db(pool).await?;
@@ -1207,4 +1331,77 @@ pub async fn get_user_information(
         ),
         user_goals,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::common::workout_preset::PresetImage;
+
+    async fn setup_test_db() -> SqlitePool {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_db(&pool).await.unwrap();
+        pool
+    }
+
+    #[tokio::test]
+    async fn test_add_and_get_preset() {
+        let pool = setup_test_db().await;
+
+        sqlx::query("INSERT INTO mascot (mascot_name, description) VALUES (?, ?)")
+            .bind("Duck")
+            .bind("test")
+            .execute(&pool)
+            .await
+            .expect("Mascot insert failed");
+
+        add_user(&pool, "test", "123")
+            .await
+            .expect("adding user failed");
+
+        sqlx::query("INSERT INTO exercise (name, exercise_level_name, muscle_name, instructions, exercise_category_name) 
+                 VALUES (?, ?, ?, ?, ?)")
+            .bind("Bankdrücken")
+            .bind("Beginner")
+            .bind("Chest")
+            .bind("test")
+            .bind("Strength")
+            .execute(&pool).await.expect("Insert of exercise failed");
+
+        sqlx::query("INSERT INTO exercise (name, exercise_level_name, muscle_name, instructions, exercise_category_name)
+                 VALUES (?, ?, ?, ?, ?)")
+            .bind("Squat")
+            .bind("Expert")
+            .bind("Glutes")
+            .bind("test2")
+            .bind("Strength")
+            .execute(&pool).await.expect("Insert of exercise failed");
+
+        let workout = WorkoutPreset {
+            name: "test_workout".to_string(),
+            image: PresetImage::Bench,
+            exercises: vec!["Bankdrücken".to_string(), "Squat".to_string()],
+        };
+
+        add_preset(&pool, &workout.name, &workout, 69)
+            .await
+            .expect("Fehler beim Hinzufügen des Presets");
+
+        add_preset_to_user(&pool, "test", 1)
+            .await
+            .expect("add_preset_to_user failed");
+
+        let preset_from_user: Vec<WorkoutPreset> =
+            get_presets_for_user(&pool, "test").await.unwrap();
+
+        let preset = &preset_from_user[0];
+
+        assert_eq!(preset_from_user.len(), 1);
+        assert_eq!(preset.name, "test_workout");
+        assert_eq!(preset.image, PresetImage::Bench);
+        assert_eq!(
+            preset.exercises,
+            vec!["Bankdrücken".to_string(), "Squat".to_string()]
+        );
+    }
 }
