@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 pub type Reps = u32;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct StrengthSet {
     pub workout_id: Id,
     pub weight: Kg,

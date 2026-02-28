@@ -2,7 +2,7 @@ use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 
 pub type WorkoutCreate = Vec<ExerciseCreate>;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ExerciseCreate {
     pub name: String,
     pub sets: Vec<StrengthSetCreate>,
@@ -44,7 +44,7 @@ impl From<ExerciseCreate> for ExerciseCreateString {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StrengthSetCreate {
     pub reps: Reps,
     pub weight: Kg,
@@ -75,5 +75,19 @@ impl From<StrengthSet> for StrengthSetCreate {
             reps: val.reps,
             weight: val.weight,
         }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_strength_set() {
+        let strength_set_string = StrengthSetString::from(StrengthSetCreate {
+            weight: 50.0,
+            reps: 10,
+        });
+        assert_eq!(strength_set_string.kg, "50".to_string());
+        assert_eq!(strength_set_string.reps, "10".to_string())
     }
 }

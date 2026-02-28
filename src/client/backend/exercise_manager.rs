@@ -24,6 +24,9 @@ use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
 
+//coins you receive each day you have done a workout
+const DAILY_COIN_REWARD: u32 = 5;
+
 pub enum CreateWorkoutError {
     WorkoutAlreadyInCreation,
 }
@@ -233,7 +236,7 @@ impl ExerciseManager {
         first_workout_today: bool,
     ) {
         if first_workout_today {
-            user_info.coin_balance += 5;
+            user_info.coin_balance += DAILY_COIN_REWARD;
         }
         self.update_selected_exercise(self.selected_exercise_name.clone());
         user_info.profile_stat_manager =
@@ -328,12 +331,17 @@ impl ExerciseManager {
 mod tests {
     use std::collections::BTreeMap;
 
-    use crate::client::backend::exercise_manager::ExerciseManager;
+    use crate::client::backend::exercise_create::{
+        ExerciseCreate, StrengthSetCreate, WorkoutCreate,
+    };
+    use crate::client::backend::exercise_manager::{DAILY_COIN_REWARD, ExerciseManager};
+    use crate::common::exercise_mod::exercise::tests::{MOCK_DATES, mock_exercise};
     use crate::common::exercise_mod::{
         exercise::Exercise, general_exercise::GeneralExerciseInfo, set::StrengthSet,
         weight::ExerciseWeight,
     };
-    use chrono::NaiveDate;
+    use crate::common::user_mod::user::UserInformation;
+    use chrono::{Local, NaiveDate};
 
     #[test]
     fn select_invalid_exercise() {
@@ -379,5 +387,113 @@ mod tests {
             ex_manager.set_with_most_total_lifted_weight,
             (NaiveDate::default(), 10.0)
         );
+    }
+
+    #[test]
+    fn adding_two_exercises_only_one_daily_reward() {
+        let mut ex_manager = ExerciseManager::default();
+        let mut exercise_create_example = ExerciseCreate::test_case(0);
+        exercise_create_example
+            .sets
+            .push(StrengthSetCreate::new(ExerciseWeight::Kg(50.0), 10));
+        let mut user_information =
+            UserInformation::default(&vec![Exercise::new(GeneralExerciseInfo::test_obj())]);
+        ex_manager.save_workout(
+            &vec![exercise_create_example.clone()],
+            0,
+            &mut user_information,
+        );
+        assert_eq!(
+            UserInformation::default(&Vec::new()).coin_balance + DAILY_COIN_REWARD,
+            user_information.coin_balance
+        );
+    }
+
+    #[test]
+    fn empty_exercise_not_saved() {
+        let mut ex_manager = ExerciseManager::default();
+        let exercise_create_example = ExerciseCreate::test_case(0);
+        let mut user_information =
+            UserInformation::default(&vec![Exercise::new(GeneralExerciseInfo::test_obj())]);
+        ex_manager.save_workout(&vec![exercise_create_example], 0, &mut user_information);
+        for exercise in ex_manager.exercises {
+            assert_ne!(
+                exercise.general_exercise_info.name,
+                "Test Exercise".to_string()
+            )
+        }
+    }
+
+    #[test]
+    fn first_workout_of_day_false() {
+        let ex_manager = ExerciseManager {
+            exercises: vec![mock_exercise()],
+            extended_general_exercise_infos: Default::default(),
+            tracked_exercise_state: Default::default(),
+            all_exercise_state: Default::default(),
+            selected_exercise_name: "".to_string(),
+            data_points: vec![],
+            all_time_lifted_weight: 0.0,
+            all_time_reps: 0,
+            all_time_sets: 0,
+            weight_personal_record: 0.0,
+            set_with_most_total_lifted_weight: (Default::default(), 0.0),
+            workout_in_creation: None,
+            exercise_in_edit_number: None,
+            exercise_in_edit_strings: None,
+            recent_workouts: Vec::new(),
+        };
+        assert!(ex_manager.is_set_tracked_on_date(&MOCK_DATES[0]));
+    }
+    #[test]
+    fn first_workout_of_day_true() {
+        let ex_manager = ExerciseManager::default();
+        assert!(!ex_manager.is_set_tracked_on_date(&Local::now().date_naive()));
+    }
+
+    #[test]
+    fn clear_workout() {
+        let mut ex_manager = ExerciseManager {
+            exercises: vec![mock_exercise()],
+            extended_general_exercise_infos: Default::default(),
+            tracked_exercise_state: Default::default(),
+            all_exercise_state: Default::default(),
+            selected_exercise_name: "".to_string(),
+            data_points: vec![],
+            all_time_lifted_weight: 0.0,
+            all_time_reps: 0,
+            all_time_sets: 0,
+            weight_personal_record: 0.0,
+            set_with_most_total_lifted_weight: (Default::default(), 0.0),
+            workout_in_creation: Some(WorkoutCreate::default()),
+            exercise_in_edit_number: None,
+            exercise_in_edit_strings: None,
+            recent_workouts: Vec::new(),
+        };
+        ex_manager.clear_workout();
+        assert_eq!(ex_manager.workout_in_creation, None);
+    }
+    #[test]
+    fn start_workout() {
+        let workout = vec![ExerciseCreate::new("Name".to_string())];
+        let mut ex_manager = ExerciseManager {
+            exercises: vec![mock_exercise()],
+            extended_general_exercise_infos: Default::default(),
+            tracked_exercise_state: Default::default(),
+            all_exercise_state: Default::default(),
+            selected_exercise_name: "".to_string(),
+            data_points: vec![],
+            all_time_lifted_weight: 0.0,
+            all_time_reps: 0,
+            all_time_sets: 0,
+            weight_personal_record: 0.0,
+            set_with_most_total_lifted_weight: (Default::default(), 0.0),
+            workout_in_creation: Some(workout.clone()),
+            exercise_in_edit_number: None,
+            exercise_in_edit_strings: None,
+            recent_workouts: Vec::new(),
+        };
+        ex_manager.start_workout();
+        assert_eq!(ex_manager.workout_in_creation, Some(workout));
     }
 }
