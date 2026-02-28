@@ -167,8 +167,9 @@ pub fn view_presets<'a>(mascot: &Mascot, presets: &'a Vec<WorkoutPreset>) -> Ele
         .spacing(INDENT);
 
     for preset in presets {
-        workout_preset_row =
-            workout_preset_row.push(workout::WorkoutWidget::new_workout_preset_widget(preset));
+        workout_preset_row = workout_preset_row.push(
+            workout::WorkoutWidget::new_workout_preset_widget(preset, mascot),
+        );
     }
 
     create_scrollable(workout_preset_row, *mascot, ScrollableStyle::Mascot)

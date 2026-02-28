@@ -218,7 +218,10 @@ impl App {
 
         if let Some(preset) = &self.workout_preset_manager.preset_in_creation {
             let selected_image = image(Handle::from_path(
-                preset.workout_preset.image.get_file_path(),
+                preset
+                    .workout_preset
+                    .image
+                    .get_file_path(&self.mascot_manager.selected_mascot),
             ))
             .width(MEDIUM_PRESET_PICTURE_WIDTH)
             .height(MEDIUM_PRESET_PICTURE_HEIGHT);
@@ -398,7 +401,7 @@ impl App {
 pub fn view_preset_image_selection(mascot: &Mascot) -> Element<Message> {
     let mut preset_selection_buttons = Row::new();
     for preset_image in PresetImage::iter() {
-        let image_path = preset_image.get_file_path();
+        let image_path = preset_image.get_file_path(mascot);
 
         let image = image(Handle::from_path(image_path.clone()))
             .width(MEDIUM_PRESET_PICTURE_WIDTH)
