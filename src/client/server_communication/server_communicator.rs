@@ -5,7 +5,7 @@ use crate::common::exercise_mod::set::Reps;
 use crate::common::exercise_mod::weight::Kg;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct LoginRequest {
     pub username: String,
     pub password: String,
