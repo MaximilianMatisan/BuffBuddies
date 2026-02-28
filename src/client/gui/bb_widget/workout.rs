@@ -70,12 +70,12 @@ where
             on_press: None,
         }
     }
-    pub fn new_workout_preset_widget(preset: &WorkoutPreset) -> Self {
+    pub fn new_workout_preset_widget(preset: &WorkoutPreset, mascot: &Mascot) -> Self {
         WorkoutWidget {
             width: DEFAULT_WORKOUT_WIDGET_WIDTH,
             height: DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT,
-            image: Some(Image::new(image::Handle::from_path(
-                preset.image.get_file_path(),
+            image: Some(Image::new(Handle::from_path(
+                preset.image.get_file_path(mascot),
             ))),
             title: preset.name.clone(),
             title_font_size: DEFAULT_TITLE_FONT_SIZE,
