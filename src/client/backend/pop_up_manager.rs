@@ -1,12 +1,12 @@
 use crate::client::gui::user_interface::Message;
 use std::fmt::{Debug, Formatter};
-use std::sync::Arc;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub enum PopUpType {
     Major,
     Minor,
-    Question(Arc<dyn Fn(bool) -> Message>),
+    Question(Rc<dyn Fn(bool) -> Message>),
 }
 
 impl Debug for PopUpType {
@@ -23,7 +23,7 @@ pub struct PopUpManager {
     pub text: String,
     pub major_pop_up: bool,
     pub minor_pop_up: bool,
-    pub question_pop_up: Option<Arc<dyn Fn(bool) -> Message>>,
+    pub question_pop_up: Option<Rc<dyn Fn(bool) -> Message>>,
 }
 
 impl Default for PopUpManager {
@@ -62,5 +62,56 @@ impl PopUpManager {
         self.major_pop_up = false;
         self.minor_pop_up = false;
         self.question_pop_up = None;
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_pop_up_minor() {
+        let mut pop_up_manager = PopUpManager::default();
+        pop_up_manager.new_pop_up(PopUpType::Minor, "title".to_string(), "text".to_string());
+        assert!(!pop_up_manager.major_pop_up);
+        assert!(pop_up_manager.minor_pop_up);
+        assert!(pop_up_manager.question_pop_up.is_none());
+        assert_eq!(pop_up_manager.title, "title".to_string());
+        assert_eq!(pop_up_manager.text, "text".to_string());
+    }
+    #[test]
+    fn new_pop_up_major() {
+        let mut pop_up_manager = PopUpManager::default();
+        pop_up_manager.new_pop_up(PopUpType::Major, "title".to_string(), "text".to_string());
+        assert!(pop_up_manager.major_pop_up);
+        assert!(!pop_up_manager.minor_pop_up);
+        assert!(pop_up_manager.question_pop_up.is_none());
+        assert_eq!(pop_up_manager.title, "title".to_string());
+        assert_eq!(pop_up_manager.text, "text".to_string());
+    }
+    #[test]
+    fn new_pop_up_question() {
+        let mut pop_up_manager = PopUpManager::default();
+        pop_up_manager.new_pop_up(
+            PopUpType::Question(Rc::new(|_bool| -> Message { Message::ResetPopUp })),
+            "title".to_string(),
+            "text".to_string(),
+        );
+        assert!(!pop_up_manager.major_pop_up);
+        assert!(pop_up_manager.minor_pop_up);
+        assert!(pop_up_manager.question_pop_up.is_some());
+        assert_eq!(pop_up_manager.title, "title".to_string());
+        assert_eq!(pop_up_manager.text, "text".to_string());
+    }
+
+    #[test]
+    fn reset_pop_up() {
+        let mut pop_up_manager = PopUpManager::default();
+        pop_up_manager.new_pop_up(PopUpType::Minor, "title".to_string(), "text".to_string());
+        pop_up_manager.reset();
+        assert!(!pop_up_manager.major_pop_up);
+        assert!(!pop_up_manager.minor_pop_up);
+        assert!(pop_up_manager.question_pop_up.is_none());
+        assert!(pop_up_manager.title.is_empty());
+        assert!(pop_up_manager.text.is_empty());
     }
 }

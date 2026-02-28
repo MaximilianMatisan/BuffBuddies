@@ -26,7 +26,7 @@ use iced_core::Length::{Fill, FillPortion, Shrink};
 use iced_core::image::Handle;
 use iced_core::text::LineHeight;
 use iced_core::{Alignment, Pixels};
-use std::sync::Arc;
+use std::rc::Rc;
 
 type SetNumber = usize;
 pub type ExerciseNumber = usize;
@@ -206,7 +206,7 @@ impl WorkoutCreationMessage {
                     match err {
                         CreateWorkoutError::WorkoutAlreadyInCreation => {
                             app.pop_up_manager.new_pop_up(
-                                PopUpType::Question(Arc::new(move |overwrite| {
+                                PopUpType::Question(Rc::new(move |overwrite| {
                                     if overwrite {
                                         Message::WorkoutCreation(
                                             WorkoutCreationMessage::PresetReplace(
