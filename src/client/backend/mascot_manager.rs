@@ -1,8 +1,6 @@
 use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot::Mascot::Rare;
 use crate::common::mascot_mod::mascot_data_transfer::MascotDataServerClientTransfer;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced::widget::combo_box::State;
 use iced::widget::{Image, image};
 use rand::random_range;
@@ -24,7 +22,7 @@ impl MascotManager {
         MascotManager {
             selected_mascot: Mascot::default(),
             owned_mascots: vec![Mascot::default()],
-            owned_mascots_state: State::with_selection(vec![Rare(RareMascot::Duck)], None),
+            owned_mascots_state: State::with_selection(vec![Mascot::default()], None),
         }
     }
 
@@ -50,7 +48,7 @@ impl MascotManager {
     pub fn get_random_owned_mascot(&self) -> Mascot {
         if self.owned_mascots.is_empty() {
             // Avoid calling random_range with 0..0, which would panic if no mascots are owned
-            return Mascot::Rare(RareMascot::Duck);
+            return Mascot::default();
         }
 
         let enumerated_mascots: Vec<(usize, &Mascot)> =
@@ -58,5 +56,37 @@ impl MascotManager {
         let random_number = random_range(0..enumerated_mascots.len());
 
         *enumerated_mascots.get(random_number).unwrap().1
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::common::mascot_mod::epic_mascot::EpicMascot;
+    use crate::common::mascot_mod::rare_mascot::RareMascot;
+
+    #[test]
+    fn owns_mascot_false() {
+        let mascot_manager = MascotManager::default();
+        assert!(!mascot_manager.owns_mascot(EpicMascot::Reindeer));
+    }
+    #[test]
+    fn owns_mascot_true() {
+        let mut mascot_manager = MascotManager::default();
+        mascot_manager.add_mascot(EpicMascot::Reindeer);
+        assert!(mascot_manager.owns_mascot(EpicMascot::Reindeer));
+    }
+    #[test]
+    fn update_on_login() {
+        let mut mascot_manager = MascotManager::default();
+        mascot_manager.update_mascot_manager_on_login(MascotDataServerClientTransfer {
+            selected_mascot: Default::default(),
+            owned_mascots: vec![
+                Mascot::Rare(RareMascot::Duck),
+                Mascot::Epic(EpicMascot::Reindeer),
+            ],
+        });
+        assert!(mascot_manager.owns_mascot(EpicMascot::Reindeer));
+        assert_eq!(mascot_manager.selected_mascot, Mascot::default())
     }
 }
