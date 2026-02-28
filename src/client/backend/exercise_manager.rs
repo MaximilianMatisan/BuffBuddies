@@ -1,5 +1,5 @@
 use crate::client::backend::exercise_create::{
-    ExerciseCreate, ExerciseCreateString, WorkoutCreate,
+    ExerciseCreate, ExerciseCreateString, StrengthSetCreate, WorkoutCreate,
 };
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
@@ -221,6 +221,31 @@ impl ExerciseManager {
         user_info.profile_stat_manager =
             ProfileStatManager::new(&self.exercises, user_info.user_goals.weekly_workouts as u32);
         self.tracked_exercise_state = get_combo_box_tracked_exercise_state(&self.exercises);
+    }
+
+    ///Filters out the sets with 0 weight or reps in current workout_in_creation
+    pub fn filter_workout_creation(&mut self) {
+        let mut workout_filtered: WorkoutCreate = Vec::new();
+        if let Some(workout) = &self.workout_in_creation {
+            for exercise in workout {
+                let filtered_sets: Vec<StrengthSetCreate> = exercise
+                    .sets
+                    .iter()
+                    .filter_map(|strength_set| {
+                        if strength_set.reps > 0 && strength_set.weight > 0.0 {
+                            Some(strength_set.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                workout_filtered.push(ExerciseCreate {
+                    name: exercise.name.clone(),
+                    sets: filtered_sets,
+                })
+            }
+        }
+        self.workout_in_creation = Some(workout_filtered);
     }
 
     /// Returns whether a set of any exercise was tracked on the given day or not
