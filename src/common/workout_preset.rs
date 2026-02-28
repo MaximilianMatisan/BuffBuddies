@@ -3,7 +3,7 @@ use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WorkoutPreset {
     pub name: String,
     pub image: PresetImage,
@@ -20,7 +20,7 @@ impl Default for WorkoutPreset {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct PresetCreation {
     pub workout_preset: WorkoutPreset,
     pub edit_title: bool,
