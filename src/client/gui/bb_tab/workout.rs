@@ -24,6 +24,7 @@ use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Alignment, Border, Length, Padding, Theme};
 use std::time::Duration;
+use crate::client::gui::bb_widget::preset_workout_rows::view_recent_workout_row;
 
 const SPACING: f32 = 20.0;
 const MASCOT_SIZE: u16 = 200;
@@ -61,9 +62,7 @@ impl App {
             .push(new_widget::new_workout_widget_button(
                 self.mascot_manager.selected_mascot,
             ))
-            .push(WorkoutWidget::default_recent_workout_widget())
-            .push(WorkoutWidget::default_recent_workout_widget())
-            .push(WorkoutWidget::default_recent_workout_widget())
+            .push(view_recent_workout_row(&self.mascot_manager.selected_mascot, &self.exercise_manager.recent_workouts))
             .spacing(INDENT);
 
         let aligned_recent_workouts = container(recent_workouts_row)
