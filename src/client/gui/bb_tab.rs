@@ -5,7 +5,7 @@ pub mod login;
 mod mascot;
 pub mod preset_creation;
 pub mod settings;
-mod social;
+pub mod social;
 pub mod tab;
 pub mod user;
 mod workout;
