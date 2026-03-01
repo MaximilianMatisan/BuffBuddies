@@ -98,7 +98,7 @@ impl App {
                 .color(color::TEXT_COLOR)
                 .size(TEXT_SIZE),
         )
-        .on_press(Message::Select(Tab::Settings)) //TODO: Screen with presets
+        .on_press(Message::Select(Tab::PresetOverview))
         .animation(Motion {
             damping: Motion::SMOOTH.damping,
             response: Duration::from_millis(350),

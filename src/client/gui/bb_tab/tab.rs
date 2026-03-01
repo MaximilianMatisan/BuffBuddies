@@ -16,6 +16,7 @@ pub enum Tab {
     Loading,
     CreateWorkout,
     CreatePreset,
+    PresetOverview,
 }
 
 impl Tab {
