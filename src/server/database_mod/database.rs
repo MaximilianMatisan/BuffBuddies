@@ -117,9 +117,7 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         "CREATE TABLE IF NOT EXISTS preset_exercise(
     preset_id INTEGER NOT NULL,
     exercise_name TEXT NOT NULL,
-    PRIMARY KEY (preset_id, exercise_name),
 
-    FOREIGN KEY (exercise_name) REFERENCES exercise (name),
     FOREIGN KEY (preset_id) REFERENCES preset (id)
     );",
     )
@@ -384,17 +382,15 @@ pub async fn add_weight_log(
 #[allow(dead_code)]
 pub async fn add_preset(
     pool: &SqlitePool,
-    preset_name: &str,
     workout_preset: &WorkoutPreset,
     estimated_duration: i64,
 ) -> Result<i64, sqlx::Error> {
     let mut transaction = pool.begin().await?;
-
     let preset_insert = sqlx::query(
         "INSERT INTO preset (preset_name, preset_image, number_of_exercises, estimated_duration)
                         VALUES (?, ?,?, ?)",
     )
-    .bind(preset_name)
+    .bind(workout_preset.name.clone())
     .bind(workout_preset.image.to_string())
     .bind(workout_preset.exercises.len() as i64)
     .bind(estimated_duration)
@@ -402,7 +398,6 @@ pub async fn add_preset(
     .await?;
 
     let preset_id = preset_insert.last_insert_rowid();
-
     for exercises in workout_preset.exercises.iter() {
         sqlx::query(
             "INSERT INTO preset_exercise (preset_id, exercise_name)
@@ -503,7 +498,6 @@ pub async fn add_preset_to_user(
     .bind(0)
     .execute(pool)
     .await?;
-
     Ok(())
 }
 #[allow(dead_code)]
@@ -1383,11 +1377,11 @@ mod tests {
             exercises: vec!["Bankdrücken".to_string(), "Squat".to_string()],
         };
 
-        add_preset(&pool, &workout.name, &workout, 69)
+        let preset_id = add_preset(&pool, &workout, 69)
             .await
             .expect("Fehler beim Hinzufügen des Presets");
 
-        add_preset_to_user(&pool, "test", 1)
+        add_preset_to_user(&pool, "test", preset_id)
             .await
             .expect("add_preset_to_user failed");
 
