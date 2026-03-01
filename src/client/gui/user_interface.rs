@@ -107,64 +107,7 @@ impl App {
                 Task::none()
             }
             Message::Graph(graph_message) => {
-                match graph_message {
-                    GraphMessage::GraphCursorMoved(_point) => {}
-
-                    GraphMessage::GraphKeyPressed(Key::Character(char)) => match char.as_str() {
-                        "h" => self
-                            .widget_manager
-                            .graph_widget_state
-                            .invert_visible_points(),
-                        "c" => self
-                            .widget_manager
-                            .graph_widget_state
-                            .invert_visible_cursor_information(),
-                        _ => {}
-                    },
-                    GraphMessage::IncrementCounter => {
-                        if self.widget_manager.graph_widget_state.get_counter() < MAX_AMOUNT_POINTS
-                        {
-                            self.widget_manager.graph_widget_state.increment_counter();
-                        } else {
-                            self.pop_up_manager.new_pop_up(
-                                PopUpType::Minor,
-                                "Limit reached ".to_string(),
-                                format!(
-                                    "The graph can’t display more than {MAX_AMOUNT_POINTS} points"
-                                ),
-                            );
-                        }
-                    }
-                    GraphMessage::DecrementCounter => {
-                        if self.widget_manager.graph_widget_state.get_counter() > 1 {
-                            self.widget_manager.graph_widget_state.decrement_counter();
-                        }
-                    }
-                    GraphMessage::UpdateAnimatedSelection(event) => {
-                        self.widget_manager
-                            .graph_widget_state
-                            .animation_progress
-                            .update(event);
-                        self.widget_manager.graph_widget_state.update_graph();
-                    }
-
-                    GraphMessage::ToggleDots => self
-                        .widget_manager
-                        .graph_widget_state
-                        .invert_visible_points(),
-
-                    GraphMessage::ToggleCursor => self
-                        .widget_manager
-                        .graph_widget_state
-                        .invert_visible_cursor_information(),
-
-                    GraphMessage::ToggleVerticalLines => self
-                        .widget_manager
-                        .graph_widget_state
-                        .invert_visible_vertical_lines(),
-                    _other_key_enums => {}
-                };
-                Task::none()
+                GraphMessage::update_graph(graph_message,self)
             }
 
             Message::ChangeShownChartType(chart_type) => {
