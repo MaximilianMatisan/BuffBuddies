@@ -24,7 +24,7 @@ use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
 
-//coins you receive each day you have done a workout
+///coins you receive each day you have done a workout
 const DAILY_COIN_REWARD: u32 = 5;
 
 pub enum CreateWorkoutError {
@@ -54,9 +54,11 @@ pub struct ExerciseManager {
     pub all_time_sets: u64,
     pub weight_personal_record: Kg,
     pub set_with_most_total_lifted_weight: (NaiveDate, Kg),
-    // Needed for exercise creation menu
+    /// Needed for exercise creation menu
     pub workout_in_creation: Option<WorkoutCreate>,
+    /// shows which exercise is being edited during workout creation
     pub exercise_in_edit_number: Option<ExerciseNumber>,
+    /// used for iced to be able to show and edit the current workout in creation
     pub exercise_in_edit_strings: Option<ExerciseCreateString>,
     /// Contains the exercise data for the visualization of up to three most recent workouts
     pub recent_workouts: Vec<RecentWorkoutVisualization>,
@@ -193,9 +195,10 @@ impl ExerciseManager {
         }
     }
 
-    // --------------------
-    // Workout logic
-    // --------------------
+    /// Saves the workout supplied as an input and the current date.
+    /// As a side effect gives the user DAILY_COIN_REWARD coins if it's their
+    /// first workout of the day.
+    /// It also updates data after workout is safed
     pub fn save_workout(
         &mut self,
         workout: &WorkoutCreate,
@@ -281,18 +284,21 @@ impl ExerciseManager {
         first_workout_today
     }
 
+    /// clears the current workout in creation
     pub fn clear_workout(&mut self) {
         self.workout_in_creation = None;
         self.exercise_in_edit_strings = None;
         self.exercise_in_edit_number = None;
     }
 
+    /// creates the data needed for workout creation when it is started
     pub fn start_workout(&mut self) {
         if self.workout_in_creation.is_none() {
             self.workout_in_creation = Some(Vec::new());
         }
     }
 
+    /// setup workout creation with exercises of a preset already being added
     pub fn start_workout_with_preset(
         &mut self,
         preset: &WorkoutPreset,
@@ -305,6 +311,7 @@ impl ExerciseManager {
         }
     }
 
+    /// makes new workout with preset even if the old one gets replaced
     pub fn force_workout_with_preset(&mut self, preset: &WorkoutPreset) {
         let mut exercises = Vec::new();
         for exercise in &preset.exercises {
@@ -313,6 +320,8 @@ impl ExerciseManager {
         self.workout_in_creation = Some(exercises);
     }
 
+    /// Checks the historically latest done set for an exercise.
+    /// Used when you create a new set during workout creation
     pub fn get_last_done_set(&self, exercise: &String) -> Option<StrengthSet> {
         let mut set = None;
         for exercise_data in &self.exercises {
