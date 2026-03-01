@@ -6,6 +6,7 @@ use crate::client::gui::bb_tab::health::HealthTabMessage;
 use crate::client::gui::bb_tab::login::{LoginMessage, view_login};
 use crate::client::gui::bb_tab::mascot::MascotMessage;
 use crate::client::gui::bb_tab::preset_creation::PresetCreationMessage;
+use crate::client::gui::bb_tab::preset_overview::preset_overview_screen;
 use crate::client::gui::bb_tab::settings::SettingsMessage;
 use crate::client::gui::bb_tab::social::SocialMessage;
 use crate::client::gui::bb_tab::tab::Tab;
@@ -340,6 +341,10 @@ impl App {
             Tab::Exit => None,
             Tab::CreateWorkout => Some(self.workout_creation_screen()),
             Tab::CreatePreset => Some(self.preset_creation_screen()),
+            Tab::PresetOverview => Some(preset_overview_screen(
+                &self.mascot_manager.selected_mascot,
+                &self.workout_preset_manager.presets,
+            )),
             Tab::ViewProfile => {
                 let user_type = &self.user_manager.most_recently_viewed_user;
 

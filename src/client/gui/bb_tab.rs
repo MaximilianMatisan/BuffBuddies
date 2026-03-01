@@ -4,6 +4,7 @@ pub mod loading;
 pub mod login;
 pub mod mascot;
 pub mod preset_creation;
+pub mod preset_overview;
 pub mod settings;
 pub mod social;
 pub mod tab;
