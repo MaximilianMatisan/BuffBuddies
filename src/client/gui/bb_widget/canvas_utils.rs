@@ -26,12 +26,12 @@ pub fn generate_dashed_stroke<'a>(width: f32, stroke_style: stroke::Style) -> St
         ..generate_stroke(width, stroke_style)
     }
 }
-pub fn draw_text(frame: &mut Frame, content: String, font_size: f32, position: Point) {
+pub fn draw_text(frame: &mut Frame, content: String, font_size: f32, position: Point, color: Color) {
     frame.fill_text(canvas::Text {
         content,
         size: font_size.into(),
         position,
-        color: TEXT_COLOR,
+        color,
         font: FIRA_SANS_EXTRABOLD,
         horizontal_alignment: Horizontal::Center,
         vertical_alignment: Vertical::Center,
@@ -40,7 +40,7 @@ pub fn draw_text(frame: &mut Frame, content: String, font_size: f32, position: P
     });
 }
 
-///Draws a line from point `start` to point `end` 
+///Draws a line from point `start` to point `end`
 pub fn draw_line(frame: &mut Frame, start: Point, end: Point, stroke: Stroke) {
 frame.stroke(&Path::line(start, end), stroke);
 }
@@ -60,4 +60,12 @@ pub fn create_arc_path(center: Point, radius: f32, start_angle: f32, end_angle: 
             end_angle: Degrees(end_angle).into(),
         });
     })
+}
+
+/// Translates a `Point` by adding the same offset to both its `x` and `y` coordinates.
+pub fn  translate_point(point: Point, delta: f32) -> Point {
+    Point {
+        x: point.x + delta,
+        y: point.y + delta
+    }
 }

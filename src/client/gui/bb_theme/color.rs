@@ -54,7 +54,7 @@ pub fn create_new_gradient_background(
 }
 
 /// Creates a 2D linear gradient that can be used as a fill for widget backgrounds.
-pub fn create_2d_gradient(
+pub fn create_canvas_gradient(
     start: Point,
     end: Point,
     color_stops: Vec<ColorStop>,

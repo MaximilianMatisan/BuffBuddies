@@ -7,7 +7,7 @@ use iced_core::{Color, Point, color};
 use std::time::Duration;
 
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color::{create_solid_stroke_style, CONTAINER_COLOR};
+use crate::client::gui::bb_theme::color::{create_solid_stroke_style, CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_widget::canvas_utils::{create_arc_path, draw_text, generate_stroke};
 use crate::client::gui::user_interface::Message;
@@ -187,7 +187,7 @@ fn draw_bmi_title(frame: &mut Frame) {
         x: Point::ORIGIN.x + padding_x,
         y: Point::ORIGIN.y + padding_y,
     };
-    draw_text(frame, "BMI".to_string(), 30.0, position)
+    draw_text(frame, "BMI".to_string(), 30.0, position,TEXT_COLOR)
 }
 
 fn draw_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget_state: &BMIWidgetState) {
@@ -269,6 +269,7 @@ fn draw_bmi_text(frame: &mut Frame, bmi_widget: &BMIWidget) {
             x: circle_center.x,
             y: circle_center.y - text_padding / 2.0,
         },
+        TEXT_COLOR
     );
 
     //WEIGHT CLASS
@@ -286,6 +287,7 @@ fn draw_bmi_text(frame: &mut Frame, bmi_widget: &BMIWidget) {
                 x: circle_center.x,
                 y: circle_center.y + text_padding / 2.0 + counter * offset,
             },
+            TEXT_COLOR
         );
 
         counter += 1.0;
