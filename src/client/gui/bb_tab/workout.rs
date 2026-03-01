@@ -12,7 +12,7 @@ use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_desc
 use crate::client::gui::bb_widget::general_exercise_info_elements::display_general_exercise_infos;
 use crate::client::gui::bb_widget::preset_workout_rows::view_recent_workout_row;
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
-use crate::client::gui::bb_widget::workout::{DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT, WorkoutWidget};
+use crate::client::gui::bb_widget::workout::DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT;
 use crate::client::gui::bb_widget::{new_widget, workout};
 use crate::client::gui::size::FRAME_WIDTH;
 use crate::client::gui::user_interface::Message;
