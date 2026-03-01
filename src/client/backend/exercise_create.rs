@@ -2,6 +2,7 @@ use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 
 pub type WorkoutCreate = Vec<ExerciseCreate>;
+///struct that is used to save a workout during creation
 #[derive(Debug, Clone, PartialEq)]
 pub struct ExerciseCreate {
     pub name: String,
@@ -27,7 +28,7 @@ impl ExerciseCreate {
         }
     }
 }
-
+///needed by iced to show and edit the current workout in creation
 pub struct ExerciseCreateString {
     pub sets: Vec<StrengthSetString>,
 }
@@ -44,6 +45,7 @@ impl From<ExerciseCreate> for ExerciseCreateString {
     }
 }
 
+///struct that is used to represent strength sets during creation of a workout
 #[derive(Debug, Clone, PartialEq)]
 pub struct StrengthSetCreate {
     pub reps: Reps,
@@ -55,6 +57,7 @@ impl StrengthSetCreate {
         StrengthSetCreate { weight: kg, reps }
     }
 }
+///needed for iced to show and edit sets
 pub struct StrengthSetString {
     pub reps: String,
     pub kg: String,
