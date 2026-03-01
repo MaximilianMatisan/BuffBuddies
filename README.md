@@ -123,3 +123,10 @@ Track your basic habits and health metrics!
 
 ## 🎥 Video
 > Watch a video walkthrough of our app [here](https://youtu.be/LtawgpuPOrQ)
+
+## 💡 Testing philosophy
+
+As we used iced as our gui dependency we mostly relied on extending dependencies such as iced_anim or more importantly iced_test,
+but as iced_test only has one version that relies on rust version 1.88 we couldn't use it for our tests.
+Also most of the code is gui code, that is very difficult to test. We mostly relied on unit tests for the logic behind the gui.
+In our scenario, manual GUI testing proved to be sensible, as it allowed us to adjust GUI values and quickly create our own scenarios. We also tried building simple intregration tests but noticed recently they were inconsistent as soon as they involved the server and thus removed them for now.
