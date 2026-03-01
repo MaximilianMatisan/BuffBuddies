@@ -22,7 +22,9 @@ const MAX_PASSWORD_LENGTH: usize = 100;
 pub enum LoginMessage {
     TryRegister,
     TryLogin,
+    /// used to handle result from server after trying to log in
     RequestValidUser(Result<String, RequestValidUserError>),
+    /// used to handle result from server after trying to register
     RequestValidRegister(Result<String, RequestValidRegisterError>),
     UsernameEntered(String),
     PasswordEntered(String),
