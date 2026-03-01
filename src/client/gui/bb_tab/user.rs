@@ -1,4 +1,5 @@
 use crate::client::gui::app::App;
+use crate::client::gui::bb_tab::social::SocialMessage;
 use crate::client::gui::bb_theme::color::{HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button};
@@ -45,7 +46,9 @@ pub fn view_profile<'a>(
             ButtonStyle::InactiveSolid,
             None,
         )
-        .on_press(Message::RemoveUserAsFriend(user.username.clone()));
+        .on_press(Message::Social(SocialMessage::RemoveUserAsFriend(
+            user.username.clone(),
+        )));
 
         username = username
             .push(Space::with_width(Length::Fill))

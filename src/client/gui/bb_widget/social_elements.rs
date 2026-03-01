@@ -1,4 +1,5 @@
 use crate::client::gui::app::App;
+use crate::client::gui::bb_tab::social::SocialMessage;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{format_button_text, format_description_text};
@@ -70,8 +71,8 @@ pub fn friend_user_button<'a>(
     )
     .width(FRIEND_BUTTON_WIDTH)
     .height(FRIEND_BUTTON_HEIGHT)
-    .on_press(Message::ViewProfile(UserType::Other(
-        user.user_information.username.clone(),
+    .on_press(Message::Social(SocialMessage::ViewProfile(
+        UserType::Other(user.user_information.username.clone()),
     )));
 
     button
@@ -103,9 +104,9 @@ pub fn user_profile_button<'a>(
         ButtonStyle::Active,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
     )
-    .on_press(Message::AddUserAsFriend(
+    .on_press(Message::Social(SocialMessage::AddUserAsFriend(
         user.user_information.username.clone(),
-    ));
+    )));
 
     let contents = Row::new()
         .push(profile_picture)
@@ -123,8 +124,8 @@ pub fn user_profile_button<'a>(
     )
     .width(USER_BUTTON_WIDTH)
     .height(Length::Shrink)
-    .on_press(Message::ViewProfile(UserType::Other(
-        user.user_information.username.clone(),
+    .on_press(Message::Social(SocialMessage::ViewProfile(
+        UserType::Other(user.user_information.username.clone()),
     )));
 
     user_profile_button
@@ -165,5 +166,5 @@ pub fn profile_tab_button(app: &App) -> iced_anim::widget::Button<Message> {
     )
     .width(Length::Fill)
     .height(Length::Shrink)
-    .on_press(Message::ViewProfile(UserType::Own))
+    .on_press(Message::Social(SocialMessage::ViewProfile(UserType::Own)))
 }

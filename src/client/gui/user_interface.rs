@@ -6,6 +6,7 @@ use crate::client::gui::bb_tab::health::HealthTabMessage;
 use crate::client::gui::bb_tab::login::{LoginMessage, view_login};
 use crate::client::gui::bb_tab::preset_creation::PresetCreationMessage;
 use crate::client::gui::bb_tab::settings::SettingsMessage;
+use crate::client::gui::bb_tab::social::SocialMessage;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_tab::user::view_profile;
 use crate::client::gui::bb_tab::workout_creation::WorkoutCreationMessage;
@@ -30,15 +31,11 @@ use crate::client::server_communication::mascot_communicator::{
 };
 use crate::client::server_communication::request_data::LoginServerRequestData;
 use crate::client::server_communication::server_communicator::ServerRequestError;
-use crate::client::server_communication::user_communicator::{
-    add_foreign_user_as_friend_on_server, remove_foreign_user_as_friend_on_server,
-};
 use crate::common::exercise_mod::general_exercise::Id;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
-use crate::common::user_mod::friend_request::FriendRequest;
 use crate::common::user_mod::user::UserType;
 use iced::widget::{Column, Row, Space, Stack, container, row};
 use iced::{Element, Task};
@@ -57,6 +54,7 @@ pub enum Message {
     BuyMascot(MascotRarity),
     SaveMascot(Result<Mascot, ServerRequestError>),
     SelectMascot(Mascot),
+
     // ChartMessage (Combine) maybe include in WidgetMessage?
     SelectExercise(String),
     Graph(GraphMessage),
@@ -70,18 +68,9 @@ pub enum Message {
     HealthTab(HealthTabMessage),
     ToggleGeneralExerciseInfo(u32),
 
-    // SocialMessage (Combine)
-    AddUserAsFriend(String),
-    RemoveUserAsFriend(String),
-    ViewProfile(UserType),
-
-    // PopUpMessage
+    Social(SocialMessage),
     ResetPopUp,
-
-    // SettingsMessage (Can stay)
     Settings(SettingsMessage),
-
-    // Can stay?
     UpdateInfoOnServerResult(Result<(), ServerRequestError>, String),
 
     // WorkoutMessage (Combine)
@@ -90,6 +79,8 @@ pub enum Message {
 
     // PresetMessage (Can stay)
     PresetCreation(PresetCreationMessage),
+
+    // Login Messages
     Login(LoginMessage),
     RequestLoginData(Result<Arc<LoginServerRequestData>, ServerRequestError>), //Arc necessary to receive non-cloneable Vec<Exercise>
 }
@@ -290,64 +281,6 @@ impl App {
                 HealthTabMessage::update_health_tab(health_message, self)
             }
 
-            Message::AddUserAsFriend(username) => {
-                self.user_manager.add_user_as_friend(&username);
-                if let Some(jwt) = self.jsonwebtoken.clone() {
-                    Task::perform(
-                        add_foreign_user_as_friend_on_server(jwt, FriendRequest { username }),
-                        |result| {
-                            Message::UpdateInfoOnServerResult(result, "added-Friend".to_string())
-                        },
-                    )
-                } else {
-                    println!("Log in to add a friend!");
-                    Task::none()
-                }
-            }
-            Message::RemoveUserAsFriend(username) => {
-                self.user_manager.remove_user_as_friend(&username);
-                if let Some(jwt) = self.jsonwebtoken.clone() {
-                    Task::perform(
-                        remove_foreign_user_as_friend_on_server(jwt, FriendRequest { username }),
-                        |result| {
-                            Message::UpdateInfoOnServerResult(result, "removed-Friend".to_string())
-                        },
-                    )
-                } else {
-                    println!("Log in to remove a friend!");
-                    Task::none()
-                }
-            }
-            Message::ViewProfile(user_type) => {
-                match user_type {
-                    UserType::Own => {
-                        self.widget_manager.activity_widget.update_data(
-                            self.user_manager.user_info.favorite_mascot,
-                            self.user_manager
-                                .user_info
-                                .profile_stat_manager
-                                .activity_data
-                                .clone(),
-                        );
-                        self.user_manager.most_recently_viewed_user = UserType::Own
-                    }
-                    UserType::Other(username) => {
-                        let opt_user = self.user_manager.get_user_by_username(&username);
-                        if let Some(user) = opt_user {
-                            self.widget_manager.activity_widget.update_data(
-                                user.user_information.favorite_mascot,
-                                user.user_information
-                                    .profile_stat_manager
-                                    .activity_data
-                                    .clone(), //TODO maybe without clone possible?
-                            );
-                        }
-                        self.user_manager.most_recently_viewed_user = UserType::Other(username);
-                    }
-                }
-                self.screen = Tab::ViewProfile;
-                Task::none()
-            }
             Message::ResetPopUp => {
                 self.pop_up_manager.reset();
                 Task::none()
@@ -372,6 +305,7 @@ impl App {
                 }
                 Task::none()
             }
+            Message::Social(social_message) => social_message.update(self),
             Message::WorkoutCreation(workout_creation_msg) => workout_creation_msg.update(self),
             Message::SaveWorkout(Err(_), _) => {
                 self.screen = Tab::Workout;
