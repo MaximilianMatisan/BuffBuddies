@@ -3,33 +3,34 @@ use crate::client::gui::bb_theme::color::{
 };
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use chrono::NaiveDate;
-use iced::Renderer;
-use iced::advanced::graphics::Gradient;
 use iced::advanced::graphics::geometry::Frame;
 use iced::advanced::graphics::gradient::Linear;
-use iced::mouse;
+use iced::advanced::graphics::Gradient;
 use iced::widget::canvas::{
-    Cache, Event, Geometry, LineCap, LineDash, LineJoin, Path, Stroke, event, stroke,
+    event, stroke, Cache, Event, Geometry, LineCap, LineDash, LineJoin, Path, Stroke,
 };
-use iced_core::{Color, color};
+use iced::Renderer;
+use iced::{mouse, Task};
+use iced_core::{color, Color};
 use std::time::Duration;
 
 use crate::client::backend::exercise_manager::ExerciseManager;
+use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
-use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_text_button};
+use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle};
+use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle};
 use crate::client::gui::bb_theme::text_format::format_button_text;
-use crate::client::gui::bb_widget::chart::{CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH, ChartTypes};
+use crate::client::gui::bb_widget::chart::{ChartTypes, CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH};
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;
 use crate::common::exercise_mod::exercise::ExerciseDataPoints;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use iced::Element;
-use iced::widget::{Column, Row, Space, container};
 use iced::widget::{canvas, row, text};
+use iced::widget::{container, Column, Row, Space};
+use iced::Element;
 use iced_anim::{Animated, Animation, Motion};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::border::Radius;
@@ -56,6 +57,68 @@ pub enum GraphMessage {
     ToggleDots,
     ToggleCursor,
     ToggleVerticalLines,
+}
+impl GraphMessage {
+    pub fn update_graph(graph_message: GraphMessage, app: &mut App) -> Task<Message> {
+        match graph_message {
+            GraphMessage::GraphCursorMoved(_point) => {}
+
+            GraphMessage::GraphKeyPressed(Key::Character(char)) => match char.as_str() {
+                "h" => app
+                    .widget_manager
+                    .graph_widget_state
+                    .invert_visible_points(),
+                "c" => app
+                    .widget_manager
+                    .graph_widget_state
+                    .invert_visible_cursor_information(),
+                _ => {}
+            },
+            GraphMessage::IncrementCounter => {
+                if app.widget_manager.graph_widget_state.get_counter() < MAX_AMOUNT_POINTS
+                {
+                    app.widget_manager.graph_widget_state.increment_counter();
+                } else {
+                    app.pop_up_manager.new_pop_up(
+                        PopUpType::Minor,
+                        "Limit reached ".to_string(),
+                        format!(
+                            "The graph can’t display more than {MAX_AMOUNT_POINTS} points"
+                        ),
+                    );
+                }
+            }
+            GraphMessage::DecrementCounter => {
+                if app.widget_manager.graph_widget_state.get_counter() > 1 {
+                    app.widget_manager.graph_widget_state.decrement_counter();
+                }
+            }
+            GraphMessage::UpdateAnimatedSelection(event) => {
+                app.widget_manager
+                    .graph_widget_state
+                    .animation_progress
+                    .update(event);
+                app.widget_manager.graph_widget_state.update_graph();
+            }
+
+            GraphMessage::ToggleDots => app
+                .widget_manager
+                .graph_widget_state
+                .invert_visible_points(),
+
+            GraphMessage::ToggleCursor => app
+                .widget_manager
+                .graph_widget_state
+                .invert_visible_cursor_information(),
+
+            GraphMessage::ToggleVerticalLines => app
+                .widget_manager
+                .graph_widget_state
+                .invert_visible_vertical_lines(),
+            _other_key_enums => {}
+        };
+        Task::none()
+    }
 }
 
 #[derive(Default)]
