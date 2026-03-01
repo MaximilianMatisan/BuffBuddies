@@ -5,19 +5,18 @@ use crate::client::gui::bb_theme::color::{BACKGROUND_COLOR, CONTAINER_COLOR, TEX
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::{ButtonType, create_button_style};
 use crate::client::gui::bb_theme::scrollable::{
-    SCROLLBAR_PADDING, ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING,
-    TAB_SCROLLBAR_WIDTH, WIDGET_SCROLLBAR_WIDTH, create_scrollable,
+    ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH,
+    create_scrollable,
 };
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text};
 use crate::client::gui::bb_widget::general_exercise_info_elements::display_general_exercise_infos;
-use crate::client::gui::bb_widget::preset_workout_rows::view_recent_workout_row;
+use crate::client::gui::bb_widget::new_widget;
+use crate::client::gui::bb_widget::preset_workout_rows::{
+    view_preset_row, view_recent_workout_row,
+};
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
-use crate::client::gui::bb_widget::workout::DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT;
-use crate::client::gui::bb_widget::{new_widget, workout};
 use crate::client::gui::size::FRAME_WIDTH;
 use crate::client::gui::user_interface::Message;
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::workout_preset::WorkoutPreset;
 use iced::Element;
 use iced::widget::{Column, Row, Space, Stack, container, text};
 use iced_anim::Motion;
@@ -76,7 +75,7 @@ impl App {
             .push(background_mascot_with_text)
             .push(aligned_recent_workouts);
 
-        let workout_preset_scrollable = view_presets(
+        let workout_preset_scrollable = view_preset_row(
             &self.mascot_manager.selected_mascot,
             &self.workout_preset_manager.presets,
         );
@@ -161,20 +160,4 @@ impl App {
 
         scrollable_workout_interface.into()
     }
-}
-
-pub fn view_presets<'a>(mascot: &Mascot, presets: &'a Vec<WorkoutPreset>) -> Element<'a, Message> {
-    let mut workout_preset_row = Row::new()
-        .height(DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT + SCROLLBAR_PADDING)
-        .spacing(INDENT);
-
-    for preset in presets {
-        workout_preset_row = workout_preset_row.push(
-            workout::WorkoutWidget::new_workout_preset_widget(preset, mascot),
-        );
-    }
-
-    create_scrollable(workout_preset_row, *mascot, ScrollableStyle::Mascot)
-        .add_horizontal_scrollbar(WIDGET_SCROLLBAR_WIDTH, 0.0)
-        .into()
 }

@@ -4,9 +4,13 @@ use crate::client::gui::bb_theme::scrollable::{
     create_scrollable,
 };
 use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::client::gui::bb_widget::workout::{DEFAULT_RECENT_WORKOUT_WIDGET_HEIGHT, WorkoutWidget};
+use crate::client::gui::bb_widget::workout;
+use crate::client::gui::bb_widget::workout::{
+    DEFAULT_RECENT_WORKOUT_WIDGET_HEIGHT, DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT, WorkoutWidget,
+};
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::workout_preset::WorkoutPreset;
 use iced::Element;
 use iced::widget::Row;
 
@@ -27,4 +31,21 @@ pub fn view_recent_workout_row<'a>(
         .add_horizontal_scrollbar(WIDGET_SCROLLBAR_WIDTH, 0.0)
         .into()
 }
-//TODO move view_preset_row here
+pub fn view_preset_row<'a>(
+    mascot: &Mascot,
+    presets: &'a Vec<WorkoutPreset>,
+) -> Element<'a, Message> {
+    let mut workout_preset_row = Row::new()
+        .height(DEFAULT_WORKOUT_PRESET_WIDGET_HEIGHT + SCROLLBAR_PADDING)
+        .spacing(INDENT);
+
+    for preset in presets {
+        workout_preset_row = workout_preset_row.push(
+            workout::WorkoutWidget::new_workout_preset_widget(preset, mascot),
+        );
+    }
+
+    create_scrollable(workout_preset_row, *mascot, ScrollableStyle::Mascot)
+        .add_horizontal_scrollbar(WIDGET_SCROLLBAR_WIDTH, 0.0)
+        .into()
+}
