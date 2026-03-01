@@ -315,7 +315,7 @@ where
         _renderer: &Renderer,
     ) -> mouse::Interaction {
         let is_mouse_over = cursor.is_over(layout.bounds());
-        if is_mouse_over {
+        if is_mouse_over && self.on_press.is_some() {
             mouse::Interaction::Pointer
         } else {
             mouse::Interaction::default()
