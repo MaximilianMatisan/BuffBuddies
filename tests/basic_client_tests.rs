@@ -2,7 +2,7 @@ mod common;
 
 use buff_buddies::client::gui::bb_tab::login::LoginMessage;
 use buff_buddies::client::gui::user_interface::Message;
-use buff_buddies::client::server_communication::server_communicator::LoginRequest;
+use buff_buddies::client::server_communication::user_communicator::LoginRequest;
 use common::setups::client_setup;
 
 #[test]

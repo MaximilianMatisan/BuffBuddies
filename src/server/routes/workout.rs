@@ -19,7 +19,7 @@ pub struct WorkoutJson {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ExerciseJson {
     pub(crate) name: String,
-    pub(crate) sets: Vec<crate::client::server_communication::server_communicator::SetJson>,
+    pub(crate) sets: Vec<crate::client::server_communication::exercise_communicator::SetJson>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

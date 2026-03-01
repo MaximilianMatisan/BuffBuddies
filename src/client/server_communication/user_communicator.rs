@@ -1,12 +1,23 @@
-use crate::client::server_communication::exercise_communicator::ServerRequestError;
-use crate::client::server_communication::server_communicator::LoginRequest;
+use crate::client::server_communication::server_communicator::ServerRequestError;
 use crate::common::login::{
     RequestValidRegisterAnswer, RequestValidRegisterError, RequestValidUserAnswer,
     RequestValidUserError,
 };
 use crate::common::user_mod::friend_request::FriendRequest;
 use crate::common::user_mod::user::{ForeignUser, UserInformation};
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+pub struct LoginRequest {
+    pub username: String,
+    pub password: String,
+}
+
+impl From<(String, String)> for LoginRequest {
+    fn from((username, password): (String, String)) -> Self {
+        LoginRequest { username, password }
+    }
+}
 /// Checks if the login data exists on serverside
 /// Returns jwt if login was successful else RequestValidUserError
 pub async fn valid_login(login_request: LoginRequest) -> Result<String, RequestValidUserError> {

@@ -25,11 +25,11 @@ use crate::client::gui::bb_widget::progress_bar::ProgressBarMessage;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::{bb_theme, size};
-use crate::client::server_communication::exercise_communicator::ServerRequestError;
 use crate::client::server_communication::mascot_communicator::{
     buy_mascot, update_selected_mascot_on_server,
 };
 use crate::client::server_communication::request_data::LoginServerRequestData;
+use crate::client::server_communication::server_communicator::ServerRequestError;
 use crate::client::server_communication::user_communicator::{
     add_foreign_user_as_friend_on_server, remove_foreign_user_as_friend_on_server,
 };

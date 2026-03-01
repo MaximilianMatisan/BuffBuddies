@@ -1,4 +1,4 @@
-use crate::client::server_communication::server_communicator::LoginRequest;
+use crate::client::server_communication::user_communicator::LoginRequest;
 
 #[derive(Debug, PartialEq)]
 pub enum LoginStateError {

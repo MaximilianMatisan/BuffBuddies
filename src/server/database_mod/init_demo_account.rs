@@ -1,4 +1,4 @@
-use crate::client::server_communication::server_communicator::SetJson;
+use crate::client::server_communication::exercise_communicator::SetJson;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
