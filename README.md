@@ -47,45 +47,36 @@ After starting the application choose whether to run it as client or server (loc
 
 ## 🐥 Preview
 ### Home
+<img src="assets/images/showcase/home_tab.png">
 
-<div style="display: flex; gap: 10px;">
-<img src="assets/images/showcase/home_tab.png" width="500">
-  <div>
-    On the home screen, the user has a dashboard showing the app's most important functions.
+On the home screen, the user has a dashboard showing the app's most important functions.
 
 - Activity widget that shows days as boxes and highlights workout days
 - Workout presets to quickly track a new workout
 - Chart widget to display the best weights of the sets on the respective days in a chart
 - Circle widget to visualize the number of workouts this week toward the user's specific goal
-  </div>
-</div>
 
 ### Workout
-<div style="display: flex; gap: 10px;">
-  <div>
-  The core functionality of the app!
+<p align="center">
+<img src="assets/images/showcase/workout_tab.png" width="500">
+</p>
 
-  - The user can choose from 581 exercises and track the corresponding weight used and the number of repetitions
-  - Preview the last three workouts
-  - Create and select workout presets which contain specific exercises
-  - View general data about all exercises, such as instructions, target muscle group, and required equipment.
+The core functionality of the app!
 
-  </div>
-<img src="assets/images/showcase/workout_tab.png" width="400">
-</div>
+- The user can choose from 581 exercises and track the corresponding weight used and the number of repetitions
+- Preview the last three workouts
+- Create and select workout presets which contain specific exercises
+- View general data about all exercises, such as instructions, target muscle group, and required equipment.
 
 ### Mascot
-<div style="display: flex; gap: 10px;">
-<img src="assets/images/showcase/mascot_tab.png" width="400">
-  <div>
-  This part gamifies workouts!
+<p align="center">
+<img src="assets/images/showcase/mascot_tab.png" width="500">
+</p>
+This part gamifies workouts!
 
-  - Buy mascots with coins earned by tracking workouts
-  - Select mascots
-  - Configure the color scheme of the app
-
-  </div>
-</div>
+- Buy mascots with coins earned by tracking workouts
+- Select mascots
+- Configure the color scheme of the app
 
 ### Social
 <div style="display: flex; gap: 0px;">
@@ -93,17 +84,16 @@ After starting the application choose whether to run it as client or server (loc
 <img src="assets/images/showcase/user_tab.png" width="400">
 </div>
 
-<div style="text-align: center;">
 Connect with your friends and other mascot collectors!
 
-i. Compare your stats with others<br>
-ii. View profiles of other users<br>
-iii. Add them as your friend<br>
-</div>
+- Compare your stats with others<br>
+- View profiles of other users<br>
+- Add them as your friend<br>
 
 ### Settings
-<div style="display: flex; gap: 10px;">
-  <div>
+<p align="center">
+  <img src="assets/images/showcase/settings_tab.png" width="500">
+</p>
 Here you can configure your user profile!
 
 - Configure data from three different categories.
@@ -111,14 +101,11 @@ Here you can configure your user profile!
   - User Goals to define daily goals, like water, step or sleep goals or long term goals such as bodyweight
   - Profile picture
 
-  </div>
-  <img src="assets/images/showcase/settings_tab.png" width="400">
-</div>
-
 ### Health
-<div style="display: flex; gap: 10px;">
-  <img src="assets/images/showcase/health_tab.png" width="400">
-  <div>
+<p align="center">
+<img src="assets/images/showcase/health_tab.png" width="500">
+</p>
+
 Track your basic habits and health metrics!
 
 - BMI widget that calculates, evaluates, and visualizes the body mass index using the user data in Settings.
@@ -126,9 +113,6 @@ Track your basic habits and health metrics!
 
 >[!NOTE]
 > This screen goes beyond what we presented in the pitch, but it is not yet in its final form.
-
-  </div>
-</div>
 
 ## 🎥 Video
 > Watch a video walkthrough of our app [here](https://youtu.be/LtawgpuPOrQ)
