@@ -12,6 +12,8 @@ use iced::widget::{Column, Row, container, text};
 use iced_core::Length::{Fill, Shrink};
 use iced_core::{Border, Shadow, Theme, Vector};
 
+/// Returns a visual of the popup.
+/// To center it, it is on an invisible background so it has to be stacked on top, otherwise it will take up the whole screen
 pub fn view_pop_up(app: &App) -> Element<'_, Message> {
     let title: Element<Message> = format_button_text(text(&app.pop_up_manager.title))
         .size(30)
