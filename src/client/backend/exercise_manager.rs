@@ -2,6 +2,9 @@ use crate::client::backend::exercise_create::{
     ExerciseCreate, ExerciseCreateString, StrengthSetCreate, WorkoutCreate,
 };
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
+use crate::client::backend::recent_workouts::{
+    RecentWorkoutVisualization, get_up_to_three_most_recent_workout_exercise_names,
+};
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
 use crate::client::gui::bb_theme::combo_box::{
     get_combo_box_all_exercises_state, get_combo_box_tracked_exercise_state,
@@ -20,7 +23,6 @@ use crate::common::workout_preset::WorkoutPreset;
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
-use crate::client::backend::recent_workouts::{get_up_to_three_most_recent_workout_exercise_names, RecentWorkoutVisualization};
 
 pub enum CreateWorkoutError {
     WorkoutAlreadyInCreation,
@@ -224,8 +226,12 @@ impl ExerciseManager {
         }
         self.update_app_data_after_save_workout(user_info, first_workout_today);
     }
-    
-    fn update_app_data_after_save_workout(&mut self, user_info: &mut UserInformation, first_workout_today: bool) {
+
+    fn update_app_data_after_save_workout(
+        &mut self,
+        user_info: &mut UserInformation,
+        first_workout_today: bool,
+    ) {
         if first_workout_today {
             user_info.coin_balance += 5;
         }

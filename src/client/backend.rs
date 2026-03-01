@@ -6,7 +6,7 @@ pub mod exercise_create;
 pub mod exercise_manager;
 pub mod image_manager;
 pub mod mascot_manager;
+pub mod recent_workouts;
 pub mod user_manager;
 pub mod widget_state;
 pub mod workout_preset_manager;
-pub mod recent_workouts;

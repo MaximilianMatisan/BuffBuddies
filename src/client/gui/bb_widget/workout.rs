@@ -1,3 +1,4 @@
+use crate::client::backend::recent_workouts::RecentWorkoutVisualization;
 use crate::client::gui::bb_tab::workout_creation::WorkoutCreationMessage;
 use crate::client::gui::bb_theme::scrollable::SCROLLBAR_PADDING;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
@@ -18,7 +19,6 @@ use iced_core::{
     Clipboard, Event, Image, Layout, Length, Point, Rectangle, Shell, Size, Theme, Widget,
     alignment, image, mouse, text,
 };
-use crate::client::backend::recent_workouts::RecentWorkoutVisualization;
 
 const SCALE: f32 = 1.0;
 pub const DEFAULT_WORKOUT_WIDGET_WIDTH: f32 = 208.0 * SCALE;

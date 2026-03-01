@@ -37,34 +37,6 @@ impl Exercise {
         !self.sets.is_empty()
     }
 
-    /// Returns whether a set of this exercise is tracked with the given `workout_id` or not
-    pub fn contains_set_with_workout_id(&self, workout_id: Id) -> bool {
-        self.sets.iter()
-            .flat_map(|(_, sets)| sets.iter())
-            .any(|set| set.workout_id == workout_id)
-    }
-    pub fn get_date_of_workout_id(&self, workout_id: Id) -> Option<NaiveDate> {
-        self.sets.iter()
-            .find(|(_, sets)|
-                sets.iter().any(|set| set.workout_id == workout_id)
-            ).map(|(date, _)| *date)
-    }
-    pub fn get_up_to_three_largest_workout_ids(&self) -> Vec<Id> {
-        let mut result = Vec::new();
-        let ids = self.sets.iter()
-            .flat_map(|(_, sets)| sets.iter())
-            .map(|set| set.workout_id);
-
-        for id in ids {
-           if !result.contains(&id) {
-               result.push(id);
-           }
-        }
-        result.sort_by(|a, b| b.cmp(a));
-        result.truncate(3);
-
-        result
-    }
 
     /// This function calculates the maximum weight of a set for each tracked day.
     pub fn calculate_max_weight_per_day(&self) -> ExerciseDataPoints {
@@ -134,6 +106,40 @@ impl Exercise {
             }
         }
         heaviest_set
+    }
+    /// Returns whether a set of this exercise is tracked with the given `workout_id` or not
+    pub fn contains_set_with_workout_id(&self, workout_id: Id) -> bool {
+        self.sets
+            .iter()
+            .flat_map(|(_, sets)| sets.iter())
+            .any(|set| set.workout_id == workout_id)
+    }
+
+    /// Returns the tracked date of a given `workout_id` <br>
+    /// if the workout_id isn't tracked in the sets of the exercise this function returns None
+    pub fn get_date_of_workout_id(&self, workout_id: Id) -> Option<NaiveDate> {
+        self.sets
+            .iter()
+            .find(|(_, sets)| sets.iter().any(|set| set.workout_id == workout_id))
+            .map(|(date, _)| *date)
+    }
+    pub fn get_up_to_three_largest_workout_ids(&self) -> Vec<Id> {
+        let mut result = Vec::new();
+        let ids = self
+            .sets
+            .iter()
+            .flat_map(|(_, sets)| sets.iter())
+            .map(|set| set.workout_id);
+
+        for id in ids {
+            if !result.contains(&id) {
+                result.push(id);
+            }
+        }
+        result.sort_by(|a, b| b.cmp(a));
+        result.truncate(3);
+
+        result
     }
 }
 pub fn get_weight_milestones(start_number: u32, end_number: u32, steps: u32) -> Vec<u32> {
@@ -416,6 +422,89 @@ pub(crate) mod tests {
             mock_exercise.set_with_most_total_lifted_weight(),
             (MOCK_DATES[1], real_mock)
         );
+    }
+    #[test]
+    fn contains_set_with_workout_id_mock() {
+        let mock_exercise = mock_exercise();
+
+        assert!(!mock_exercise.contains_set_with_workout_id(10));
+        assert!(mock_exercise.contains_set_with_workout_id(0));
+        assert!(mock_exercise.contains_set_with_workout_id(1));
+        assert!(!mock_exercise.contains_set_with_workout_id(2));
+    }
+    #[test]
+    fn contains_sets_with_workout_id_large_exercise() {
+        let custom_exercise = custom_exercise_preset();
+        for day in 0..100 {
+            if day < CUSTOM_TRACKED_DAYS {
+                assert!(custom_exercise.contains_set_with_workout_id(day));
+            } else {
+                assert!(!custom_exercise.contains_set_with_workout_id(day));
+            }
+        }
+    }
+    #[test]
+    fn contains_no_set_with_id_zero_when_exercise_is_empty() {
+        let exercise = Exercise {
+            general_exercise_info: GeneralExerciseInfo::test_obj(),
+            sets: BTreeMap::new()
+        };
+        assert!(!exercise.contains_set_with_workout_id(0));
+    }
+    #[test]
+    fn empty_exercise_contains_no_workout_ids() {
+        let exercise = Exercise {
+            general_exercise_info: GeneralExerciseInfo::test_obj(),
+            sets: BTreeMap::new()
+        };
+        assert_eq!(exercise.get_up_to_three_largest_workout_ids(), Vec::<Id>::new());
+    }
+    #[test]
+    fn get_three_biggest_exercise_ids_of_mock_exercise() {
+        let workout_ids_of_mock_exercise = mock_exercise().get_up_to_three_largest_workout_ids();
+
+        assert_eq!(vec![1,0], workout_ids_of_mock_exercise);
+    }
+    #[test]
+    fn get_three_biggest_exercise_ids_of_large_exercise() {
+        let custom_exercise = custom_exercise_preset();
+        let mut expected_result = Vec::new();
+        for i in 1..=3 {
+            expected_result.push(CUSTOM_TRACKED_DAYS-i)
+        }
+
+        assert_eq!(expected_result, custom_exercise.get_up_to_three_largest_workout_ids())
+    }
+    #[test]
+    fn get_date_of_workout_id_empty_exercise() {
+        let exercise = Exercise {
+            general_exercise_info: GeneralExerciseInfo::test_obj(),
+            sets: BTreeMap::new(),
+        };
+        assert!(exercise.get_date_of_workout_id(0).is_none());
+        assert!(exercise.get_date_of_workout_id(1).is_none());
+    }
+    #[test]
+    fn get_date_of_workout_id_mock_exercise() {
+        let mock_exercise = mock_exercise();
+        assert_eq!(mock_exercise.get_date_of_workout_id(0), Some(MOCK_DATES[0]));
+        assert_eq!(mock_exercise.get_date_of_workout_id(1), Some(MOCK_DATES[1]));
+
+        assert!(mock_exercise.get_date_of_workout_id(2).is_none());
+    }
+    #[test]
+    fn get_date_of_workout_id_long_exercise() {
+        let custom_exercise = custom_exercise_preset();
+
+        let today = Local::now().date_naive();
+        for i in 0..100 {
+            let expected_date = if i < CUSTOM_TRACKED_DAYS {
+                Some(today + Duration::days(i as i64))
+            } else {
+                None
+            };
+            assert_eq!(custom_exercise.get_date_of_workout_id(i), expected_date);
+        }
     }
     #[test]
     fn test_get_weight_milestones() {
