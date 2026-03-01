@@ -4,6 +4,7 @@ use crate::client::backend::pop_up_manager::PopUpType;
 pub use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::health::HealthTabMessage;
 use crate::client::gui::bb_tab::login::{LoginMessage, view_login};
+use crate::client::gui::bb_tab::mascot::MascotMessage;
 use crate::client::gui::bb_tab::preset_creation::PresetCreationMessage;
 use crate::client::gui::bb_tab::settings::SettingsMessage;
 use crate::client::gui::bb_tab::social::SocialMessage;
@@ -26,16 +27,9 @@ use crate::client::gui::bb_widget::progress_bar::ProgressBarMessage;
 use crate::client::gui::bb_widget::social_elements::profile_tab_button;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::{bb_theme, size};
-use crate::client::server_communication::mascot_communicator::{
-    buy_mascot, update_selected_mascot_on_server,
-};
 use crate::client::server_communication::request_data::LoginServerRequestData;
 use crate::client::server_communication::server_communicator::ServerRequestError;
 use crate::common::exercise_mod::general_exercise::Id;
-use crate::common::mascot_mod::epic_mascot::EpicMascot;
-use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::common::user_mod::user::UserType;
 use iced::widget::{Column, Row, Space, Stack, container, row};
 use iced::{Element, Task};
@@ -49,11 +43,6 @@ use std::sync::Arc;
 #[derive(Debug, Clone)]
 pub enum Message {
     Select(Tab),
-
-    // MascotMessage (Combine)
-    BuyMascot(MascotRarity),
-    SaveMascot(Result<Mascot, ServerRequestError>),
-    SelectMascot(Mascot),
 
     // ChartMessage (Combine) maybe include in WidgetMessage?
     SelectExercise(String),
@@ -83,6 +72,7 @@ pub enum Message {
     // Login Messages
     Login(LoginMessage),
     RequestLoginData(Result<Arc<LoginServerRequestData>, ServerRequestError>), //Arc necessary to receive non-cloneable Vec<Exercise>
+    Mascot(MascotMessage),
 }
 
 impl App {
@@ -107,88 +97,6 @@ impl App {
 
                 self.screen = tab;
                 Task::none()
-            }
-            Message::BuyMascot(rarity) => {
-                if match rarity {
-                    MascotRarity::Rare => self.user_manager.user_info.coin_balance >= 50,
-                    MascotRarity::Epic => self.user_manager.user_info.coin_balance >= 100,
-                } {
-                    let mut mascot_maybe: Option<Mascot> = None;
-                    match rarity {
-                        MascotRarity::Rare => {
-                            match RareMascot::random_new_rare(&self.mascot_manager) {
-                                Ok(mascot) => mascot_maybe = Some(mascot.into()),
-                                Err(_err) => self.pop_up_manager.new_pop_up(
-                                    PopUpType::Minor,
-                                    "Failed to buy mascot!".to_string(),
-                                    "All mascots of this rarity have already been purchased!"
-                                        .to_string(),
-                                ),
-                            }
-                        }
-                        MascotRarity::Epic => {
-                            match EpicMascot::random_new_epic(&self.mascot_manager) {
-                                Ok(mascot) => mascot_maybe = Some(mascot.into()),
-                                Err(_err) => self.pop_up_manager.new_pop_up(
-                                    PopUpType::Minor,
-                                    "Failed to buy mascot!".to_string(),
-                                    "All mascots of this rarity have already been purchased!"
-                                        .to_string(),
-                                ),
-                            }
-                        }
-                    };
-                    if let Some(mascot) = mascot_maybe {
-                        if let Some(jwt) = &self.jsonwebtoken {
-                            Task::perform(buy_mascot(jwt.clone(), mascot), Message::SaveMascot)
-                        } else {
-                            self.pop_up_manager.new_pop_up(
-                                PopUpType::Minor,
-                                "Buying Mascot failed!".to_string(),
-                                "Log in to buy mascots!".to_string(),
-                            );
-                            Task::none()
-                        }
-                    } else {
-                        Task::none()
-                    }
-                } else {
-                    self.pop_up_manager.new_pop_up(
-                        PopUpType::Minor,
-                        "Funds lacking!".to_string(),
-                        "You do not have enough money to buy a mascot of this type".to_string(),
-                    );
-                    Task::none()
-                }
-            }
-            Message::SaveMascot(Ok(mascot)) => {
-                self.user_manager.user_info.coin_balance -= mascot.get_prize();
-                self.mascot_manager.add_mascot(mascot);
-                Task::none()
-            }
-            Message::SaveMascot(Err(_err)) => {
-                self.pop_up_manager.new_pop_up(
-                    PopUpType::Minor,
-                    "Server error!".to_string(),
-                    "Server is either offline or had an internal error!\nPlease start server or report bug".to_string(),
-                );
-                Task::none()
-            }
-            Message::SelectMascot(mascot) => {
-                let active_mascot = &mut self.mascot_manager.selected_mascot;
-                *active_mascot = mascot;
-                self.widget_manager
-                    .activity_widget
-                    .update_active_mascot(*active_mascot);
-
-                if let Some(jwt) = self.jsonwebtoken.clone() {
-                    Task::perform(update_selected_mascot_on_server(jwt, mascot), |result| {
-                        Message::UpdateInfoOnServerResult(result, "selected Mascot".to_string())
-                    })
-                } else {
-                    println!("Log in to select a Mascot!");
-                    Task::none()
-                }
             }
             Message::Activity(activity_message) => {
                 self.widget_manager.activity_widget.update(activity_message)
@@ -349,6 +257,7 @@ impl App {
                 );
                 Task::none()
             }
+            Message::Mascot(mascot_message) => mascot_message.update(self),
         }
     }
     fn view(&self) -> Element<'_, Message> {

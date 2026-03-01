@@ -2,7 +2,7 @@ pub mod health;
 mod home;
 pub mod loading;
 pub mod login;
-mod mascot;
+pub mod mascot;
 pub mod preset_creation;
 pub mod settings;
 pub mod social;

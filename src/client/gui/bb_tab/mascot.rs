@@ -1,3 +1,4 @@
+use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::mascot::BoxType::Locked;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
@@ -13,12 +14,16 @@ use crate::client::gui::bb_theme::text_format::{
 use crate::client::gui::bb_widget::shop;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
+use crate::client::server_communication::mascot_communicator::{
+    buy_mascot, update_selected_mascot_on_server,
+};
+use crate::client::server_communication::server_communicator::ServerRequestError;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot::{Mascot, MascotRarity};
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
-use iced::Element;
 use iced::widget::{Column, Row, Space, container, image, row, text};
+use iced::{Element, Task};
 use iced_core::Length::Fill;
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::{Handle, Image};
@@ -31,6 +36,104 @@ const MASCOT_BOX_HEIGHT: u16 = 46;
 const MASCOT_BOX_TEXT_SIZE: u16 = 18;
 const BOX_PADDING: f32 = 12.5;
 const HEADERS_TEXT_SIZE: u16 = 30;
+
+#[derive(Clone, Debug)]
+pub enum MascotMessage {
+    BuyMascot(MascotRarity),
+    SaveMascot(Result<Mascot, ServerRequestError>),
+    SelectMascot(Mascot),
+}
+
+impl MascotMessage {
+    pub fn update(&self, app: &mut App) -> Task<Message> {
+        match self {
+            MascotMessage::BuyMascot(rarity) => {
+                if match rarity {
+                    MascotRarity::Rare => app.user_manager.user_info.coin_balance >= 50,
+                    MascotRarity::Epic => app.user_manager.user_info.coin_balance >= 100,
+                } {
+                    let mut mascot_maybe: Option<Mascot> = None;
+                    match rarity {
+                        MascotRarity::Rare => {
+                            match RareMascot::random_new_rare(&app.mascot_manager) {
+                                Ok(mascot) => mascot_maybe = Some(mascot.into()),
+                                Err(_err) => app.pop_up_manager.new_pop_up(
+                                    PopUpType::Minor,
+                                    "Failed to buy mascot!".to_string(),
+                                    "All mascots of this rarity have already been purchased!"
+                                        .to_string(),
+                                ),
+                            }
+                        }
+                        MascotRarity::Epic => {
+                            match EpicMascot::random_new_epic(&app.mascot_manager) {
+                                Ok(mascot) => mascot_maybe = Some(mascot.into()),
+                                Err(_err) => app.pop_up_manager.new_pop_up(
+                                    PopUpType::Minor,
+                                    "Failed to buy mascot!".to_string(),
+                                    "All mascots of this rarity have already been purchased!"
+                                        .to_string(),
+                                ),
+                            }
+                        }
+                    };
+                    if let Some(mascot) = mascot_maybe {
+                        if let Some(jwt) = &app.jsonwebtoken {
+                            Task::perform(buy_mascot(jwt.clone(), mascot), |result| {
+                                Message::Mascot(MascotMessage::SaveMascot(result))
+                            })
+                        } else {
+                            app.pop_up_manager.new_pop_up(
+                                PopUpType::Minor,
+                                "Buying Mascot failed!".to_string(),
+                                "Log in to buy mascots!".to_string(),
+                            );
+                            Task::none()
+                        }
+                    } else {
+                        Task::none()
+                    }
+                } else {
+                    app.pop_up_manager.new_pop_up(
+                        PopUpType::Minor,
+                        "Funds lacking!".to_string(),
+                        "You do not have enough money to buy a mascot of this type".to_string(),
+                    );
+                    Task::none()
+                }
+            }
+            MascotMessage::SaveMascot(Ok(mascot)) => {
+                app.user_manager.user_info.coin_balance -= mascot.get_prize();
+                app.mascot_manager.add_mascot(*mascot);
+                Task::none()
+            }
+            MascotMessage::SaveMascot(Err(_err)) => {
+                app.pop_up_manager.new_pop_up(
+                    PopUpType::Minor,
+                    "Server error!".to_string(),
+                    "Server is either offline or had an internal error!\nPlease start server or report bug".to_string(),
+                );
+                Task::none()
+            }
+            MascotMessage::SelectMascot(mascot) => {
+                let active_mascot = &mut app.mascot_manager.selected_mascot;
+                *active_mascot = *mascot;
+                app.widget_manager
+                    .activity_widget
+                    .update_active_mascot(*active_mascot);
+
+                if let Some(jwt) = app.jsonwebtoken.clone() {
+                    Task::perform(update_selected_mascot_on_server(jwt, *mascot), |result| {
+                        Message::UpdateInfoOnServerResult(result, "selected Mascot".to_string())
+                    })
+                } else {
+                    println!("Log in to select a Mascot!");
+                    Task::none()
+                }
+            }
+        }
+    }
+}
 
 impl App {
     pub fn mascot_screen(&self) -> Element<Message> {
@@ -69,9 +172,9 @@ impl App {
             Rainbow,
             Some(7.5.into()),
         )
-        .on_press(Message::SelectMascot(
+        .on_press(Message::Mascot(MascotMessage::SelectMascot(
             self.mascot_manager.get_random_owned_mascot(),
-        ))
+        )))
         .height(37.0)
         .width(210.0);
 
@@ -141,7 +244,7 @@ impl App {
             "Random Rare Mascot".to_string(),
             50,
             &self.mascot_manager.selected_mascot,
-            Message::BuyMascot(MascotRarity::Rare),
+            Message::Mascot(MascotMessage::BuyMascot(MascotRarity::Rare)),
         )
         .set_image(Image::new(Handle::from_path(
             "assets/images/rare_gacha.png",
@@ -151,7 +254,7 @@ impl App {
             "Random Epic Mascot".to_string(),
             100,
             &self.mascot_manager.selected_mascot,
-            Message::BuyMascot(MascotRarity::Epic),
+            Message::Mascot(MascotMessage::BuyMascot(MascotRarity::Epic)),
         )
         .set_image(Image::new(Handle::from_path(
             "assets/images/epic_gacha.png",
@@ -245,7 +348,7 @@ fn create_mascot_box(app: &App, mascot: Mascot, box_type: BoxType) -> Element<'s
     .width(Fill);
 
     if box_type != Locked {
-        mascot_box = mascot_box.on_press(Message::SelectMascot(mascot))
+        mascot_box = mascot_box.on_press(Message::Mascot(MascotMessage::SelectMascot(mascot)))
     }
 
     mascot_box.into()
