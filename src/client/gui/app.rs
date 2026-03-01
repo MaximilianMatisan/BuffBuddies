@@ -62,6 +62,8 @@ impl App {
                 .0
                 .clone(),
         );
+        // Update preset manager
+        self.workout_preset_manager.presets = data.presets;
         // Update activity_widget state
         self.widget_manager.activity_widget.update_data(
             self.mascot_manager.selected_mascot,
