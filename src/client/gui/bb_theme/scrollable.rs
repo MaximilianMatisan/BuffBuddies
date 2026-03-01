@@ -18,11 +18,11 @@ pub enum ScrollableStyle {
     Mascot,
     Default,
 }
-pub fn create_scrollable<'a>(
-    element: impl Into<Element<'a, Message, Theme, Renderer>>,
+pub fn create_scrollable<'a,Msg>(
+    element: impl Into<Element<'a, Msg, Theme, Renderer>>,
     mascot: Mascot,
     scrollable_style: ScrollableStyle,
-) -> Scrollable<'a, Message> {
+) -> Scrollable<'a, Msg> {
     Scrollable::new(element).style(move |_, status: iced::widget::scrollable::Status| {
         create_style(status, mascot, scrollable_style.clone())
     })
@@ -33,14 +33,14 @@ pub trait ScrollableExtension {
     fn add_vertical_scrollbar(self, width: f32, padding: f32) -> Self;
 }
 
-impl<'a> ScrollableExtension for Scrollable<'a, Message> {
-    fn add_horizontal_scrollbar(self, width: f32, padding: f32) -> Scrollable<'a, Message> {
+impl<'a,Msg> ScrollableExtension for Scrollable<'a, Msg> {
+    fn add_horizontal_scrollbar(self, width: f32, padding: f32) -> Scrollable<'a, Msg> {
         self.direction(Direction::Horizontal(
             Scrollbar::new().scroller_width(width).margin(padding),
         ))
     }
 
-    fn add_vertical_scrollbar(self, width: f32, padding: f32) -> Scrollable<'a, Message> {
+    fn add_vertical_scrollbar(self, width: f32, padding: f32) -> Scrollable<'a, Msg> {
         self.direction(Direction::Vertical(
             Scrollbar::new().scroller_width(width).margin(padding),
         ))

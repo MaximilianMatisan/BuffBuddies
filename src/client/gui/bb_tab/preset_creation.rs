@@ -5,26 +5,26 @@ use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
 use crate::client::gui::bb_theme::color::BACKGROUND_COLOR;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
-use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
+use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle};
+use crate::client::gui::bb_theme::custom_button::{create_element_button, ButtonStyle};
+use crate::client::gui::bb_theme::scrollable::{create_scrollable, ScrollableStyle};
 use crate::client::gui::bb_theme::separator::separator_line;
-use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_button_text};
+use crate::client::gui::bb_theme::text_format::{format_button_text, FIRA_SANS_EXTRABOLD};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::client::server_communication::preset_communicator::save_preset;
 use crate::client::server_communication::server_communicator::ServerRequestError;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::workout_preset::PresetImage;
-use iced::Color;
-use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{
-    Column, Row, Scrollable, Space, combo_box, container, image, row, text, text_input,
+    combo_box, container, image, row, text, text_input, Column, Row, Space,
 };
+use iced::Color;
 use iced::{Element, Task};
-use iced_core::Length::{Fill, FillPortion, Fixed, Shrink};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
 use iced_core::text::LineHeight;
+use iced_core::Length::{Fill, FillPortion, Fixed, Shrink};
 use iced_core::{Alignment, Length, Pixels};
 use strum::IntoEnumIterator;
 
@@ -55,7 +55,6 @@ impl PresetCreationMessage {
                 if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
                     preset.edit_title = true;
                 }
-                Task::none()
             }
             PresetCreationMessage::EndTitleEdit => {
                 if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
@@ -64,13 +63,11 @@ impl PresetCreationMessage {
                     }
                     preset.edit_title = false;
                 }
-                Task::none()
             }
             PresetCreationMessage::StartImageEdit => {
                 if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
                     preset.edit_image = true;
                 }
-                Task::none()
             }
             PresetCreationMessage::EditTitle(str) => {
                 if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
@@ -79,14 +76,12 @@ impl PresetCreationMessage {
                         preset.workout_preset.name = new_title;
                     }
                 }
-                Task::none()
             }
             PresetCreationMessage::EditImage(new_preset_image) => {
                 if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
                     preset.workout_preset.image = new_preset_image.clone();
                     preset.edit_image = false;
                 }
-                Task::none()
             }
             PresetCreationMessage::AddExercise(exercise_name) => {
                 if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
@@ -95,13 +90,11 @@ impl PresetCreationMessage {
                         .exercises
                         .push(exercise_name.to_string())
                 }
-                Task::none()
             }
             PresetCreationMessage::DeleteExercise(exercise_number) => {
                 if let Some(preset) = &mut app.workout_preset_manager.preset_in_creation {
                     preset.workout_preset.exercises.remove(exercise_number - 1);
                 }
-                Task::none()
             }
             PresetCreationMessage::FinishPresetCreation => {
                 if let Err(preset_safe_error) = app.workout_preset_manager.check_preset() {
@@ -119,9 +112,8 @@ impl PresetCreationMessage {
                             app.pop_up_manager.new_pop_up(PopUpType::Minor, "Preset needs to have a name!".to_string(), "Please add a name to your preset".to_string())
                         }
                     }
-                    Task::none()
                 } else if let Some(jwt) = &app.jsonwebtoken.clone() {
-                    Task::perform(
+                    return Task::perform(
                         save_preset(
                             jwt.clone(),
                             app.workout_preset_manager
@@ -134,20 +126,18 @@ impl PresetCreationMessage {
                         |result| -> Message {
                             Message::PresetCreation(PresetCreationMessage::SavePreset(result))
                         },
-                    )
+                    );
                 } else {
                     app.pop_up_manager.new_pop_up(
                         PopUpType::Minor,
                         "Log in to save preset!".to_string(),
                         "You need to be logged in to save a preset.".to_string(),
                     );
-                    Task::none()
                 }
             }
             PresetCreationMessage::SavePreset(Ok(())) => {
                 app.workout_preset_manager.add_preset();
                 app.screen = Tab::Workout;
-                Task::none()
             }
             PresetCreationMessage::SavePreset(Err(err)) => {
                 app.pop_up_manager.new_pop_up(
@@ -156,11 +146,12 @@ impl PresetCreationMessage {
                     "".to_string(),
                 );
                 app.screen = Tab::Workout;
-                Task::none()
             }
         }
+        Task::none()
     }
 }
+
 
 fn view_exercise_preset(
     exercise_name: String,
@@ -321,8 +312,8 @@ impl App {
             }
         }
 
-        let exercises_scrollable = Scrollable::new(exercises)
-            .direction(Direction::Vertical(Scrollbar::new()))
+        let exercises_scrollable =
+            create_scrollable(exercises,self.mascot_manager.selected_mascot,ScrollableStyle::Transparent)
             .height(FillPortion(5));
 
         let add_exercise_search_bar: Element<Message> = combo_box(
