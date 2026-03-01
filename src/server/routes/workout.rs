@@ -1,7 +1,6 @@
 use crate::common::exercise_mod::general_exercise::Id;
-use crate::server::database_mod::database::{
-    add_workout_to_exercise_log, get_user_coin_balance, update_user_coin_balance,
-};
+use crate::server::database_mod::database::add_workout_to_exercise_log;
+use crate::server::database_mod::database_user::{get_user_coin_balance, update_user_coin_balance};
 use crate::server::jwt::user_authentication_request_path::UserAuthenticationRequestPath;
 use crate::server::server_main::ApiError;
 use axum::Json;

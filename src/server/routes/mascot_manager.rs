@@ -1,10 +1,9 @@
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_data_transfer::MascotDataServerClientTransfer;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use crate::server::database_mod::database;
-use crate::server::database_mod::database::{
-    add_mascot_to_user, get_user_coin_balance, update_user_coin_balance,
-};
+use crate::server::database_mod::database_mascot::add_mascot_to_user;
+use crate::server::database_mod::database_user::{get_user_coin_balance, update_user_coin_balance};
+use crate::server::database_mod::{database_mascot, database_user};
 use crate::server::jwt::user_authentication_request_path::UserAuthenticationRequestPath;
 use crate::server::server_main::ApiError;
 use axum::Json;
@@ -31,9 +30,9 @@ pub async fn get_mascot_data(
     user_authentication: UserAuthenticationRequestPath,
 ) -> Result<Json<MascotDataServerClientTransfer>, ApiError> {
     let selected_mascot =
-        database::get_user_selected_mascot(&pool, &user_authentication.username).await?;
+        database_mascot::get_user_selected_mascot(&pool, &user_authentication.username).await?;
     let owned_mascots =
-        database::get_mascots_from_user(&pool, &user_authentication.username).await?;
+        database_mascot::get_mascots_from_user(&pool, &user_authentication.username).await?;
 
     let mascot_data = MascotDataServerClientTransfer {
         selected_mascot,
@@ -50,7 +49,8 @@ pub async fn select_mascot(
     user_authentication: UserAuthenticationRequestPath,
     Json(mascot): Json<Mascot>,
 ) -> Result<(), ApiError> {
-    database::update_user_selected_mascot(&pool, &user_authentication.username, &mascot).await?;
+    database_user::update_user_selected_mascot(&pool, &user_authentication.username, &mascot)
+        .await?;
 
     println!(
         "{}: Updated selected mascot to {}!",
