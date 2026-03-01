@@ -1,6 +1,4 @@
-use crate::client::gui::bb_theme::color::{
-    CONTAINER_COLOR, DASHED_LINES_COLOR, HIGHLIGHTED_CONTAINER_COLOR,
-};
+use crate::client::gui::bb_theme::color::{create_2d_gradient, create_color_stops, create_gradient_stroke_style, CONTAINER_COLOR, DASHED_LINES_COLOR, HIGHLIGHTED_CONTAINER_COLOR};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use chrono::NaiveDate;
 use iced::advanced::graphics::geometry::Frame;
@@ -38,6 +36,7 @@ use iced_core::gradient::ColorStop;
 use iced_core::keyboard::Key;
 use iced_core::mouse::Cursor;
 use iced_core::{Length, Point, Rectangle, Size, Theme};
+use crate::client::gui::bb_widget::canvas_utils::generate_dashed_stroke;
 
 const GRAPH_PADDING: f32 = 50.0;
 const AXIS_FONT_SIZE: f32 = 12.0;
@@ -46,6 +45,11 @@ const AXIS_THICKNESS: f32 = 5.0;
 pub const MAX_AMOUNT_POINTS: u8 = 40;
 pub const MAX_X_LABELS: u8 = 11;
 pub const MAX_VERTICAL_LINES: u8 = 14;
+
+//PADDING TOP AND BOTTOM: TOP FOR Y-AXIS-ARROW SPACE, BOTTOM FOR X-LABELS
+pub static BLOCK_HEIGHT: f32 = (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+pub static GRAPH_HEIGHT: f32 = CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0;
+pub static GRAPH_START_X: f32 = Point::ORIGIN.x + GRAPH_PADDING;
 
 #[derive(Clone, Debug)]
 pub enum GraphMessage {
@@ -202,114 +206,45 @@ impl<'a> GraphWidget<'a> {
     }
 }
 
+///Draws the dashed lines in the background of the graph which adapt themselves to the amount of `points_to_draw`
 fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Renderer>) {
+
+    let frame_center_y = frame.height() / 2.0;
+    let frame_center_x = frame.width() / 2.0;
+
     let horizontal_gradient_padding = GRAPH_PADDING + 6.0;
     let vertical_gradient_padding = GRAPH_PADDING + 10.0;
 
-    let horizontal_gradient = Gradient::Linear(
-        Linear::new(
-            Point {
-                x: horizontal_gradient_padding,
-                y: frame.height() / 2.0,
-            },
-            Point {
-                x: frame.width(),
-                y: frame.height() / 2.0,
-            },
-        )
-        .add_stops([
-            // FADE IN
-            ColorStop {
-                offset: 0.0,
-                color: Color {
-                    a: 0.0,
-                    ..DASHED_LINES_COLOR
-                },
-            },
-            //ACTUAL COLOR
-            ColorStop {
-                offset: 0.1,
-                color: DASHED_LINES_COLOR,
-            },
-            ColorStop {
-                offset: 0.9,
-                color: DASHED_LINES_COLOR,
-            },
-            // FADE OUT
-            ColorStop {
-                offset: 1.0,
-                color: Color {
-                    a: 0.0,
-                    ..DASHED_LINES_COLOR
-                },
-            },
-        ]),
-    );
-
-    let vertical_gradient = Gradient::Linear(
-        Linear::new(
-            Point {
-                x: frame.width() / 2.0,
-                y: vertical_gradient_padding,
-            },
-            Point {
-                x: frame.width() / 2.0,
-                y: frame.height() - vertical_gradient_padding,
-            },
-        )
-        .add_stops([
-            // FADE IN
-            ColorStop {
-                offset: 0.0,
-                color: Color {
-                    a: 0.0,
-                    ..DASHED_LINES_COLOR
-                },
-            },
-            //ACTUAL COLOR
-            ColorStop {
-                offset: 0.1,
-                color: DASHED_LINES_COLOR,
-            },
-            ColorStop {
-                offset: 0.9,
-                color: DASHED_LINES_COLOR,
-            },
-            // FADE OUT
-            ColorStop {
-                offset: 1.0,
-                color: Color {
-                    a: 0.0,
-                    ..DASHED_LINES_COLOR
-                },
-            },
-        ]),
-    );
-
-    let hotizontal_dashed_stroke = Stroke {
-        width: 2.0,
-        line_cap: LineCap::Round,
-        line_join: LineJoin::Round,
-        style: stroke::Style::Gradient(horizontal_gradient),
-        line_dash: LineDash {
-            segments: &[2.0, 6.0], // LINE LENGTH , GAP LENGTH
-            offset: 0,
-        },
+    let fade_in_out_color = Color {
+        a: 0.0,
+        ..DASHED_LINES_COLOR
     };
 
-    let vertical_dashed_stroke = Stroke {
-        width: 2.0,
-        line_cap: LineCap::Round,
-        line_join: LineJoin::Round,
-        style: stroke::Style::Gradient(vertical_gradient),
-        line_dash: LineDash {
-            segments: &[2.0, 6.0], // LINE LENGTH , GAP LENGTH
-            offset: 0,
-        },
-    };
+
+    let color_stops = create_color_stops(vec![
+        (fade_in_out_color, 0.0),
+        (DASHED_LINES_COLOR,0.1),
+        (DASHED_LINES_COLOR,0.9),
+        (fade_in_out_color, 1.0)
+    ]);
+
+    //HORIZONTAL GRADIENT
+    let horizontal_gradient_start = Point::new(horizontal_gradient_padding,frame_center_y);
+    let horizontal_gradient_end = Point::new(frame.width(),frame_center_y);
+
+    let horizontal_gradient = create_2d_gradient(horizontal_gradient_start,horizontal_gradient_end,color_stops.clone());
+
+    //VERTICAL GRADIENT
+    let vertical_gradient_start = Point::new(frame_center_x,vertical_gradient_padding);
+    let vertical_gradient_end = Point::new(frame_center_x,frame.height() - vertical_gradient_padding);
+
+    let vertical_gradient = create_2d_gradient(vertical_gradient_start,vertical_gradient_end,color_stops);
+
+    let horizontal_dashed_stroke = generate_dashed_stroke(2.0,create_gradient_stroke_style(horizontal_gradient));
+    let vertical_dashed_stroke = generate_dashed_stroke(2.0,create_gradient_stroke_style(vertical_gradient));
 
     let y_axis_arrow_padding =
-        (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+        GRAPH_HEIGHT / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 
     let range = match graph_widget_state.points_to_draw {
         ..=MAX_VERTICAL_LINES => graph_widget_state.points_to_draw,
@@ -318,9 +253,7 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
 
     //PADDING LEFT AND RIGHT: LEFT FOR Y_LABELS, RIGHT FOR FREE SPACE
     let block_width = (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / range as f32; //division with 0 is not possible since limit is 1
-    //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
-    let block_height =
-        (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+    let block_height = BLOCK_HEIGHT;
 
     let mut current_x = CHART_WIDGET_WIDTH - GRAPH_PADDING; //START OF GRAPH
     let mut current_y = Point::ORIGIN.y + GRAPH_PADDING + y_axis_arrow_padding;
@@ -332,7 +265,7 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
     //VERTICAL LINES
     if graph_widget_state.visible_vertical_lines {
         for _line in 1..=range {
-            let point_up = Point {
+            let point_top = Point {
                 x: Point::ORIGIN.x + current_x,
                 y: Point::ORIGIN.y + GRAPH_PADDING,
             };
@@ -342,7 +275,7 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
                 y: CHART_WIDGET_WIDTH - GRAPH_PADDING,
             };
 
-            draw_stroke(point_up, point_bottom, vertical_dashed_stroke);
+            draw_stroke(point_top, point_bottom, vertical_dashed_stroke);
             current_x -= block_width;
         }
     }
@@ -351,7 +284,7 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
     for _line in 1..=FREQUENCY_OF_Y_AXIS_LABELS - 1 {
         // -1 since we the dashed line at the height of the y-axis arrow should not be drawn
         let point_left = Point {
-            x: Point::ORIGIN.x + GRAPH_PADDING,
+            x: GRAPH_START_X,
             y: Point::ORIGIN.y + current_y,
         };
 
@@ -360,7 +293,7 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
             y: Point::ORIGIN.y + current_y,
         };
 
-        draw_stroke(point_left, point_right, hotizontal_dashed_stroke);
+        draw_stroke(point_left, point_right, horizontal_dashed_stroke);
         current_y += block_height;
     }
 }

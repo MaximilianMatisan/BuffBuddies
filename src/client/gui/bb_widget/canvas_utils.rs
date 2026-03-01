@@ -2,17 +2,28 @@ use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use iced::widget::canvas;
 use iced::widget::canvas::path::Arc;
-use iced::widget::canvas::{Frame, LineCap, LineJoin, Path, Stroke, stroke};
+use iced::widget::canvas::{Frame, LineCap, LineJoin, Path, Stroke, stroke, LineDash};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::{Color, Degrees, Point};
 
-pub fn generate_stroke<'a>(width: f32, color: Color) -> Stroke<'a> {
+pub fn generate_stroke<'a>(width: f32, stroke_style: stroke::Style) -> Stroke<'a> {
     Stroke {
         width,
         line_cap: LineCap::Round,
         line_join: LineJoin::Round,
-        style: stroke::Style::Solid(color),
+        style: stroke_style,
         line_dash: Default::default(),
+    }
+}
+
+pub fn generate_dashed_stroke<'a>(width: f32, stroke_style: stroke::Style) -> Stroke<'a> {
+    Stroke {
+        style: stroke_style,
+        line_dash: LineDash {
+            segments: &[2.0, 6.0], // LINE LENGTH , GAP LENGTH
+            offset: 0,
+        },
+        ..generate_stroke(width, stroke_style)
     }
 }
 pub fn draw_text(frame: &mut Frame, content: String, font_size: f32, position: Point) {

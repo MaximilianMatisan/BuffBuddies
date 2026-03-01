@@ -7,7 +7,7 @@ use iced_core::{Color, Length, Point};
 use std::time::Duration;
 
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color::TEXT_COLOR;
+use crate::client::gui::bb_theme::color::{create_solid_stroke_style, TEXT_COLOR};
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::ButtonStyle::{Active, InactiveTab};
 use crate::client::gui::bb_theme::custom_button::{DEFAULT_BUTTON_RADIUS, create_text_button};
@@ -301,9 +301,9 @@ fn draw_bar_completion(frame: &mut Frame, progress_bar_widget: &ProgressBarWidge
         &Path::line(start_point, end_point),
         generate_stroke(
             BAR_THICKNESS,
-            progress_bar_widget
+            create_solid_stroke_style(progress_bar_widget
                 .progress_bar_type
-                .get_completed_bar_color(),
+                .get_completed_bar_color()),
         ),
     )
 }
@@ -328,9 +328,9 @@ fn draw_bar_remaining(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget
             &Path::line(start_point, end_point),
             generate_stroke(
                 BAR_THICKNESS,
-                progress_bar_widget
+                create_solid_stroke_style(progress_bar_widget
                     .progress_bar_type
-                    .get_remaining_bar_color(),
+                    .get_remaining_bar_color()),
             ),
         )
     }
