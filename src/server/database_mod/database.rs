@@ -387,7 +387,7 @@ pub async fn add_preset(
     preset_name: &str,
     workout_preset: &WorkoutPreset,
     estimated_duration: i64,
-) -> Result<(), sqlx::Error> {
+) -> Result<i64, sqlx::Error> {
     let mut transaction = pool.begin().await?;
 
     let preset_insert = sqlx::query(
@@ -416,7 +416,7 @@ pub async fn add_preset(
 
     transaction.commit().await?;
 
-    Ok(())
+    Ok(preset_id)
 }
 #[allow(dead_code)]
 pub async fn get_presets_for_user(
