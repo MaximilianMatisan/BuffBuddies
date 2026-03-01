@@ -2,7 +2,7 @@ use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 
 pub type WorkoutCreate = Vec<ExerciseCreate>;
-///struct that is used to save a workout during creation
+///struct that is used to save an exercise during creation
 #[derive(Debug, Clone, PartialEq)]
 pub struct ExerciseCreate {
     pub name: String,
