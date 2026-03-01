@@ -27,6 +27,7 @@ use iced_core::image::Handle;
 use iced_core::text::LineHeight;
 use iced_core::{Alignment, Pixels};
 use std::rc::Rc;
+use crate::client::gui::bb_theme::scrollable::{create_scrollable, ScrollableExtension, ScrollableStyle};
 
 type SetNumber = usize;
 pub type ExerciseNumber = usize;
@@ -587,8 +588,8 @@ impl App {
             }
         }
 
-        let exercises = Scrollable::new(column)
-            .direction(Direction::Vertical(Scrollbar::new()))
+        let exercises =
+        create_scrollable(column, self.mascot_manager.selected_mascot, ScrollableStyle::Transparent)
             .height(FillPortion(6));
 
         let add_exercise: Element<Message> = combo_box(

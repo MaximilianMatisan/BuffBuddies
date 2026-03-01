@@ -33,7 +33,8 @@ impl App {
             friend_buttons = friend_buttons.push(friend_user_button(self, friend))
         }
         let scrollable_friends =
-            Scrollable::new(friend_buttons).direction(Direction::Horizontal(Scrollbar::new()));
+            create_scrollable(friend_buttons,self.mascot_manager.selected_mascot,ScrollableStyle::Default)
+                .add_horizontal_scrollbar(6.5,0.0);
 
         let friends_with_title = Column::new()
             .push(

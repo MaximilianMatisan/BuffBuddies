@@ -7,6 +7,7 @@ use iced::widget::{Row, Scrollable, image};
 use iced_core::image::Handle;
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter};
+use crate::client::gui::bb_theme::scrollable::{create_scrollable, ScrollableExtension, ScrollableStyle};
 
 pub const SMALL_PROFILE_PICTURE_DIMENSION: f32 = 50.0;
 pub const MEDIUM_PROFILE_PICTURE_DIMENSION: f32 = 75.0;
@@ -55,7 +56,8 @@ pub fn profile_picture_selection_row<'a>(mascot: &Mascot) -> Element<'a, Setting
 
         image_row = image_row.push(image_button);
     }
-    Scrollable::new(image_row)
-        .direction(Direction::Horizontal(Scrollbar::new()))
+    
+    create_scrollable(image_row,*mascot,ScrollableStyle::Mascot)
+        .add_horizontal_scrollbar(4.0,0.0)
         .into()
 }
