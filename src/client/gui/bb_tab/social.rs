@@ -1,6 +1,10 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
+use crate::client::gui::bb_theme::scrollable::{
+    ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH,
+    create_scrollable,
+};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use crate::client::gui::bb_widget::social_elements::{friend_user_button, user_profile_button};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
@@ -10,7 +14,6 @@ use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{Column, Row, Scrollable, Space, container, text};
 use iced_core::Length;
 use iced_core::alignment::Horizontal;
-use crate::client::gui::bb_theme::scrollable::{create_scrollable, ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH};
 
 impl App {
     pub fn social_screen(&self) -> Element<Message> {
@@ -79,8 +82,12 @@ impl App {
             .push(content)
             .push(Space::with_width(Length::Fill));
 
-        create_scrollable(aligned_content, self.mascot_manager.selected_mascot, ScrollableStyle::Default)
-            .add_vertical_scrollbar(TAB_SCROLLBAR_WIDTH, TAB_SCROLLBAR_PADDING)
-            .into()
+        create_scrollable(
+            aligned_content,
+            self.mascot_manager.selected_mascot,
+            ScrollableStyle::Default,
+        )
+        .add_vertical_scrollbar(TAB_SCROLLBAR_WIDTH, TAB_SCROLLBAR_PADDING)
+        .into()
     }
 }

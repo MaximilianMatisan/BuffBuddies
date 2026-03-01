@@ -14,9 +14,9 @@ use crate::common::profile_picture::LARGE_PROFILE_PICTURE_DIMENSION;
 use crate::common::user_mod::user::UserInformation;
 use iced::Element;
 use iced::widget::{Column, Container, Row, Space, column, container, image, row, text};
-use iced_core::{Length, Padding};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
+use iced_core::{Length, Padding};
 
 pub fn view_profile<'a>(
     app: &'a App,

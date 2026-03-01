@@ -129,7 +129,6 @@ pub fn calculate_weekly_workout_streak(exercises: &Vec<Exercise>, weekly_workout
     streak
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::client::backend::profile_stat_manager::{
