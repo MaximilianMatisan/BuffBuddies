@@ -206,7 +206,8 @@ impl ExerciseManager {
         user_info: &mut UserInformation,
     ) {
         let local_time = Local::now().date_naive();
-        let first_workout_today: bool = !self.is_set_tracked_on_date(&local_time);
+        let first_workout_today: bool =
+            !self.is_set_tracked_on_date(&local_time) && !workout.is_empty();
         for exercise_data in &mut self.exercises {
             for exercise_create in workout {
                 if exercise_create.name == exercise_data.general_exercise_info.name
