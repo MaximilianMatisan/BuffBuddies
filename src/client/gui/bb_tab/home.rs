@@ -1,5 +1,4 @@
 use crate::client::gui::app::App;
-use crate::client::gui::bb_tab::workout::view_presets;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::scrollable::{
     ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH,
@@ -10,6 +9,7 @@ use crate::client::gui::bb_widget::activity_widget::date_utils::DateScope;
 use crate::client::gui::bb_widget::bmi_calculator::BMIWidget;
 use crate::client::gui::bb_widget::chart::chart_environment_widget;
 use crate::client::gui::bb_widget::circle_widget;
+use crate::client::gui::bb_widget::preset_workout_rows::view_preset_row;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use iced::Element;
@@ -71,7 +71,7 @@ impl App {
                 .color(color::TEXT_COLOR)
                 .size(SECONDARY_TEXT_SIZE);
 
-            let workout_presets = view_presets(
+            let workout_presets = view_preset_row(
                 &self.mascot_manager.selected_mascot,
                 &self.workout_preset_manager.presets,
             );
