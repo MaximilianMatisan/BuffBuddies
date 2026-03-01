@@ -1334,8 +1334,7 @@ pub async fn setup_test_db() -> SqlitePool {
     pool
 }
 
-pub async fn test_values_for_db(pool: &SqlitePool) -> Result <() , sqlx::Error>{
-
+pub async fn test_values_for_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("INSERT INTO mascot (mascot_name, description) VALUES (?, ?)")
         .bind("Duck")
         .bind("test")
@@ -1343,23 +1342,23 @@ pub async fn test_values_for_db(pool: &SqlitePool) -> Result <() , sqlx::Error>{
         .await
         .expect("Mascot insert failed");
 
-    add_user(&pool, "testuser", "123")
+    add_user(pool, "testuser", "123")
         .await
         .expect("adding user failed");
 
-    add_user(&pool, "testuser2", "123")
+    add_user(pool, "testuser2", "123")
         .await
         .expect("adding user failed");
 
-    add_user(&pool, "testuser3", "123")
+    add_user(pool, "testuser3", "123")
         .await
         .expect("adding user failed");
 
-    add_user(&pool, "testuser4", "123")
+    add_user(pool, "testuser4", "123")
         .await
         .expect("adding user failed");
 
-    add_user(&pool, "testuser5", "123")
+    add_user(pool, "testuser5", "123")
         .await
         .expect("adding user failed");
 
@@ -1392,7 +1391,9 @@ mod tests {
     #[tokio::test]
     async fn test_add_and_get_preset() {
         let pool = setup_test_db().await;
-        test_values_for_db(&pool).await.expect("inserting test values failed");
+        test_values_for_db(&pool)
+            .await
+            .expect("inserting test values failed");
 
         let workout = WorkoutPreset {
             name: "test_workout".to_string(),
@@ -1407,7 +1408,6 @@ mod tests {
         add_preset_to_user(&pool, "testuser", preset_id)
             .await
             .expect("add_preset_to_user failed");
-
 
         let preset_from_user: Vec<WorkoutPreset> =
             get_presets_for_user(&pool, "testuser").await.unwrap();
@@ -1426,7 +1426,9 @@ mod tests {
     #[tokio::test]
     async fn test_user_goals() {
         let pool = setup_test_db().await;
-        test_values_for_db(&pool).await.expect("inserting test values failed");
+        test_values_for_db(&pool)
+            .await
+            .expect("inserting test values failed");
 
         let test_goals = UserGoals {
             weekly_workouts: 1.0,
@@ -1436,9 +1438,13 @@ mod tests {
             sleep: 5.0,
         };
 
-        update_user_goals(&pool, "testuser", test_goals).await.expect("updating user goals failed");
+        update_user_goals(&pool, "testuser", test_goals)
+            .await
+            .expect("updating user goals failed");
 
-        let testuser_goals = get_user_goals(&pool, "testuser").await.expect("getting usergoals failed");
+        let testuser_goals = get_user_goals(&pool, "testuser")
+            .await
+            .expect("getting usergoals failed");
 
         assert_eq!(testuser_goals.weekly_workouts, 1.0);
         assert_eq!(testuser_goals.weight, 2.0);
@@ -1450,17 +1456,28 @@ mod tests {
     #[tokio::test]
     async fn test_friendship_and_discovery() {
         let pool = setup_test_db().await;
-        test_values_for_db(&pool).await.expect("inserting test values failed");
+        test_values_for_db(&pool)
+            .await
+            .expect("inserting test values failed");
 
-        add_friend(&pool, "testuser", "testuser2").await.expect("adding friend failed");
-        add_friend(&pool, "testuser", "testuser3").await.expect("adding friend failed");
+        add_friend(&pool, "testuser", "testuser2")
+            .await
+            .expect("adding friend failed");
+        add_friend(&pool, "testuser", "testuser3")
+            .await
+            .expect("adding friend failed");
 
-        let testuser_friends = get_all_friends(&pool, "testuser").await.expect("getting friends failed");
+        let testuser_friends = get_all_friends(&pool, "testuser")
+            .await
+            .expect("getting friends failed");
+        
         assert_eq!(testuser_friends.len(), 2);
         assert_eq!(testuser_friends[0].user_information.username, "testuser2");
         assert_eq!(testuser_friends[1].owned_mascots.len(), 1);
 
-        let test_discovered_users = get_discovery_users(&pool, "testuser", 3).await.expect("get discovered users failed");
+        let test_discovered_users = get_discovery_users(&pool, "testuser", 3)
+            .await
+            .expect("get discovered users failed");
         let mut discovered_list: Vec<String> = Vec::new();
         for discovered_user in test_discovered_users {
             discovered_list.push(discovered_user.user_information.username);
@@ -1468,5 +1485,75 @@ mod tests {
         assert!(discovered_list.contains(&"testuser4".to_string()));
         assert!(discovered_list.contains(&"testuser5".to_string()));
     }
-    
+
+    #[tokio::test]
+    async fn test_exerciselog() {
+        let pool = setup_test_db().await;
+        test_values_for_db(&pool)
+            .await
+            .expect("inserting test values failed");
+
+        add_exercise_log(
+            &pool,
+            "testuser",
+            "Squat",
+            100,
+            60.0,
+            NaiveDate::from_ymd_opt(2025, 10, 10).unwrap(),
+            1,
+        )
+        .await
+        .expect("add exerciselog failed");
+
+        add_exercise_log(
+            &pool,
+            "testuser",
+            "Squat",
+            100,
+            60.0,
+            NaiveDate::from_ymd_opt(2025, 10, 10).unwrap(),
+            1,
+        )
+        .await
+        .expect("add exerciselog failed");
+
+        let test_day = vec![
+            ExerciseJson {
+                name: "Bankdrücken".to_string(),
+                sets: vec![
+                    SetJson {
+                        weight: 420.5,
+                        reps: 12,
+                    },
+                    SetJson {
+                        weight: 1000.5,
+                        reps: 10,
+                    },
+                ],
+            },
+            ExerciseJson {
+                name: "Squat".to_string(),
+                sets: vec![SetJson {
+                    weight: 2.0,
+                    reps: 8,
+                }],
+            },
+        ];
+
+        let test_date = NaiveDate::from_ymd_opt(2006, 4, 26).unwrap();
+
+        let test_workout_id = add_workout_to_exercise_log(&pool, "testuser", test_day, test_date)
+            .await
+            .expect("Adding workout was failure");
+
+        let testuser_stats = get_exercises_stats(&pool, "testuser")
+            .await
+            .expect("Getting stats failed");
+
+        assert_eq!(testuser_stats[0].general_exercise_info.name, "Bankdrücken");
+        assert_eq!(testuser_stats[1].general_exercise_info.name, "Squat");
+        assert_eq!(testuser_stats.len(), 2);
+        assert_eq!(testuser_stats[0].all_time_sets(), 2);
+        assert_eq!(test_workout_id, 2);
+    }
 }
