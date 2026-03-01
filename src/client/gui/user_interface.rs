@@ -1,7 +1,7 @@
 use crate::client::backend::exercise_create::WorkoutCreate;
 use crate::client::backend::login_state::LoginStates;
 use crate::client::backend::pop_up_manager::PopUpType;
-use crate::client::gui::app::App;
+pub use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::health::HealthTabMessage;
 use crate::client::gui::bb_tab::login::{LoginMessage, view_login};
 use crate::client::gui::bb_tab::preset_creation::PresetCreationMessage;
@@ -95,7 +95,7 @@ pub enum Message {
 }
 
 impl App {
-    fn update(&mut self, message: Message) -> Task<Message> {
+    pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::Select(Tab::Exit) => iced::exit(),
             Message::Select(tab) => {

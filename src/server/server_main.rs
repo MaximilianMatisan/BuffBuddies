@@ -80,7 +80,7 @@ pub async fn server_main() {
         .expect("failed to start server")
 }
 
-fn create_app(pool: SqlitePool) -> Router {
+pub fn create_app(pool: SqlitePool) -> Router {
     Router::new()
         .route("/server", get(health_check))
         .route("/user/login", post(check_login))

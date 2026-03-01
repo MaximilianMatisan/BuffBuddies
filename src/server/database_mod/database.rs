@@ -1327,16 +1327,17 @@ pub async fn get_user_information(
     })
 }
 
+//moved outside test config so it can be accessed by integration tests
+pub async fn setup_test_db() -> SqlitePool {
+    let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+    init_db(&pool).await.unwrap();
+    pool
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::common::workout_preset::PresetImage;
-
-    async fn setup_test_db() -> SqlitePool {
-        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
-        init_db(&pool).await.unwrap();
-        pool
-    }
 
     #[tokio::test]
     async fn test_add_and_get_preset() {
