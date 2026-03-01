@@ -13,7 +13,7 @@ use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, format_button_text, format_description_text,
 };
 use crate::client::gui::user_interface::Message;
-use crate::client::server_communication::server_communicator::save_workout;
+use crate::client::server_communication::exercise_communicator::save_workout;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::workout_preset::WorkoutPreset;
 use chrono::Local;

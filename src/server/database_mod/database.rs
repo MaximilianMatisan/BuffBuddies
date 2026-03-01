@@ -1,5 +1,5 @@
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
-use crate::client::server_communication::server_communicator::SetJson;
+use crate::client::server_communication::exercise_communicator::SetJson;
 use crate::common::exercise_mod::exercise::Exercise;
 use crate::common::exercise_mod::general_exercise::{
     ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Id,

@@ -1,4 +1,4 @@
-use crate::client::server_communication::exercise_communicator::ServerRequestError;
+use crate::client::server_communication::server_communicator::ServerRequestError;
 use crate::client::server_communication::{
     exercise_communicator, mascot_communicator, preset_communicator, user_communicator,
 };
