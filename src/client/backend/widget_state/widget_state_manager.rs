@@ -1,6 +1,7 @@
 use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::backend::profile_stat_manager::calculate_activity_data;
 use crate::client::backend::widget_state::progress_bar_manager::ProgressBarStateManager;
+use crate::client::gui::app::App;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityWidget;
 use crate::client::gui::bb_widget::bmi_calculator::BMIWidgetState;
 use crate::client::gui::bb_widget::chart_widget::graph::GraphWidgetState;
@@ -33,5 +34,16 @@ impl WidgetManager {
             progress_bar_state_manager: ProgressBarStateManager::new(user_information),
             pending_progress_bar_state_manager: None,
         }
+    }
+}
+pub fn update_progress_bar_goals_after_updated_user_info(app: &mut App) {
+    // Update the normal progress bar states 
+    app.widget_manager
+        .progress_bar_state_manager
+        .update_goals(&app.user_manager.user_info);
+
+    // Update pending state if existent
+    if let Some(pending_state) = &mut app.widget_manager.pending_progress_bar_state_manager {
+        pending_state.update_goals(&app.user_manager.user_info)
     }
 }
