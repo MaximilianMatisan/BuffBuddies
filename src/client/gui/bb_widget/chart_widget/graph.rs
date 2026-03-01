@@ -1,11 +1,12 @@
-use crate::client::gui::bb_theme::color::{create_canvas_gradient, create_color_stops, create_gradient_stroke_style, create_solid_stroke_style, CONTAINER_COLOR, DASHED_LINES_COLOR, DESCRIPTION_TEXT_COLOR, HIGHLIGHTED_CONTAINER_COLOR};
+use crate::client::gui::bb_theme::color::{
+    create_canvas_gradient, create_color_stops, create_gradient_stroke_style, create_solid_stroke_style,
+    CONTAINER_COLOR, DASHED_LINES_COLOR, DESCRIPTION_TEXT_COLOR,
+    HIGHLIGHTED_CONTAINER_COLOR,
+};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
-use chrono::NaiveDate;
 use iced::advanced::graphics::geometry::Frame;
-use iced::advanced::graphics::gradient::Linear;
-use iced::advanced::graphics::Gradient;
 use iced::widget::canvas::{
-    event, stroke, Cache, Event, Geometry, LineCap, LineDash, LineJoin, Path, Stroke,
+    event, Cache, Event, Geometry, Path,
 };
 use iced::Renderer;
 use iced::{mouse, Task};
@@ -16,28 +17,27 @@ use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
-use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle};
-use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle, BUTTON_RADIUS_LEFT_ZERO, BUTTON_RADIUS_RIGHT_ZERO};
-use crate::client::gui::bb_theme::text_format::format_button_text;
-use crate::client::gui::bb_widget::chart_widget::chart::{ChartTypes, CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH};
-use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
+use crate::client::gui::bb_widget::canvas_utils::{
+    draw_line, draw_text, generate_dashed_stroke, generate_stroke, translate_point,
+};
+use crate::client::gui::bb_widget::chart_widget::chart::{
+    ChartTypes, CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH,
+};
+use crate::client::gui::bb_widget::chart_widget::graph_logic::{
+    calculate_points, chop_dates, chop_weights, extract_dates, extract_weights,
+};
 use crate::client::gui::user_interface::Message;
 use crate::common::exercise_mod::exercise::ExerciseDataPoints;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use iced::widget::{canvas, row, text};
-use iced::widget::{container, Column, Row, Space};
+use iced::widget::canvas;
 use iced::Element;
 use iced_anim::{Animated, Animation, Motion};
 use iced_core::alignment::{Horizontal, Vertical};
-use iced_core::border::Radius;
-use iced_core::gradient::ColorStop;
 use iced_core::keyboard::Key;
 use iced_core::mouse::Cursor;
-use iced_core::{Length, Point, Rectangle, Size, Theme};
-use crate::client::gui::bb_widget::canvas_utils::{draw_line, draw_text, generate_dashed_stroke, generate_stroke, translate_point};
-use crate::client::gui::bb_widget::chart_widget::graph_logic::{calculate_points, chop_dates, chop_weights, extract_dates, extract_weights};
+use iced_core::{Point, Rectangle, Size, Theme};
 
 pub(crate) const GRAPH_PADDING: f32 = 50.0;
 const AXIS_FONT_SIZE: f32 = 12.0;
@@ -49,7 +49,8 @@ pub const MAX_VERTICAL_LINES: u8 = 14;
 pub const SHADOW_OFFSET: f32 = 5.0;
 
 //PADDING TOP AND BOTTOM: TOP FOR Y-AXIS-ARROW SPACE, BOTTOM FOR X-LABELS
-pub static BLOCK_HEIGHT: f32 = (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+pub static BLOCK_HEIGHT: f32 =
+    (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 pub static GRAPH_HEIGHT: f32 = CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0;
 pub static GRAPH_WIDTH: f32 = (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0);
 pub static GRAPH_START_X: f32 = Point::ORIGIN.x + GRAPH_PADDING;
@@ -84,16 +85,13 @@ impl GraphMessage {
                 _ => {}
             },
             GraphMessage::IncrementCounter => {
-                if app.widget_manager.graph_widget_state.get_counter() < MAX_AMOUNT_POINTS
-                {
+                if app.widget_manager.graph_widget_state.get_counter() < MAX_AMOUNT_POINTS {
                     app.widget_manager.graph_widget_state.increment_counter();
                 } else {
                     app.pop_up_manager.new_pop_up(
                         PopUpType::Minor,
                         "Limit reached ".to_string(),
-                        format!(
-                            "The graph can’t display more than {MAX_AMOUNT_POINTS} points"
-                        ),
+                        format!("The graph can’t display more than {MAX_AMOUNT_POINTS} points"),
                     );
                 }
             }
@@ -134,9 +132,9 @@ impl GraphMessage {
 pub struct GraphWidgetState {
     graph_cache: Cache,
     pub animation_progress: Animated<f32>,
-    visible_points: bool,
-    visible_cursor_information: bool,
-    visible_vertical_lines: bool,
+    pub(crate) visible_points: bool,
+    pub(crate) visible_cursor_information: bool,
+    pub(crate) visible_vertical_lines: bool,
     pub(crate) points_to_draw: u8,
     pub shown_chart_type: ChartTypes,
 }
@@ -212,7 +210,6 @@ impl<'a> GraphWidget<'a> {
 }
 
 fn draw_background(frame: &mut Frame<Renderer>, graph_widget: &GraphWidget) {
-
     let center_x = GRAPH_WIDTH / 2.0;
 
     let background = Path::rectangle(
@@ -221,37 +218,48 @@ fn draw_background(frame: &mut Frame<Renderer>, graph_widget: &GraphWidget) {
             y: GRAPH_START_Y,
         },
         Size {
-            width:
-            - GRAPH_WIDTH * graph_widget.graph_state.animation_progress.value(), //negative width, so that the animation goes along the x-axis animation
+            width: -GRAPH_WIDTH * graph_widget.graph_state.animation_progress.value(), //negative width, so that the animation goes along the x-axis animation
             height: GRAPH_HEIGHT,
         },
     );
 
     let background_gradient_start = Point {
         x: center_x,
-        y: GRAPH_START_Y
-    } ;
+        y: GRAPH_START_Y,
+    };
     let background_gradient_end = Point {
         x: center_x,
-        y: GRAPH_END_Y
-    } ;
+        y: GRAPH_END_Y,
+    };
 
-    let background_color_start = Color {a: 0.0,..CONTAINER_COLOR };
-    let background_color_end =Color { a: 0.3, ..graph_widget.active_mascot.get_primary_color() };
+    let background_color_start = Color {
+        a: 0.0,
+        ..CONTAINER_COLOR
+    };
+    let background_color_end = Color {
+        a: 0.3,
+        ..graph_widget.active_mascot.get_primary_color()
+    };
 
     let background_color_stops = create_color_stops(vec![
-        (background_color_start, 0.80 + (0.20 * (1.0 - graph_widget.graph_state.animation_progress.value()))),
-        (background_color_end,1.0)
+        (
+            background_color_start,
+            0.80 + (0.20 * (1.0 - graph_widget.graph_state.animation_progress.value())),
+        ),
+        (background_color_end, 1.0),
     ]);
 
-    let background_gradient = create_canvas_gradient(background_gradient_start,background_gradient_end,background_color_stops);
+    let background_gradient = create_canvas_gradient(
+        background_gradient_start,
+        background_gradient_end,
+        background_color_stops,
+    );
 
     frame.fill(&background, background_gradient);
 }
 
 ///Draws the dashed lines in the background of the graph which adapt themselves to the amount of `points_to_draw`
 fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Renderer>) {
-
     let frame_center_y = frame.height() / 2.0;
     let frame_center_x = frame.width() / 2.0;
 
@@ -265,28 +273,35 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
 
     let color_stops = create_color_stops(vec![
         (fade_in_out_color, 0.0),
-        (DASHED_LINES_COLOR,0.1),
-        (DASHED_LINES_COLOR,0.9),
-        (fade_in_out_color, 1.0)
+        (DASHED_LINES_COLOR, 0.1),
+        (DASHED_LINES_COLOR, 0.9),
+        (fade_in_out_color, 1.0),
     ]);
 
     //HORIZONTAL GRADIENT
-    let horizontal_gradient_start = Point::new(horizontal_gradient_padding,frame_center_y);
-    let horizontal_gradient_end = Point::new(frame.width(),frame_center_y);
+    let horizontal_gradient_start = Point::new(horizontal_gradient_padding, frame_center_y);
+    let horizontal_gradient_end = Point::new(frame.width(), frame_center_y);
 
-    let horizontal_gradient = create_canvas_gradient(horizontal_gradient_start, horizontal_gradient_end, color_stops.clone());
+    let horizontal_gradient = create_canvas_gradient(
+        horizontal_gradient_start,
+        horizontal_gradient_end,
+        color_stops.clone(),
+    );
 
     //VERTICAL GRADIENT
-    let vertical_gradient_start = Point::new(frame_center_x,vertical_gradient_padding);
-    let vertical_gradient_end = Point::new(frame_center_x,frame.height() - vertical_gradient_padding);
+    let vertical_gradient_start = Point::new(frame_center_x, vertical_gradient_padding);
+    let vertical_gradient_end =
+        Point::new(frame_center_x, frame.height() - vertical_gradient_padding);
 
-    let vertical_gradient = create_canvas_gradient(vertical_gradient_start, vertical_gradient_end, color_stops);
+    let vertical_gradient =
+        create_canvas_gradient(vertical_gradient_start, vertical_gradient_end, color_stops);
 
-    let horizontal_dashed_stroke = generate_dashed_stroke(2.0,create_gradient_stroke_style(horizontal_gradient));
-    let vertical_dashed_stroke = generate_dashed_stroke(2.0,create_gradient_stroke_style(vertical_gradient));
+    let horizontal_dashed_stroke =
+        generate_dashed_stroke(2.0, create_gradient_stroke_style(horizontal_gradient));
+    let vertical_dashed_stroke =
+        generate_dashed_stroke(2.0, create_gradient_stroke_style(vertical_gradient));
 
-    let y_axis_arrow_padding =
-        GRAPH_HEIGHT / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+    let y_axis_arrow_padding = GRAPH_HEIGHT / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 
     let range = match graph_widget_state.points_to_draw {
         ..=MAX_VERTICAL_LINES => graph_widget_state.points_to_draw,
@@ -299,7 +314,6 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
 
     let mut current_x = CHART_WIDGET_WIDTH - GRAPH_PADDING; //START OF GRAPH
     let mut current_y = GRAPH_START_Y + y_axis_arrow_padding;
-
 
     //VERTICAL LINES
     if graph_widget_state.visible_vertical_lines {
@@ -344,9 +358,9 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
 /// multiply the axis lengths so that they appear to grow progressively
 /// as the animation progresses.
 fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<Renderer>) {
-
     let axis_color = active_mascot.get_primary_color();
-    let solid_mascot_colored_stroke = generate_stroke(AXIS_THICKNESS,create_solid_stroke_style(axis_color));
+    let solid_mascot_colored_stroke =
+        generate_stroke(AXIS_THICKNESS, create_solid_stroke_style(axis_color));
 
     //Y-AXIS
     let start_y_axis = Point {
@@ -359,13 +373,11 @@ fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<
         y: GRAPH_HEIGHT * animation_progress + GRAPH_PADDING,
     };
 
-    draw_line(frame,start_y_axis,end_y_axis,solid_mascot_colored_stroke);
+    draw_line(frame, start_y_axis, end_y_axis, solid_mascot_colored_stroke);
 
     //X-AXIS
     let start_x_axis = Point {
-        x: Point::ORIGIN.x
-            + GRAPH_PADDING
-            + GRAPH_WIDTH * (1.0 - animation_progress),
+        x: Point::ORIGIN.x + GRAPH_PADDING + GRAPH_WIDTH * (1.0 - animation_progress),
 
         y: GRAPH_END_Y,
     };
@@ -375,15 +387,14 @@ fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<
         y: GRAPH_END_Y,
     };
 
-    draw_line(frame,start_x_axis,end_x_axis,solid_mascot_colored_stroke);
-
+    draw_line(frame, start_x_axis, end_x_axis, solid_mascot_colored_stroke);
 
     //ARROW Y-AXIS
     let distance_from_tip = 10.0 * animation_progress;
 
     let y_tip = Point {
         x: GRAPH_START_X,
-        y: GRAPH_START_Y
+        y: GRAPH_START_Y,
     };
     let y_left = Point {
         x: y_tip.x - distance_from_tip,
@@ -431,7 +442,6 @@ fn draw_points(
     y_values: Vec<Kg>,
     mascot: &Mascot,
 ) {
-
     let points = calculate_points(graph_widget_state, y_values);
     let min_size_point = 3.0;
     let max_size_point = 7.0;
@@ -468,10 +478,19 @@ fn draw_connections(
 
     let stroke_width = max_size_stroke - ratio * range_size_stroke;
 
-    let connection_stroke = generate_stroke(stroke_width * graph_widget_state.animation_progress.value(),create_solid_stroke_style(mascot.get_secondary_color()));
+    let connection_stroke = generate_stroke(
+        stroke_width * graph_widget_state.animation_progress.value(),
+        create_solid_stroke_style(mascot.get_secondary_color()),
+    );
 
-    let shadow_color = Color{a: 0.25, ..Color::BLACK};
-    let shadow_stroke = generate_stroke((stroke_width + 2.0) * graph_widget_state.animation_progress.value(),create_solid_stroke_style(shadow_color));
+    let shadow_color = Color {
+        a: 0.25,
+        ..Color::BLACK
+    };
+    let shadow_stroke = generate_stroke(
+        (stroke_width + 2.0) * graph_widget_state.animation_progress.value(),
+        create_solid_stroke_style(shadow_color),
+    );
 
     // Draw the first connection from the first point in `points` to the y-axis at the same height
     let point_on_y_axis = Point {
@@ -499,7 +518,13 @@ fn draw_connections(
         .collect::<Vec<(Point, Point)>>();
 
     for (start, end) in point_tuples {
-        frame.stroke(&Path::line(translate_point(start, SHADOW_OFFSET), translate_point(end, SHADOW_OFFSET)), shadow_stroke);
+        frame.stroke(
+            &Path::line(
+                translate_point(start, SHADOW_OFFSET),
+                translate_point(end, SHADOW_OFFSET),
+            ),
+            shadow_stroke,
+        );
         frame.stroke(&Path::line(start, end), connection_stroke);
     }
 }
@@ -511,7 +536,6 @@ fn draw_cursor_information(
     cursor: Cursor,
     frame: &mut Frame<Renderer>,
 ) {
-    //max_point is needed for scaling
 
     //SETUP GRAPH BOUNDS
     let mut graph_bounds = bounds;
@@ -525,7 +549,7 @@ fn draw_cursor_information(
         y: graph_bounds.y + graph_bounds.height,
     };
 
-    //PADDING UP AND DOWN:  UP FOR Y-AXIS-ARROW SPACE,DOWN FOR X-LABELS
+    //PADDING UP AND DOWN: UP FOR Y-AXIS-ARROW SPACE, DOWN FOR X-LABELS
     let block_height =
         (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
     let chopped_y_values = chop_weights(graph_widget_state, y_values);
@@ -536,6 +560,8 @@ fn draw_cursor_information(
         .min()
         .unwrap_or(0)) as f32
         / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+
+    //max_point is needed for scaling
     let max_y: Kg = (chopped_y_values
         .iter()
         .map(|value| (*value * 10.0) as usize)
@@ -763,7 +789,6 @@ fn draw_axis_labels(
     });
 }
 
-
 impl canvas::Program<Message> for GraphWidget<'_> {
     type State = GraphWidgetState; //not used yet
 
@@ -807,21 +832,25 @@ impl canvas::Program<Message> for GraphWidget<'_> {
             .graph_state
             .graph_cache
             .draw(renderer, bounds.size(), |frame| {
-
                 //FRAME CENTER
                 let center_x = frame.width() / 2.0;
                 let center_y = frame.height() / 2.0;
-                let center = Point::new(center_x,center_y);
+                let center = Point::new(center_x, center_y);
 
                 match self.exercise_manager.data_points.len() {
-                    0 =>  draw_text(frame, "NO DATA".to_string(), 40.0, center,DESCRIPTION_TEXT_COLOR),
+                    0 => draw_text(
+                        frame,
+                        "NO DATA".to_string(),
+                        40.0,
+                        center,
+                        DESCRIPTION_TEXT_COLOR,
+                    ),
 
                     _data_points_amount => {
-
                         let weights = extract_weights(&self.exercise_manager.data_points);
 
                         //DRAW_BACKGROUND
-                        draw_background(frame,self);
+                        draw_background(frame, self);
 
                         //LABELS
                         draw_axis_labels(
@@ -859,7 +888,7 @@ impl canvas::Program<Message> for GraphWidget<'_> {
                         //CURSOR
                         if self.graph_state.visible_cursor_information {
                             draw_cursor_information(
-                                weights,            //unwrap() in draw_cursor_information can't fail since the list can't be empty
+                                weights, //unwrap() in draw_cursor_information can't fail since the list can't be empty
                                 self.graph_state,
                                 bounds,
                                 cursor,
@@ -872,107 +901,4 @@ impl canvas::Program<Message> for GraphWidget<'_> {
 
         vec![graph_widget]
     }
-}
-
-pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
-    let counter = format_button_text(text!(
-        "{}",
-        app.widget_manager.graph_widget_state.points_to_draw
-    )).size(19);
-
-    let increment_button = create_text_button(
-        &app.mascot_manager.selected_mascot,
-        "+".to_string(),
-        ButtonStyle::Active,
-        Some(BUTTON_RADIUS_LEFT_ZERO),
-    )
-    .on_press(Message::Graph(GraphMessage::IncrementCounter));
-
-    let decrement_button = create_text_button(
-        &app.mascot_manager.selected_mascot,
-        "-".to_string(),
-        ButtonStyle::Active,
-        Some(BUTTON_RADIUS_RIGHT_ZERO),
-    )
-    .on_press(Message::Graph(GraphMessage::DecrementCounter));
-
-    let row_counter_with_buttons = row![
-        decrement_button,
-        Space::with_width(Length::FillPortion(1)),
-        counter,
-        Space::with_width(Length::FillPortion(1)),
-        increment_button,
-    ]
-    .align_y(Vertical::Center);
-
-    let counter_with_buttons = container(row_counter_with_buttons)
-        .style(create_container_style(
-            ContainerStyle::Light,
-            Some(10.into()),
-            None,
-        ))
-        .width(Length::Fixed(100.0));
-
-    let button_style_dots_button = match app.widget_manager.graph_widget_state.visible_points {
-        true => ButtonStyle::Active,
-        _ => ButtonStyle::InactiveTab,
-    };
-
-    let toggle_dots_button = create_text_button(
-        &app.mascot_manager.selected_mascot,
-        "Dots".to_string(),
-        button_style_dots_button,
-        Some(10.0.into()),
-    )
-    .on_press(Message::Graph(GraphMessage::ToggleDots));
-
-    let button_style_cursor_button = match app
-        .widget_manager
-        .graph_widget_state
-        .visible_cursor_information
-    {
-        true => ButtonStyle::Active,
-        _ => ButtonStyle::InactiveTab,
-    };
-
-    let toggle_cursor_button = create_text_button(
-        &app.mascot_manager.selected_mascot,
-        "Cursor".to_string(),
-        button_style_cursor_button,
-        Some(10.0.into()),
-    )
-    .on_press(Message::Graph(GraphMessage::ToggleCursor));
-
-    let button_style_vertical_lines_button =
-        match app.widget_manager.graph_widget_state.visible_vertical_lines {
-            true => ButtonStyle::Active,
-            _ => ButtonStyle::InactiveTab,
-        };
-
-    let toggle_vertical_lines = create_text_button(
-        &app.mascot_manager.selected_mascot,
-        "Vertical lines".to_string(),
-        button_style_vertical_lines_button,
-        Some(10.0.into()),
-    )
-    .on_press(Message::Graph(GraphMessage::ToggleVerticalLines));
-
-    let settings_row = Row::new()
-        .width(Length::Fixed(CHART_WIDGET_WIDTH))
-        .push(Space::with_width(Length::Fixed(LARGE_INDENT)))
-        .push(counter_with_buttons)
-        .push(Space::with_width(Length::FillPortion(1)))
-        .push(toggle_dots_button)
-        .push(Space::with_width(Length::FillPortion(1)))
-        .push(toggle_cursor_button)
-        .push(Space::with_width(Length::FillPortion(1)))
-        .push(toggle_vertical_lines)
-        .push(Space::with_width(Length::FillPortion(15)))
-        .align_y(Vertical::Bottom);
-
-    let settings_row_with_padding = Column::new()
-        .push(Space::with_height(21.5))
-        .push(settings_row);
-
-    settings_row_with_padding.into()
 }

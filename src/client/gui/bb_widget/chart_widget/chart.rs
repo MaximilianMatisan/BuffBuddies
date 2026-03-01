@@ -1,20 +1,20 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color::BACKGROUND_COLOR;
-use crate::client::gui::bb_theme::container::ContainerStyle;
+use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle};
 use crate::client::gui::bb_theme::custom_button::{
     BUTTON_RADIUS_LEFT_ZERO, BUTTON_RADIUS_RIGHT_ZERO, ButtonStyle, create_text_button,
 };
 use crate::client::gui::bb_theme::text_format;
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::chart_widget::bar_chart::BarChart;
-use crate::client::gui::bb_widget::chart_widget::graph::{GraphWidget, view_graph_widget_settings};
+use crate::client::gui::bb_widget::chart_widget::graph::{GraphWidget, GraphMessage};
 use crate::client::gui::bb_widget::stats::exercise_stat_column;
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;
 use crate::client::gui::user_interface::Message::ChangeShownChartType;
 use iced::Element;
-use iced::widget::{Column, Row, Space, combo_box, container};
+use iced::widget::{Column, Row, Space, combo_box, container, text, row};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::{Length, Padding};
 use std::cmp::PartialEq;
@@ -143,4 +143,108 @@ fn chart_type_buttons(app: &App) -> Row<Message> {
     .on_press(ChangeShownChartType(ChartTypes::Bar));
 
     Row::new().push(line_button).push(bar_button)
+}
+
+pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
+    let counter = format_button_text(text!(
+        "{}",
+        app.widget_manager.graph_widget_state.points_to_draw
+    ))
+        .size(19);
+
+    let increment_button = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        "+".to_string(),
+        ButtonStyle::Active,
+        Some(BUTTON_RADIUS_LEFT_ZERO),
+    )
+        .on_press(Message::Graph(GraphMessage::IncrementCounter));
+
+    let decrement_button = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        "-".to_string(),
+        ButtonStyle::Active,
+        Some(BUTTON_RADIUS_RIGHT_ZERO),
+    )
+        .on_press(Message::Graph(GraphMessage::DecrementCounter));
+
+    let row_counter_with_buttons = row![
+        decrement_button,
+        Space::with_width(Length::FillPortion(1)),
+        counter,
+        Space::with_width(Length::FillPortion(1)),
+        increment_button,
+    ]
+        .align_y(Vertical::Center);
+
+    let counter_with_buttons = container(row_counter_with_buttons)
+        .style(create_container_style(
+            ContainerStyle::Light,
+            Some(10.into()),
+            None,
+        ))
+        .width(Length::Fixed(100.0));
+
+    let button_style_dots_button = match app.widget_manager.graph_widget_state.visible_points {
+        true => ButtonStyle::Active,
+        _ => ButtonStyle::InactiveTab,
+    };
+
+    let toggle_dots_button = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        "Dots".to_string(),
+        button_style_dots_button,
+        Some(10.0.into()),
+    )
+        .on_press(Message::Graph(GraphMessage::ToggleDots));
+
+    let button_style_cursor_button = match app
+        .widget_manager
+        .graph_widget_state
+        .visible_cursor_information
+    {
+        true => ButtonStyle::Active,
+        _ => ButtonStyle::InactiveTab,
+    };
+
+    let toggle_cursor_button = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        "Cursor".to_string(),
+        button_style_cursor_button,
+        Some(10.0.into()),
+    )
+        .on_press(Message::Graph(GraphMessage::ToggleCursor));
+
+    let button_style_vertical_lines_button =
+        match app.widget_manager.graph_widget_state.visible_vertical_lines {
+            true => ButtonStyle::Active,
+            _ => ButtonStyle::InactiveTab,
+        };
+
+    let toggle_vertical_lines = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        "Vertical lines".to_string(),
+        button_style_vertical_lines_button,
+        Some(10.0.into()),
+    )
+        .on_press(Message::Graph(GraphMessage::ToggleVerticalLines));
+
+    let settings_row = Row::new()
+        .width(Length::Fixed(CHART_WIDGET_WIDTH))
+        .push(Space::with_width(Length::Fixed(LARGE_INDENT)))
+        .push(counter_with_buttons)
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(toggle_dots_button)
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(toggle_cursor_button)
+        .push(Space::with_width(Length::FillPortion(1)))
+        .push(toggle_vertical_lines)
+        .push(Space::with_width(Length::FillPortion(15)))
+        .align_y(Vertical::Bottom);
+
+    let settings_row_with_padding = Column::new()
+        .push(Space::with_height(21.5))
+        .push(settings_row);
+
+    settings_row_with_padding.into()
 }

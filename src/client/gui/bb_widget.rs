@@ -1,6 +1,7 @@
 pub mod activity_widget;
 pub mod bmi_calculator;
 mod canvas_utils;
+pub mod chart_widget;
 pub mod circle_widget;
 pub mod general_exercise_info_elements;
 pub mod new_widget;
@@ -12,4 +13,3 @@ pub mod social_elements;
 pub mod stats;
 pub mod widget_utils;
 pub mod workout;
-pub mod chart_widget;

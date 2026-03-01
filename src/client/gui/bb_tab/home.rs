@@ -7,6 +7,7 @@ use crate::client::gui::bb_theme::scrollable::{
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_button_text};
 use crate::client::gui::bb_widget::activity_widget::date_utils::DateScope;
 use crate::client::gui::bb_widget::bmi_calculator::BMIWidget;
+use crate::client::gui::bb_widget::chart_widget::chart::chart_environment_widget;
 use crate::client::gui::bb_widget::circle_widget;
 use crate::client::gui::bb_widget::preset_workout_rows::view_preset_row;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
@@ -15,7 +16,6 @@ use iced::Element;
 use iced::widget::{Column, Row, Space, container, row, text};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
-use crate::client::gui::bb_widget::chart_widget::chart::chart_environment_widget;
 
 const WELCOME_BACK_TEXT_SIZE: u16 = 42;
 const SECONDARY_TEXT_SIZE: u16 = 31;

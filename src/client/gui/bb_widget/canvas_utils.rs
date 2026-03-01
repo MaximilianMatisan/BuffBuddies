@@ -2,7 +2,7 @@ use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use iced::widget::canvas;
 use iced::widget::canvas::path::Arc;
-use iced::widget::canvas::{Frame, LineCap, LineJoin, Path, Stroke, stroke, LineDash};
+use iced::widget::canvas::{Frame, LineCap, LineDash, LineJoin, Path, Stroke, stroke};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::{Color, Degrees, Point};
 
@@ -26,7 +26,13 @@ pub fn generate_dashed_stroke<'a>(width: f32, stroke_style: stroke::Style) -> St
         ..generate_stroke(width, stroke_style)
     }
 }
-pub fn draw_text(frame: &mut Frame, content: String, font_size: f32, position: Point, color: Color) {
+pub fn draw_text(
+    frame: &mut Frame,
+    content: String,
+    font_size: f32,
+    position: Point,
+    color: Color,
+) {
     frame.fill_text(canvas::Text {
         content,
         size: font_size.into(),
@@ -42,9 +48,8 @@ pub fn draw_text(frame: &mut Frame, content: String, font_size: f32, position: P
 
 ///Draws a line from point `start` to point `end`
 pub fn draw_line(frame: &mut Frame, start: Point, end: Point, stroke: Stroke) {
-frame.stroke(&Path::line(start, end), stroke);
+    frame.stroke(&Path::line(start, end), stroke);
 }
-
 
 /// # Arguments
 ///
@@ -63,9 +68,9 @@ pub fn create_arc_path(center: Point, radius: f32, start_angle: f32, end_angle: 
 }
 
 /// Translates a `Point` by adding the same offset to both its `x` and `y` coordinates.
-pub fn  translate_point(point: Point, delta: f32) -> Point {
+pub fn translate_point(point: Point, delta: f32) -> Point {
     Point {
         x: point.x + delta,
-        y: point.y + delta
+        y: point.y + delta,
     }
 }

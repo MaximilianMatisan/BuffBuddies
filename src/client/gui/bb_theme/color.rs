@@ -59,13 +59,17 @@ pub fn create_canvas_gradient(
     end: Point,
     color_stops: Vec<ColorStop>,
 ) -> iced::advanced::graphics::Gradient {
-    iced::advanced::graphics::Gradient::Linear(iced::advanced::graphics::gradient::Linear::new(start,end).add_stops(color_stops))
+    iced::advanced::graphics::Gradient::Linear(
+        iced::advanced::graphics::gradient::Linear::new(start, end).add_stops(color_stops),
+    )
 }
 
 pub fn create_solid_stroke_style(color: Color) -> iced::widget::canvas::stroke::Style {
     iced::widget::canvas::stroke::Style::Solid(color)
 }
 
-pub fn create_gradient_stroke_style(gradient: iced::advanced::graphics::Gradient) -> iced::widget::canvas::stroke::Style {
+pub fn create_gradient_stroke_style(
+    gradient: iced::advanced::graphics::Gradient,
+) -> iced::widget::canvas::stroke::Style {
     iced::widget::canvas::stroke::Style::Gradient(gradient)
 }
