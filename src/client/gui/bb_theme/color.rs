@@ -29,11 +29,6 @@ pub fn create_color_stops(stops: Vec<(iced::Color, f32)>) -> Vec<ColorStop> {
 /// The offsets are distributed linearly between `0.0` and `1.0`. This helper
 /// function is primarily intended to be used together with `create_color_stops`
 /// to easily construct a `Vec<ColorStop>` consisting of a single repeated color.
-///
-/// # Example
-/// ```
-/// let stops = create_color_stops(create_one_colored_stops(color, 5));
-/// ```
 pub fn create_one_colored_stops(color: Color, amount: usize) -> Vec<(Color, f32)> {
     let mut one_colored_stops = Vec::new();
 
