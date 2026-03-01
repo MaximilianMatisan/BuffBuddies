@@ -37,7 +37,7 @@ impl WidgetManager {
     }
 }
 pub fn update_progress_bar_goals_after_updated_user_info(app: &mut App) {
-    // Update the normal progress bar states 
+    // Update the normal progress bar states
     app.widget_manager
         .progress_bar_state_manager
         .update_goals(&app.user_manager.user_info);
