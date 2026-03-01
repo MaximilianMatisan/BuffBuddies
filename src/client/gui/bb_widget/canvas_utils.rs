@@ -40,6 +40,12 @@ pub fn draw_text(frame: &mut Frame, content: String, font_size: f32, position: P
     });
 }
 
+///Draws a line from point `start` to point `end` 
+pub fn draw_line(frame: &mut Frame, start: Point, end: Point, stroke: Stroke) {
+frame.stroke(&Path::line(start, end), stroke);
+}
+
+
 /// # Arguments
 ///
 /// * `radius` - Radius of the circle.
