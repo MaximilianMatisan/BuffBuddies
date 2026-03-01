@@ -11,7 +11,7 @@ pub enum PresetSafeError {
 #[derive(Default)]
 pub struct WorkoutPresetManager {
     pub presets: Vec<WorkoutPreset>,
-    //preset creation
+    /// used for preset creation
     pub preset_in_creation: Option<PresetCreation>,
 }
 
