@@ -1,4 +1,4 @@
-mod database_mod;
+pub mod database_mod;
 mod jwt;
 mod routes;
 pub mod server_main;
