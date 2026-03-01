@@ -40,10 +40,15 @@ cargo run --release
 ```
 After starting the application choose whether to run it as client or server (localhost)
 
->[!NOTE]
+>[!IMPORTANT]
 > Currently, BuffBuddies requires two running instances:
 > - one as the server 
 > - one as the client
+
+>[!NOTE]
+> If you want to use an account with coin credit, use this user login data in the client instance:
+> - Username: User
+> - Password: 123
 
 ## 🐥 Preview
 ### Home
