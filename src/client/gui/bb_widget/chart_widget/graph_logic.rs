@@ -47,18 +47,9 @@ pub fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>
         CHART_WIDGET_WIDTH - crate::client::gui::bb_widget::chart_widget::graph::GRAPH_PADDING;
 
     //I can unwrap() since the function is not going to get called if exercises.len() = 0
-    let min_y: Kg = (chopped_y_values
-        .iter()
-        .map(|value| (*value * 10.0) as usize)
-        .min()
-        .unwrap_or(0)) as f32
-        / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
-    let max_y: Kg = (chopped_y_values
-        .iter()
-        .map(|value| (*value * 10.0) as usize)
-        .max()
-        .unwrap_or(0)) as f32
-        / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let min_y: Kg = get_f32_min(chopped_y_values);
+    let max_y: Kg = get_f32_max(chopped_y_values);
+
     let delta = max_y - min_y;
     let percentage = |current_y: Kg| {
         if delta == 0.0 {
@@ -126,4 +117,20 @@ pub fn extract_dates(exercise_data_points: &ExerciseDataPoints) -> Vec<NaiveDate
     }
 
     dates
+}
+
+pub fn get_f32_min(vec: &[Kg]) -> f32 {
+    vec.iter()
+        .map(|value| (*value * 10.0) as usize)
+        .min()
+        .unwrap_or(0) as f32
+        / 10.0
+}
+
+pub fn get_f32_max(vec: &[Kg]) -> f32 {
+    vec.iter()
+        .map(|value| (*value * 10.0) as usize)
+        .max()
+        .unwrap_or(0) as f32
+        / 10.0
 }

@@ -1,5 +1,4 @@
 use crate::client::gui::bb_theme::color::HIGHLIGHTED_CONTAINER_COLOR;
-use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::widget::scrollable::{Direction, Rail, Scrollbar, Scroller, Status, Style};
@@ -18,7 +17,7 @@ pub enum ScrollableStyle {
     Mascot,
     Default,
 }
-pub fn create_scrollable<'a,Msg>(
+pub fn create_scrollable<'a, Msg>(
     element: impl Into<Element<'a, Msg, Theme, Renderer>>,
     mascot: Mascot,
     scrollable_style: ScrollableStyle,
@@ -33,7 +32,7 @@ pub trait ScrollableExtension {
     fn add_vertical_scrollbar(self, width: f32, padding: f32) -> Self;
 }
 
-impl<'a,Msg> ScrollableExtension for Scrollable<'a, Msg> {
+impl<'a, Msg> ScrollableExtension for Scrollable<'a, Msg> {
     fn add_horizontal_scrollbar(self, width: f32, padding: f32) -> Scrollable<'a, Msg> {
         self.direction(Direction::Horizontal(
             Scrollbar::new().scroller_width(width).margin(padding),

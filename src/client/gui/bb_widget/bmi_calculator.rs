@@ -316,9 +316,9 @@ fn calculate_bmi(user_information: &UserInformation) -> f32 {
 fn translate_bmi_to_class(bmi_value: f32) -> (String, f32) {
     let (weight_class, font_scaling) = match bmi_value {
         ..16.0 => ("Severely underweight", 0.7),
-        16.0..18.5 => ("Underweight", 0.9),
+        16.0..18.5 => ("Underweight", 0.8),
         18.5..25.0 => ("Normal", 1.0),
-        25.0..30.0 => ("Overweight", 1.0),
+        25.0..30.0 => ("Overweight", 0.9),
         _ => ("Severely overweight", 0.7),
     };
     (weight_class.to_string(), font_scaling)

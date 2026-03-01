@@ -16,8 +16,7 @@ use crate::client::server_communication::user_communicator::{
 };
 use crate::common::user_mod::friend_request::FriendRequest;
 use crate::common::user_mod::user::UserType;
-use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{Column, Row, Scrollable, Space, container, text};
+use iced::widget::{Column, Row, Space, container, text};
 use iced::{Element, Task};
 use iced_core::Length;
 use iced_core::alignment::Horizontal;
@@ -32,9 +31,12 @@ impl App {
         for friend in &friends {
             friend_buttons = friend_buttons.push(friend_user_button(self, friend))
         }
-        let scrollable_friends =
-            create_scrollable(friend_buttons,self.mascot_manager.selected_mascot,ScrollableStyle::Default)
-                .add_horizontal_scrollbar(6.5,0.0);
+        let scrollable_friends = create_scrollable(
+            friend_buttons,
+            self.mascot_manager.selected_mascot,
+            ScrollableStyle::Default,
+        )
+        .add_horizontal_scrollbar(6.5, 0.0);
 
         let friends_with_title = Column::new()
             .push(

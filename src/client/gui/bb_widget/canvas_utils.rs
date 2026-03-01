@@ -1,4 +1,3 @@
-use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use iced::widget::canvas;
 use iced::widget::canvas::path::Arc;
