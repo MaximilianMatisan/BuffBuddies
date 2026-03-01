@@ -7,7 +7,7 @@ use iced_core::Point;
 use std::time::Duration;
 
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color::{create_solid_stroke_style, CONTAINER_COLOR};
+use crate::client::gui::bb_theme::color::{create_solid_stroke_style, CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_widget::canvas_utils::{create_arc_path, draw_text, generate_stroke};
 use crate::client::gui::user_interface::Message;
@@ -224,6 +224,7 @@ fn draw_circle_text(frame: &mut Frame, circle_widget: &CircleWidget) {
             x: circle_center.x,
             y: circle_center.y - FONT_SIZE_RATIO - text_padding,
         },
+        TEXT_COLOR
     );
 
     draw_text(
@@ -231,6 +232,7 @@ fn draw_circle_text(frame: &mut Frame, circle_widget: &CircleWidget) {
         String::from("workouts"),
         FONT_SIZE_DESCRIPTION + 4.0, //MIDDLE TEXT SHOULD BE A LITTLE BIT BIGGER THAN THE LOWER TEXT
         circle_center,
+        TEXT_COLOR
     );
 
     draw_text(
@@ -241,6 +243,7 @@ fn draw_circle_text(frame: &mut Frame, circle_widget: &CircleWidget) {
             x: circle_center.x,
             y: circle_center.y + FONT_SIZE_RATIO + text_padding,
         },
+        TEXT_COLOR
     );
 }
 

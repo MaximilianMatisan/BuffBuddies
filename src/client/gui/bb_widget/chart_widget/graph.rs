@@ -1,4 +1,4 @@
-use crate::client::gui::bb_theme::color::{create_2d_gradient, create_color_stops, create_gradient_stroke_style, create_solid_stroke_style, CONTAINER_COLOR, DASHED_LINES_COLOR, HIGHLIGHTED_CONTAINER_COLOR};
+use crate::client::gui::bb_theme::color::{create_canvas_gradient, create_color_stops, create_gradient_stroke_style, create_solid_stroke_style, CONTAINER_COLOR, DASHED_LINES_COLOR, DESCRIPTION_TEXT_COLOR, HIGHLIGHTED_CONTAINER_COLOR};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use chrono::NaiveDate;
 use iced::advanced::graphics::geometry::Frame;
@@ -36,7 +36,7 @@ use iced_core::gradient::ColorStop;
 use iced_core::keyboard::Key;
 use iced_core::mouse::Cursor;
 use iced_core::{Length, Point, Rectangle, Size, Theme};
-use crate::client::gui::bb_widget::canvas_utils::{draw_line, generate_dashed_stroke, generate_stroke};
+use crate::client::gui::bb_widget::canvas_utils::{draw_line, draw_text, generate_dashed_stroke, generate_stroke, translate_point};
 use crate::client::gui::bb_widget::chart_widget::graph_logic::{calculate_points, chop_dates, chop_weights, extract_dates, extract_weights};
 
 pub(crate) const GRAPH_PADDING: f32 = 50.0;
@@ -46,6 +46,7 @@ const AXIS_THICKNESS: f32 = 5.0;
 pub const MAX_AMOUNT_POINTS: u8 = 40;
 pub const MAX_X_LABELS: u8 = 11;
 pub const MAX_VERTICAL_LINES: u8 = 14;
+pub const SHADOW_OFFSET: f32 = 5.0;
 
 //PADDING TOP AND BOTTOM: TOP FOR Y-AXIS-ARROW SPACE, BOTTOM FOR X-LABELS
 pub static BLOCK_HEIGHT: f32 = (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
@@ -210,6 +211,44 @@ impl<'a> GraphWidget<'a> {
     }
 }
 
+fn draw_background(frame: &mut Frame<Renderer>, graph_widget: &GraphWidget) {
+
+    let center_x = GRAPH_WIDTH / 2.0;
+
+    let background = Path::rectangle(
+        Point {
+            x: GRAPH_END_X, //setting top right, so that the animation goes along the x-axis animation
+            y: GRAPH_START_Y,
+        },
+        Size {
+            width:
+            - GRAPH_WIDTH * graph_widget.graph_state.animation_progress.value(), //negative width, so that the animation goes along the x-axis animation
+            height: GRAPH_HEIGHT,
+        },
+    );
+
+    let background_gradient_start = Point {
+        x: center_x,
+        y: GRAPH_START_Y
+    } ;
+    let background_gradient_end = Point {
+        x: center_x,
+        y: GRAPH_END_Y
+    } ;
+
+    let background_color_start = Color {a: 0.0,..CONTAINER_COLOR };
+    let background_color_end =Color { a: 0.3, ..graph_widget.active_mascot.get_primary_color() };
+
+    let background_color_stops = create_color_stops(vec![
+        (background_color_start, 0.80 + (0.20 * (1.0 - graph_widget.graph_state.animation_progress.value()))),
+        (background_color_end,1.0)
+    ]);
+
+    let background_gradient = create_canvas_gradient(background_gradient_start,background_gradient_end,background_color_stops);
+
+    frame.fill(&background, background_gradient);
+}
+
 ///Draws the dashed lines in the background of the graph which adapt themselves to the amount of `points_to_draw`
 fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Renderer>) {
 
@@ -235,13 +274,13 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
     let horizontal_gradient_start = Point::new(horizontal_gradient_padding,frame_center_y);
     let horizontal_gradient_end = Point::new(frame.width(),frame_center_y);
 
-    let horizontal_gradient = create_2d_gradient(horizontal_gradient_start,horizontal_gradient_end,color_stops.clone());
+    let horizontal_gradient = create_canvas_gradient(horizontal_gradient_start, horizontal_gradient_end, color_stops.clone());
 
     //VERTICAL GRADIENT
     let vertical_gradient_start = Point::new(frame_center_x,vertical_gradient_padding);
     let vertical_gradient_end = Point::new(frame_center_x,frame.height() - vertical_gradient_padding);
 
-    let vertical_gradient = create_2d_gradient(vertical_gradient_start,vertical_gradient_end,color_stops);
+    let vertical_gradient = create_canvas_gradient(vertical_gradient_start, vertical_gradient_end, color_stops);
 
     let horizontal_dashed_stroke = generate_dashed_stroke(2.0,create_gradient_stroke_style(horizontal_gradient));
     let vertical_dashed_stroke = generate_dashed_stroke(2.0,create_gradient_stroke_style(vertical_gradient));
@@ -414,6 +453,7 @@ fn draw_points(
     }
 }
 
+///Draws the connections between the points in `y_values`
 fn draw_connections(
     graph_widget_state: &GraphWidgetState,
     frame: &mut Frame<Renderer>,
@@ -424,40 +464,24 @@ fn draw_connections(
     let min_size_stroke = 1.5;
     let max_size_stroke = 4.2;
     let range_size_stroke = max_size_stroke - min_size_stroke;
-    let percentage = points.len() as f32 / MAX_AMOUNT_POINTS as f32;
+    let ratio = points.len() as f32 / MAX_AMOUNT_POINTS as f32;
 
-    //CALCULATE POINTS RADIUS
-    let stroke_size = max_size_stroke - percentage * range_size_stroke;
+    let stroke_width = max_size_stroke - ratio * range_size_stroke;
 
-    let connection_stroke = Stroke {
-        width: stroke_size * graph_widget_state.animation_progress.value(),
-        line_cap: LineCap::Round,
-        line_join: LineJoin::Round,
-        style: stroke::Style::Solid(mascot.get_secondary_color()),
-        line_dash: Default::default(),
-    };
+    let connection_stroke = generate_stroke(stroke_width * graph_widget_state.animation_progress.value(),create_solid_stroke_style(mascot.get_secondary_color()));
 
-    let shadow_stroke = Stroke {
-        width: (stroke_size + 2.0) * graph_widget_state.animation_progress.value(),
-        line_cap: LineCap::Round,
-        line_join: LineJoin::Round,
-        style: stroke::Style::Solid(Color {
-            r: 0.0,
-            g: 0.0,
-            b: 0.0,
-            a: 0.25,
-        }),
-        line_dash: Default::default(),
-    };
+    let shadow_color = Color{a: 0.25, ..Color::BLACK};
+    let shadow_stroke = generate_stroke((stroke_width + 2.0) * graph_widget_state.animation_progress.value(),create_solid_stroke_style(shadow_color));
 
-    //first point connecting first point in points with the y-axis (same height as first point)
+    // Draw the first connection from the first point in `points` to the y-axis at the same height
     let point_on_y_axis = Point {
-        x: Point::ORIGIN.x + GRAPH_PADDING,
+        x: GRAPH_START_X,
         y: points[0].y, //it is sure that there is at least one point since the function doesn't get called if length() < 1
     };
 
     points.insert(0, point_on_y_axis);
 
+    //a list of tuples of the point n in y_values in a tuple with n + 1 in points
     let point_tuples = points
         .iter()
         .enumerate()
@@ -474,32 +498,8 @@ fn draw_connections(
         })
         .collect::<Vec<(Point, Point)>>();
 
-    let shadow_offset = 5.0;
-
-    let shadow_point_tuples = point_tuples
-        .iter()
-        .map(|(p_start, p_end)| {
-            let shadow_start = Point {
-                x: p_start.x + shadow_offset,
-                y: p_start.y + shadow_offset,
-            };
-            let shadow_end = Point {
-                x: p_end.x + shadow_offset,
-                y: p_end.y + shadow_offset,
-            };
-
-            (shadow_start, shadow_end)
-        })
-        .collect::<Vec<(Point, Point)>>();
-
-    //SHADOW
-
-    for (start, end) in shadow_point_tuples {
-        frame.stroke(&Path::line(start, end), shadow_stroke);
-    }
-
-    //CONNECTIONS
     for (start, end) in point_tuples {
+        frame.stroke(&Path::line(translate_point(start, SHADOW_OFFSET), translate_point(end, SHADOW_OFFSET)), shadow_stroke);
         frame.stroke(&Path::line(start, end), connection_stroke);
     }
 }
@@ -807,77 +807,21 @@ impl canvas::Program<Message> for GraphWidget<'_> {
             .graph_state
             .graph_cache
             .draw(renderer, bounds.size(), |frame| {
-                //TODO: Find right frame center to centrate "NO DATA" text
-                //FRAME CENTER
-                let center_x = CHART_WIDGET_WIDTH / 2.0 - INDENT;
-                let center_y = CHART_WIDGET_HEIGHT / 2.0;
-                let center = Point {
-                    x: center_x,
-                    y: center_y,
-                };
 
-                //DRAW BACKGROUND
-                let background = Path::rectangle(
-                    Point {
-                        x: Point::ORIGIN.x + CHART_WIDGET_WIDTH - GRAPH_PADDING, //setting top right, so that the animation goes along the x-axis animation
-                        y: Point::ORIGIN.y + GRAPH_PADDING,
-                    },
-                    Size {
-                        width: -((CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0)
-                            * self.graph_state.animation_progress.value()), //negative width, so that the animation goes along the x-axis animation
-                        height: frame.height() - GRAPH_PADDING * 2.0,
-                    },
-                );
+                //FRAME CENTER
+                let center_x = frame.width() / 2.0;
+                let center_y = frame.height() / 2.0;
+                let center = Point::new(center_x,center_y);
 
                 match self.exercise_manager.data_points.len() {
-                    0 => frame.fill_text(canvas::Text {
-                        content: "NO DATA".to_string(),
-                        position: center,
-                        color: color!(142, 142, 147),
-                        size: 40.into(),
-                        line_height: Default::default(),
-                        font: FIRA_SANS_EXTRABOLD,
-                        horizontal_alignment: Horizontal::Left,
-                        vertical_alignment: Vertical::Top,
-                        shaping: Default::default(),
-                    }),
+                    0 =>  draw_text(frame, "NO DATA".to_string(), 40.0, center,DESCRIPTION_TEXT_COLOR),
+
                     _data_points_amount => {
+
                         let weights = extract_weights(&self.exercise_manager.data_points);
 
-                        let background_gradient = Gradient::Linear(
-                            Linear::new(
-                                Point {
-                                    x: frame.width() / 2.0,
-                                    y: Point::ORIGIN.y + GRAPH_PADDING,
-                                },
-                                Point {
-                                    x: frame.width() / 2.0,
-                                    y: frame.height() - GRAPH_PADDING,
-                                },
-                            )
-                            .add_stops([
-                                // FADE IN
-                                ColorStop {
-                                    offset: 0.80
-                                        + (0.20
-                                            * (1.0 - self.graph_state.animation_progress.value())),
-                                    color: Color {
-                                        a: 0.0,
-                                        ..CONTAINER_COLOR
-                                    },
-                                },
-                                //ACTUAL COLOR
-                                ColorStop {
-                                    offset: 1.0,
-                                    color: Color {
-                                        a: 0.3,
-                                        ..self.active_mascot.get_primary_color()
-                                    },
-                                },
-                            ]),
-                        );
-
-                        frame.fill(&background, background_gradient);
+                        //DRAW_BACKGROUND
+                        draw_background(frame,self);
 
                         //LABELS
                         draw_axis_labels(
@@ -912,17 +856,15 @@ impl canvas::Program<Message> for GraphWidget<'_> {
                             );
                         }
 
-                        //println!("{:?}", weights);
-
                         //CURSOR
                         if self.graph_state.visible_cursor_information {
                             draw_cursor_information(
-                                weights,
+                                weights,            //unwrap() in draw_cursor_information can't fail since the list can't be empty
                                 self.graph_state,
                                 bounds,
                                 cursor,
                                 frame,
-                            ); //unwrap() can't fail since the list can't be empty
+                            );
                         }
                     }
                 }
@@ -933,11 +875,10 @@ impl canvas::Program<Message> for GraphWidget<'_> {
 }
 
 pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
-    let mut counter = format_button_text(text!(
+    let counter = format_button_text(text!(
         "{}",
         app.widget_manager.graph_widget_state.points_to_draw
-    ));
-    counter = counter.size(19);
+    )).size(19);
 
     let increment_button = create_text_button(
         &app.mascot_manager.selected_mascot,
