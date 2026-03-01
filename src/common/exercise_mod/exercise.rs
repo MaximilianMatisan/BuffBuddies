@@ -4,7 +4,7 @@ use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 use chrono::{Duration, Local, NaiveDate};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
 
 pub type ExerciseDataPoints = Vec<(NaiveDate, Kg)>;
@@ -36,7 +36,6 @@ impl Exercise {
     pub fn is_tracked(&self) -> bool {
         !self.sets.is_empty()
     }
-
 
     /// This function calculates the maximum weight of a set for each tracked day.
     pub fn calculate_max_weight_per_day(&self) -> ExerciseDataPoints {
@@ -207,10 +206,10 @@ pub(crate) mod tests {
     use super::*;
     use crate::common::exercise_mod::set::Reps;
 
-    const CUSTOM_TRACKED_DAYS: u32 = 45;
-    const CUSTOM_SETS_PER_DAY: u32 = 10;
-    const CUSTOM_WEIGHT_PER_SET: Kg = 80.0;
-    const CUSTOM_REPS_PER_SET: Reps = 12;
+    pub const CUSTOM_TRACKED_DAYS: u32 = 45;
+    pub const CUSTOM_SETS_PER_DAY: u32 = 10;
+    pub const CUSTOM_WEIGHT_PER_SET: Kg = 80.0;
+    pub const CUSTOM_REPS_PER_SET: Reps = 12;
     pub fn create_custom_exercise(
         first_tracked_day: NaiveDate,
         tracked_days: u32,
@@ -236,7 +235,7 @@ pub(crate) mod tests {
         }
         exercise
     }
-    fn custom_exercise_preset() -> Exercise {
+    pub fn custom_exercise_preset() -> Exercise {
         create_custom_exercise(
             Local::now().date_naive(),
             CUSTOM_TRACKED_DAYS,
@@ -447,7 +446,7 @@ pub(crate) mod tests {
     fn contains_no_set_with_id_zero_when_exercise_is_empty() {
         let exercise = Exercise {
             general_exercise_info: GeneralExerciseInfo::test_obj(),
-            sets: BTreeMap::new()
+            sets: BTreeMap::new(),
         };
         assert!(!exercise.contains_set_with_workout_id(0));
     }
@@ -455,25 +454,31 @@ pub(crate) mod tests {
     fn empty_exercise_contains_no_workout_ids() {
         let exercise = Exercise {
             general_exercise_info: GeneralExerciseInfo::test_obj(),
-            sets: BTreeMap::new()
+            sets: BTreeMap::new(),
         };
-        assert_eq!(exercise.get_up_to_three_largest_workout_ids(), Vec::<Id>::new());
+        assert_eq!(
+            exercise.get_up_to_three_largest_workout_ids(),
+            Vec::<Id>::new()
+        );
     }
     #[test]
     fn get_three_biggest_exercise_ids_of_mock_exercise() {
         let workout_ids_of_mock_exercise = mock_exercise().get_up_to_three_largest_workout_ids();
 
-        assert_eq!(vec![1,0], workout_ids_of_mock_exercise);
+        assert_eq!(vec![1, 0], workout_ids_of_mock_exercise);
     }
     #[test]
     fn get_three_biggest_exercise_ids_of_large_exercise() {
         let custom_exercise = custom_exercise_preset();
         let mut expected_result = Vec::new();
         for i in 1..=3 {
-            expected_result.push(CUSTOM_TRACKED_DAYS-i)
+            expected_result.push(CUSTOM_TRACKED_DAYS - i)
         }
 
-        assert_eq!(expected_result, custom_exercise.get_up_to_three_largest_workout_ids())
+        assert_eq!(
+            expected_result,
+            custom_exercise.get_up_to_three_largest_workout_ids()
+        )
     }
     #[test]
     fn get_date_of_workout_id_empty_exercise() {
