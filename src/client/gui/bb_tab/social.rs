@@ -1,3 +1,4 @@
+use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
@@ -123,7 +124,11 @@ impl SocialMessage {
                         },
                     );
                 } else {
-                    println!("Log in to add a friend!");
+                    app.pop_up_manager.new_pop_up(
+                        PopUpType::Minor,
+                        "Adding Friend Failed!".to_string(),
+                        "Log in to add a friend persistently!".to_string(),
+                    );
                 }
             }
             SocialMessage::RemoveUserAsFriend(username) => {
@@ -141,7 +146,11 @@ impl SocialMessage {
                         },
                     );
                 } else {
-                    println!("Log in to remove a friend!");
+                    app.pop_up_manager.new_pop_up(
+                        PopUpType::Minor,
+                        "Removing Friend Failed!".to_string(),
+                        "Log in to remove a friend persistently!".to_string(),
+                    );
                 }
             }
             SocialMessage::ViewProfile(user_type) => {
