@@ -1,6 +1,6 @@
 use crate::common::user_mod::friend_request::FriendRequest;
 use crate::common::user_mod::user::ForeignUser;
-use crate::server::database_mod::database;
+use crate::server::database_mod::database_social;
 use crate::server::jwt::user_authentication_request_path::UserAuthenticationRequestPath;
 use crate::server::server_main::ApiError;
 use axum::Json;
@@ -12,8 +12,9 @@ pub async fn get_foreign_users(
     user_authentication: UserAuthenticationRequestPath,
 ) -> Result<Json<Vec<ForeignUser>>, ApiError> {
     let mut non_friend_users =
-        database::get_discovery_users(&pool, &user_authentication.username, 200).await?;
-    let mut friends = database::get_all_friends(&pool, &user_authentication.username).await?;
+        database_social::get_discovery_users(&pool, &user_authentication.username, 200).await?;
+    let mut friends =
+        database_social::get_all_friends(&pool, &user_authentication.username).await?;
 
     friends.append(&mut non_friend_users);
 
@@ -30,7 +31,7 @@ pub async fn add_friend(
     user_authentication: UserAuthenticationRequestPath,
     Json(other_user): Json<FriendRequest>,
 ) -> Result<(), ApiError> {
-    database::add_friend(&pool, &user_authentication.username, &other_user.username).await?;
+    database_social::add_friend(&pool, &user_authentication.username, &other_user.username).await?;
 
     println!(
         "{}: Added {} as a friend",
@@ -45,7 +46,8 @@ pub async fn remove_friend(
     user_authentication: UserAuthenticationRequestPath,
     Json(other_user): Json<FriendRequest>,
 ) -> Result<(), ApiError> {
-    database::remove_friend(&pool, &user_authentication.username, &other_user.username).await?;
+    database_social::remove_friend(&pool, &user_authentication.username, &other_user.username)
+        .await?;
 
     println!(
         "{}: Removed {} as a friend",

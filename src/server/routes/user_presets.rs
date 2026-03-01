@@ -3,7 +3,9 @@ use axum::extract::State;
 use sqlx::SqlitePool;
 
 use crate::common::workout_preset::WorkoutPreset;
-use crate::server::database_mod::database::{add_preset, add_preset_to_user, get_presets_for_user};
+use crate::server::database_mod::database_preset::{
+    add_preset, add_preset_to_user, get_presets_for_user,
+};
 use crate::server::jwt::user_authentication_request_path::UserAuthenticationRequestPath;
 use crate::server::server_main::ApiError;
 

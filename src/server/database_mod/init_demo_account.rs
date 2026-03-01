@@ -3,7 +3,7 @@ use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::user_mod::user_goals::UserGoals;
-use crate::server::database_mod::database;
+use crate::server::database_mod::{database, database_mascot, database_user, database_user_goals};
 use crate::server::routes::workout::ExerciseJson;
 use chrono::{Duration, Local, NaiveDate};
 use rand::Rng;
@@ -31,8 +31,8 @@ async fn configure_users_table_for_demo_user(
     pool: &SqlitePool,
     username: &str,
 ) -> Result<(), sqlx::Error> {
-    database::update_user_description(pool, username, "I love BuffBuddies :)").await?;
-    database::update_user_coin_balance(pool, username, 650).await?;
+    database_user::update_user_description(pool, username, "I love BuffBuddies :)").await?;
+    database_user::update_user_coin_balance(pool, username, 650).await?;
 
     Ok(())
 }
@@ -41,7 +41,7 @@ async fn configure_owned_mascots_for_demo_user(
     pool: &SqlitePool,
     username: &str,
 ) -> Result<(), sqlx::Error> {
-    database::add_mascot_to_user(pool, username, EpicMascot::Capybara.get_name()).await?;
+    database_mascot::add_mascot_to_user(pool, username, EpicMascot::Capybara.get_name()).await?;
     Ok(())
 }
 async fn configure_goals_for_demo_user(
@@ -52,7 +52,7 @@ async fn configure_goals_for_demo_user(
         weekly_workouts: 2.0,
         ..Default::default()
     };
-    database::update_user_goals(pool, username, goals).await?;
+    database_user_goals::update_user_goals(pool, username, goals).await?;
     Ok(())
 }
 

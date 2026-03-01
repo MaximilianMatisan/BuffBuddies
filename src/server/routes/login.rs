@@ -1,5 +1,5 @@
 use crate::common::login::{RequestValidRegisterAnswer, RequestValidUserAnswer};
-use crate::server::database_mod::database::{
+use crate::server::database_mod::database_user::{
     RequestPasswordAnswer, add_user, get_all_usernames, get_password,
 };
 use crate::server::jwt::jwt_architecture::create_jwt;

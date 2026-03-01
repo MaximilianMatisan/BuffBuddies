@@ -1,8 +1,7 @@
 use axum::extract::State;
 
 use crate::common::user_mod::user::UserInformation;
-use crate::server::database_mod::database;
-use crate::server::database_mod::database::update_user_goals;
+use crate::server::database_mod::{database_user, database_user_goals};
 use crate::server::jwt::user_authentication_request_path::UserAuthenticationRequestPath;
 use crate::server::server_main::ApiError;
 use axum::Json;
@@ -12,7 +11,8 @@ pub async fn get_user_info(
     State(pool): State<SqlitePool>,
     user_authentication: UserAuthenticationRequestPath,
 ) -> Result<Json<UserInformation>, ApiError> {
-    let user_info = database::get_user_information(&pool, &user_authentication.username).await?;
+    let user_info =
+        database_user::get_user_information(&pool, &user_authentication.username).await?;
 
     println!(
         "{}: Fetching UserInformation Data!",
@@ -28,41 +28,41 @@ pub async fn update_user_info(
     Json(new_user_info): Json<UserInformation>,
 ) -> Result<(), ApiError> {
     //TODO create a database function that combines these fields in one update query
-    database::update_user_favorite_mascot(
+    database_user::update_user_favorite_mascot(
         &pool,
         &user_authentication.username,
         &new_user_info.favorite_mascot,
     )
     .await?;
 
-    database::update_user_gender(
+    database_user::update_user_gender(
         &pool,
         &user_authentication.username,
         &new_user_info.gender.to_string(),
     )
     .await?;
 
-    database::update_user_profile_picture(
+    database_user::update_user_profile_picture(
         &pool,
         &user_authentication.username,
         &new_user_info.profile_picture_path,
     )
     .await?;
 
-    database::update_user_height(&pool, &user_authentication.username, new_user_info.height)
+    database_user::update_user_height(&pool, &user_authentication.username, new_user_info.height)
         .await?;
 
-    database::update_user_weight(&pool, &user_authentication.username, new_user_info.weight)
+    database_user::update_user_weight(&pool, &user_authentication.username, new_user_info.weight)
         .await?;
 
-    database::update_user_description(
+    database_user::update_user_description(
         &pool,
         &user_authentication.username,
         &new_user_info.description,
     )
     .await?;
 
-    update_user_goals(
+    database_user_goals::update_user_goals(
         &pool,
         &user_authentication.username,
         new_user_info.user_goals,

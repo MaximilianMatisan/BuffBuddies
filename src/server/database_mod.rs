@@ -1,3 +1,9 @@
 pub mod database;
+pub mod database_exercise;
+pub mod database_mascot;
+pub mod database_preset;
+pub mod database_social;
+pub mod database_user;
+pub mod database_user_goals;
 pub mod import_exercises;
 pub mod init_demo_account;
