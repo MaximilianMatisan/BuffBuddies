@@ -1,16 +1,14 @@
 use crate::client::gui::bb_theme::color::{
-    create_canvas_gradient, create_color_stops, create_gradient_stroke_style, create_solid_stroke_style,
-    CONTAINER_COLOR, DASHED_LINES_COLOR, DESCRIPTION_TEXT_COLOR,
-    HIGHLIGHTED_CONTAINER_COLOR,
+    CONTAINER_COLOR, DARK_SHADOW, DASHED_LINES_COLOR, DESCRIPTION_TEXT_COLOR,
+    HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR, create_canvas_gradient, create_color_stops,
+    create_gradient_stroke_style, create_solid_stroke_style,
 };
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
-use iced::advanced::graphics::geometry::Frame;
-use iced::widget::canvas::{
-    event, Cache, Event, Geometry, Path,
-};
 use iced::Renderer;
-use iced::{mouse, Task};
-use iced_core::{color, Color};
+use iced::advanced::graphics::geometry::Frame;
+use iced::widget::canvas::{Cache, Event, Geometry, Path, event};
+use iced::{Task, mouse};
+use iced_core::Color;
 use std::time::Duration;
 
 use crate::client::backend::exercise_manager::ExerciseManager;
@@ -21,18 +19,19 @@ use crate::client::gui::bb_widget::canvas_utils::{
     draw_line, draw_text, generate_dashed_stroke, generate_stroke, translate_point,
 };
 use crate::client::gui::bb_widget::chart_widget::chart::{
-    ChartTypes, CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH,
+    CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH, ChartTypes,
 };
 use crate::client::gui::bb_widget::chart_widget::graph_logic::{
-    calculate_points, chop_dates, chop_weights, extract_dates, extract_weights,
+    calculate_points, chop_dates, chop_weights, extract_dates, extract_weights, get_f32_max,
+    get_f32_min,
 };
 use crate::client::gui::user_interface::Message;
 use crate::common::exercise_mod::exercise::ExerciseDataPoints;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use iced::widget::canvas;
 use iced::Element;
+use iced::widget::canvas;
 use iced_anim::{Animated, Animation, Motion};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::keyboard::Key;
@@ -47,12 +46,14 @@ pub const MAX_AMOUNT_POINTS: u8 = 40;
 pub const MAX_X_LABELS: u8 = 11;
 pub const MAX_VERTICAL_LINES: u8 = 14;
 pub const SHADOW_OFFSET: f32 = 5.0;
+pub const CURSOR_BOX_WIDTH: f32 = 120.0;
+pub const CURSOR_BOX_HEIGHT: f32 = 60.0;
 
 //PADDING TOP AND BOTTOM: TOP FOR Y-AXIS-ARROW SPACE, BOTTOM FOR X-LABELS
 pub static BLOCK_HEIGHT: f32 =
     (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 pub static GRAPH_HEIGHT: f32 = CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0;
-pub static GRAPH_WIDTH: f32 = (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0);
+pub static GRAPH_WIDTH: f32 = CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0;
 pub static GRAPH_START_X: f32 = Point::ORIGIN.x + GRAPH_PADDING;
 pub static GRAPH_END_X: f32 = CHART_WIDGET_WIDTH - GRAPH_PADDING;
 pub static GRAPH_START_Y: f32 = Point::ORIGIN.y + GRAPH_PADDING; // Y-coordinate where the graph starts (top + padding)
@@ -536,7 +537,6 @@ fn draw_cursor_information(
     cursor: Cursor,
     frame: &mut Frame<Renderer>,
 ) {
-
     //SETUP GRAPH BOUNDS
     let mut graph_bounds = bounds;
     graph_bounds.x += GRAPH_PADDING;
@@ -550,31 +550,20 @@ fn draw_cursor_information(
     };
 
     //PADDING UP AND DOWN: UP FOR Y-AXIS-ARROW SPACE, DOWN FOR X-LABELS
-    let block_height =
-        (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+    let block_height = GRAPH_HEIGHT / FREQUENCY_OF_Y_AXIS_LABELS as f32;
     let chopped_y_values = chop_weights(graph_widget_state, y_values);
 
-    let min_y: Kg = (chopped_y_values
-        .iter()
-        .map(|value| (*value * 10.0) as usize)
-        .min()
-        .unwrap_or(0)) as f32
-        / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let min_y: Kg = get_f32_min(&chopped_y_values);
 
     //max_point is needed for scaling
-    let max_y: Kg = (chopped_y_values
-        .iter()
-        .map(|value| (*value * 10.0) as usize)
-        .max()
-        .unwrap_or(0)) as f32
-        / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let max_y: Kg = get_f32_max(&chopped_y_values);
     let min_to_max_distance = max_y - min_y;
 
     let height_padding_for_arrow = block_height;
     let x_axis_padding = block_height;
 
     let height_graph_from_min_to_max: f32 =
-        CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0 - height_padding_for_arrow - x_axis_padding;
+        GRAPH_HEIGHT - height_padding_for_arrow - x_axis_padding;
 
     if graph_bounds.contains(cursor.position().unwrap_or_default()) {
         let cursor_position_in_graph =
@@ -596,9 +585,7 @@ fn draw_cursor_information(
 
         let cursor_information_position =
             if let Some(mut position) = cursor.position_from(graph_origin) {
-                position.y = position.y
-                    + (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0)
-                    + information_offset_from_cursor_y;
+                position.y = position.y + (GRAPH_HEIGHT) + information_offset_from_cursor_y;
                 position.x += information_offset_from_cursor_x;
                 position
             } else {
@@ -611,15 +598,12 @@ fn draw_cursor_information(
         };
 
         let cursor_information_box_size = Size {
-            width: 120.0,
-            height: 60.0,
+            width: CURSOR_BOX_WIDTH,
+            height: CURSOR_BOX_HEIGHT,
         };
-
         let shadow_color = Color {
-            r: 0.0,
-            g: 0.0,
-            b: 0.0,
             a: 0.5,
+            ..DARK_SHADOW
         };
 
         //SHADOW
@@ -648,9 +632,10 @@ fn draw_cursor_information(
         cursor_information_text.y += cursor_information_box_size.width / 10.0;
 
         let format_value: fn(f32) -> f32 = |value| (value * 10.0).round() / 10.0;
+        let content = format!("{} Kg", format_value(cursor_position_in_graph.y));
 
         frame.fill_text(canvas::Text {
-            content: format!("{} Kg", format_value(cursor_position_in_graph.y)),
+            content,
             size: 25.0.into(),
             position: cursor_information_text,
             color: bb_theme::color::TEXT_COLOR,
@@ -672,11 +657,11 @@ fn draw_axis_labels(
     //X-AXIS
     let number_labels = match graph_widget_state.points_to_draw {
         ..=MAX_X_LABELS => graph_widget_state.points_to_draw,
-        _ => MAX_X_LABELS, //MAX X-AXIS LABLES
+        _ => MAX_X_LABELS, //MAX X-AXIS LABELS
     };
 
-    let block_width = (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0) / number_labels as f32; //division with 0 is not possible since limit is 1
-    let mut current_x = Point::ORIGIN.x + GRAPH_PADDING + block_width;
+    let block_width = GRAPH_WIDTH / number_labels as f32; //division with 0 is not possible since limit is 1
+    let mut current_x = GRAPH_START_X + block_width;
     let height_text = CHART_WIDGET_HEIGHT - GRAPH_PADDING / 2.0;
 
     let chopped_dates = chop_dates(graph_widget_state, extract_dates(exercise_data_points));
@@ -704,38 +689,24 @@ fn draw_axis_labels(
             y: height_text,
         };
 
-        frame.fill_text(canvas::Text {
-            content: formatted_date,
-            position: position_text_x,
-            color: bb_theme::color::TEXT_COLOR,
-            size: AXIS_FONT_SIZE.into(),
-            line_height: Default::default(),
-            font: FIRA_SANS_EXTRABOLD,
-            horizontal_alignment: Horizontal::Center,
-            vertical_alignment: Vertical::Center,
-            shaping: Default::default(),
-        });
+        draw_text(
+            frame,
+            formatted_date,
+            AXIS_FONT_SIZE,
+            position_text_x,
+            TEXT_COLOR,
+        );
 
         current_x += block_width;
     }
 
     // Y-AXIS
     let chopped_weights = chop_weights(graph_widget_state, extract_weights(exercise_data_points));
-    let min_y: Kg = (chopped_weights
-        .iter()
-        .map(|value| (*value * 10.0) as usize)
-        .min()
-        .unwrap_or(0)) as f32
-        / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
-    let max_y: Kg = (chopped_weights
-        .iter()
-        .map(|value| (*value * 10.0) as usize)
-        .max()
-        .unwrap_or(0)) as f32
-        / 10.0; //TODO: USE FUNCTION IN weight.rs when connecting to ExerciseManager
+    let min_y: Kg = get_f32_min(&chopped_weights);
+    let max_y: Kg = get_f32_max(&chopped_weights);
+
     let delta = max_y - min_y;
-    let block_height =
-        (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
+    let block_height = BLOCK_HEIGHT;
     let x_axis_padding = block_height;
     let height_padding_for_arrow = block_height;
     let start_point_labels = CHART_WIDGET_HEIGHT - GRAPH_PADDING - x_axis_padding;
@@ -758,35 +729,30 @@ fn draw_axis_labels(
             y: position_text_y,
         };
 
-        frame.fill_text(canvas::Text {
-            content: format!("{}", format_value(label_value)),
-            position: position_text,
-            color: color!(255, 255, 255),
-            size: AXIS_FONT_SIZE.into(),
-            font: FIRA_SANS_EXTRABOLD,
-            horizontal_alignment: Horizontal::Center,
-            vertical_alignment: Vertical::Center,
-            line_height: Default::default(),
-            shaping: Default::default(),
-        });
+        draw_text(
+            frame,
+            format!("{}", format_value(label_value)),
+            AXIS_FONT_SIZE,
+            position_text,
+            TEXT_COLOR,
+        );
     }
 
     let kg_label_position_y =
         start_point_labels - height_graph_from_min_to_max - height_padding_for_arrow;
-    frame.fill_text(canvas::Text {
-        content: "kg".to_string(),
-        position: Point {
-            x: GRAPH_PADDING / 2.0,
-            y: kg_label_position_y,
-        },
-        color: mascot.get_secondary_color(),
-        size: AXIS_FONT_SIZE.into(),
-        font: FIRA_SANS_EXTRABOLD,
-        horizontal_alignment: Horizontal::Center,
-        vertical_alignment: Vertical::Center,
-        line_height: Default::default(),
-        shaping: Default::default(),
-    });
+
+    let kg_label_position = Point {
+        x: GRAPH_PADDING / 2.0,
+        y: kg_label_position_y,
+    };
+
+    draw_text(
+        frame,
+        "kg".to_string(),
+        AXIS_FONT_SIZE,
+        kg_label_position,
+        mascot.get_secondary_color(),
+    );
 }
 
 impl canvas::Program<Message> for GraphWidget<'_> {

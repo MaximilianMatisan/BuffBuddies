@@ -1,13 +1,14 @@
 use crate::client::gui::bb_tab::settings::SettingsMessage;
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
+use crate::client::gui::bb_theme::scrollable::{
+    ScrollableExtension, ScrollableStyle, create_scrollable,
+};
 use crate::common::mascot_mod::mascot::Mascot;
 use iced::Element;
-use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{Row, Scrollable, image};
+use iced::widget::{Row, image};
 use iced_core::image::Handle;
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter};
-use crate::client::gui::bb_theme::scrollable::{create_scrollable, ScrollableExtension, ScrollableStyle};
 
 pub const SMALL_PROFILE_PICTURE_DIMENSION: f32 = 50.0;
 pub const MEDIUM_PROFILE_PICTURE_DIMENSION: f32 = 75.0;
@@ -56,8 +57,8 @@ pub fn profile_picture_selection_row<'a>(mascot: &Mascot) -> Element<'a, Setting
 
         image_row = image_row.push(image_button);
     }
-    
-    create_scrollable(image_row,*mascot,ScrollableStyle::Mascot)
-        .add_horizontal_scrollbar(4.0,0.0)
+
+    create_scrollable(image_row, *mascot, ScrollableStyle::Mascot)
+        .add_horizontal_scrollbar(4.0, 0.0)
         .into()
 }

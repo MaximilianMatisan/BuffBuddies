@@ -9,6 +9,7 @@ use crate::client::gui::bb_theme::container::{
     ContainerStyle, DEFAULT_CONTAINER_RADIUS, create_container_style,
 };
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
+use crate::client::gui::bb_theme::scrollable::{ScrollableStyle, create_scrollable};
 use crate::client::gui::bb_theme::text_format::{
     FIRA_SANS_EXTRABOLD, format_button_text, format_description_text,
 };
@@ -17,17 +18,13 @@ use crate::client::server_communication::exercise_communicator::save_workout;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::workout_preset::WorkoutPreset;
 use chrono::Local;
-use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{
-    Column, Row, Scrollable, Space, combo_box, container, image, row, stack, text, text_input,
-};
+use iced::widget::{Column, Row, Space, combo_box, container, image, row, stack, text, text_input};
 use iced::{Element, Task};
 use iced_core::Length::{Fill, FillPortion, Shrink};
 use iced_core::image::Handle;
 use iced_core::text::LineHeight;
 use iced_core::{Alignment, Pixels};
 use std::rc::Rc;
-use crate::client::gui::bb_theme::scrollable::{create_scrollable, ScrollableExtension, ScrollableStyle};
 
 type SetNumber = usize;
 pub type ExerciseNumber = usize;
@@ -588,9 +585,12 @@ impl App {
             }
         }
 
-        let exercises =
-        create_scrollable(column, self.mascot_manager.selected_mascot, ScrollableStyle::Transparent)
-            .height(FillPortion(6));
+        let exercises = create_scrollable(
+            column,
+            self.mascot_manager.selected_mascot,
+            ScrollableStyle::Transparent,
+        )
+        .height(FillPortion(6));
 
         let add_exercise: Element<Message> = combo_box(
             &self.exercise_manager.all_exercise_state,

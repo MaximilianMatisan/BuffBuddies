@@ -5,26 +5,24 @@ use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
 use crate::client::gui::bb_theme::color::BACKGROUND_COLOR;
 use crate::client::gui::bb_theme::combo_box::{create_menu_style, create_text_input_style};
-use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle};
-use crate::client::gui::bb_theme::custom_button::{create_element_button, ButtonStyle};
-use crate::client::gui::bb_theme::scrollable::{create_scrollable, ScrollableStyle};
+use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
+use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
+use crate::client::gui::bb_theme::scrollable::{ScrollableStyle, create_scrollable};
 use crate::client::gui::bb_theme::separator::separator_line;
-use crate::client::gui::bb_theme::text_format::{format_button_text, FIRA_SANS_EXTRABOLD};
+use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_button_text};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::client::server_communication::preset_communicator::save_preset;
 use crate::client::server_communication::server_communicator::ServerRequestError;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::workout_preset::PresetImage;
-use iced::widget::{
-    combo_box, container, image, row, text, text_input, Column, Row, Space,
-};
 use iced::Color;
+use iced::widget::{Column, Row, Space, combo_box, container, image, row, text, text_input};
 use iced::{Element, Task};
+use iced_core::Length::{Fill, FillPortion, Fixed, Shrink};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
 use iced_core::text::LineHeight;
-use iced_core::Length::{Fill, FillPortion, Fixed, Shrink};
 use iced_core::{Alignment, Length, Pixels};
 use strum::IntoEnumIterator;
 
@@ -151,7 +149,6 @@ impl PresetCreationMessage {
         Task::none()
     }
 }
-
 
 fn view_exercise_preset(
     exercise_name: String,
@@ -312,9 +309,12 @@ impl App {
             }
         }
 
-        let exercises_scrollable =
-            create_scrollable(exercises,self.mascot_manager.selected_mascot,ScrollableStyle::Transparent)
-            .height(FillPortion(5));
+        let exercises_scrollable = create_scrollable(
+            exercises,
+            self.mascot_manager.selected_mascot,
+            ScrollableStyle::Transparent,
+        )
+        .height(FillPortion(5));
 
         let add_exercise_search_bar: Element<Message> = combo_box(
             &self.exercise_manager.all_exercise_state,
