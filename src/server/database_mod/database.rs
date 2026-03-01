@@ -1334,6 +1334,56 @@ pub async fn setup_test_db() -> SqlitePool {
     pool
 }
 
+pub async fn test_values_for_db(pool: &SqlitePool) -> Result <() , sqlx::Error>{
+
+    sqlx::query("INSERT INTO mascot (mascot_name, description) VALUES (?, ?)")
+        .bind("Duck")
+        .bind("test")
+        .execute(pool)
+        .await
+        .expect("Mascot insert failed");
+
+    add_user(&pool, "testuser", "123")
+        .await
+        .expect("adding user failed");
+
+    add_user(&pool, "testuser2", "123")
+        .await
+        .expect("adding user failed");
+
+    add_user(&pool, "testuser3", "123")
+        .await
+        .expect("adding user failed");
+
+    add_user(&pool, "testuser4", "123")
+        .await
+        .expect("adding user failed");
+
+    add_user(&pool, "testuser5", "123")
+        .await
+        .expect("adding user failed");
+
+    sqlx::query("INSERT INTO exercise (name, exercise_level_name, muscle_name, instructions, exercise_category_name)
+                 VALUES (?, ?, ?, ?, ?)")
+        .bind("Bankdrücken")
+        .bind("Beginner")
+        .bind("Chest")
+        .bind("test")
+        .bind("Strength")
+        .execute(pool).await.expect("Insert of exercise failed");
+
+    sqlx::query("INSERT INTO exercise (name, exercise_level_name, muscle_name, instructions, exercise_category_name)
+                 VALUES (?, ?, ?, ?, ?)")
+        .bind("Squat")
+        .bind("Expert")
+        .bind("Glutes")
+        .bind("test2")
+        .bind("Strength")
+        .execute(pool).await.expect("Insert of exercise failed");
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1342,35 +1392,7 @@ mod tests {
     #[tokio::test]
     async fn test_add_and_get_preset() {
         let pool = setup_test_db().await;
-
-        sqlx::query("INSERT INTO mascot (mascot_name, description) VALUES (?, ?)")
-            .bind("Duck")
-            .bind("test")
-            .execute(&pool)
-            .await
-            .expect("Mascot insert failed");
-
-        add_user(&pool, "test", "123")
-            .await
-            .expect("adding user failed");
-
-        sqlx::query("INSERT INTO exercise (name, exercise_level_name, muscle_name, instructions, exercise_category_name) 
-                 VALUES (?, ?, ?, ?, ?)")
-            .bind("Bankdrücken")
-            .bind("Beginner")
-            .bind("Chest")
-            .bind("test")
-            .bind("Strength")
-            .execute(&pool).await.expect("Insert of exercise failed");
-
-        sqlx::query("INSERT INTO exercise (name, exercise_level_name, muscle_name, instructions, exercise_category_name)
-                 VALUES (?, ?, ?, ?, ?)")
-            .bind("Squat")
-            .bind("Expert")
-            .bind("Glutes")
-            .bind("test2")
-            .bind("Strength")
-            .execute(&pool).await.expect("Insert of exercise failed");
+        test_values_for_db(&pool).await.expect("inserting test values failed");
 
         let workout = WorkoutPreset {
             name: "test_workout".to_string(),
@@ -1382,12 +1404,13 @@ mod tests {
             .await
             .expect("Fehler beim Hinzufügen des Presets");
 
-        add_preset_to_user(&pool, "test", preset_id)
+        add_preset_to_user(&pool, "testuser", preset_id)
             .await
             .expect("add_preset_to_user failed");
 
+
         let preset_from_user: Vec<WorkoutPreset> =
-            get_presets_for_user(&pool, "test").await.unwrap();
+            get_presets_for_user(&pool, "testuser").await.unwrap();
 
         let preset = &preset_from_user[0];
 
@@ -1399,4 +1422,51 @@ mod tests {
             vec!["Bankdrücken".to_string(), "Squat".to_string()]
         );
     }
+
+    #[tokio::test]
+    async fn test_user_goals() {
+        let pool = setup_test_db().await;
+        test_values_for_db(&pool).await.expect("inserting test values failed");
+
+        let test_goals = UserGoals {
+            weekly_workouts: 1.0,
+            weight: 2.0,
+            water: 3.0,
+            steps: 4.0,
+            sleep: 5.0,
+        };
+
+        update_user_goals(&pool, "testuser", test_goals).await.expect("updating user goals failed");
+
+        let testuser_goals = get_user_goals(&pool, "testuser").await.expect("getting usergoals failed");
+
+        assert_eq!(testuser_goals.weekly_workouts, 1.0);
+        assert_eq!(testuser_goals.weight, 2.0);
+        assert_eq!(testuser_goals.water, 3.0);
+        assert_eq!(testuser_goals.steps, 4.0);
+        assert_eq!(testuser_goals.sleep, 5.0);
+    }
+
+    #[tokio::test]
+    async fn test_friendship_and_discovery() {
+        let pool = setup_test_db().await;
+        test_values_for_db(&pool).await.expect("inserting test values failed");
+
+        add_friend(&pool, "testuser", "testuser2").await.expect("adding friend failed");
+        add_friend(&pool, "testuser", "testuser3").await.expect("adding friend failed");
+
+        let testuser_friends = get_all_friends(&pool, "testuser").await.expect("getting friends failed");
+        assert_eq!(testuser_friends.len(), 2);
+        assert_eq!(testuser_friends[0].user_information.username, "testuser2");
+        assert_eq!(testuser_friends[1].owned_mascots.len(), 1);
+
+        let test_discovered_users = get_discovery_users(&pool, "testuser", 3).await.expect("get discovered users failed");
+        let mut discovered_list: Vec<String> = Vec::new();
+        for discovered_user in test_discovered_users {
+            discovered_list.push(discovered_user.user_information.username);
+        }
+        assert!(discovered_list.contains(&"testuser4".to_string()));
+        assert!(discovered_list.contains(&"testuser5".to_string()));
+    }
+    
 }
