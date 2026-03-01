@@ -1,3 +1,4 @@
+use crate::client::backend::widget_state::widget_state_manager::update_progress_bar_goals_after_updated_user_info;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::color::{BACKGROUND_COLOR, TEXT_COLOR};
@@ -36,7 +37,6 @@ use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
 use strum::IntoEnumIterator;
-use crate::client::backend::widget_state::widget_state_manager::update_progress_bar_goals_after_updated_user_info;
 
 const SETTINGS_ENTRY_SPACING: f32 = 5.0;
 const SETTINGS_TEXT_INPUT_WIDTH: f32 = 250.0;
@@ -587,7 +587,6 @@ impl SettingsMessage {
                         println!("Log in to update User info!");
                     }
                 }
-
             }
             SettingsMessage::DiscardPendingUserInfoChanges => {
                 app.user_manager.pending_user_info_changes = None;
