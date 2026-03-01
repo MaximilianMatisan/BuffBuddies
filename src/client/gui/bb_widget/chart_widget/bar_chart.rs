@@ -1,7 +1,7 @@
 use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_theme::{color, text_format};
-use crate::client::gui::bb_widget::chart::{CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH};
+use crate::client::gui::bb_widget::chart_widget::chart::{CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::common::exercise_mod::exercise;
 use crate::common::mascot_mod::mascot::Mascot;

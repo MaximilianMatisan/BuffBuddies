@@ -7,8 +7,8 @@ use crate::client::gui::bb_theme::custom_button::{
 };
 use crate::client::gui::bb_theme::text_format;
 use crate::client::gui::bb_theme::text_format::format_button_text;
-use crate::client::gui::bb_widget::bar_chart::BarChart;
-use crate::client::gui::bb_widget::graph::{GraphWidget, view_graph_widget_settings};
+use crate::client::gui::bb_widget::chart_widget::bar_chart::BarChart;
+use crate::client::gui::bb_widget::chart_widget::graph::{GraphWidget, view_graph_widget_settings};
 use crate::client::gui::bb_widget::stats::exercise_stat_column;
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;

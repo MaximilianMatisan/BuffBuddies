@@ -1,4 +1,4 @@
-use crate::client::gui::bb_theme::color::{create_2d_gradient, create_color_stops, create_gradient_stroke_style, CONTAINER_COLOR, DASHED_LINES_COLOR, HIGHLIGHTED_CONTAINER_COLOR};
+use crate::client::gui::bb_theme::color::{create_2d_gradient, create_color_stops, create_gradient_stroke_style, create_solid_stroke_style, CONTAINER_COLOR, DASHED_LINES_COLOR, HIGHLIGHTED_CONTAINER_COLOR};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use chrono::NaiveDate;
 use iced::advanced::graphics::geometry::Frame;
@@ -17,9 +17,9 @@ use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle};
-use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle};
+use crate::client::gui::bb_theme::custom_button::{create_text_button, ButtonStyle, BUTTON_RADIUS_LEFT_ZERO, BUTTON_RADIUS_RIGHT_ZERO};
 use crate::client::gui::bb_theme::text_format::format_button_text;
-use crate::client::gui::bb_widget::chart::{ChartTypes, CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH};
+use crate::client::gui::bb_widget::chart_widget::chart::{ChartTypes, CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH};
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;
 use crate::common::exercise_mod::exercise::ExerciseDataPoints;
@@ -36,7 +36,7 @@ use iced_core::gradient::ColorStop;
 use iced_core::keyboard::Key;
 use iced_core::mouse::Cursor;
 use iced_core::{Length, Point, Rectangle, Size, Theme};
-use crate::client::gui::bb_widget::canvas_utils::generate_dashed_stroke;
+use crate::client::gui::bb_widget::canvas_utils::{draw_line, generate_dashed_stroke, generate_stroke};
 
 const GRAPH_PADDING: f32 = 50.0;
 const AXIS_FONT_SIZE: f32 = 12.0;
@@ -49,8 +49,11 @@ pub const MAX_VERTICAL_LINES: u8 = 14;
 //PADDING TOP AND BOTTOM: TOP FOR Y-AXIS-ARROW SPACE, BOTTOM FOR X-LABELS
 pub static BLOCK_HEIGHT: f32 = (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 pub static GRAPH_HEIGHT: f32 = CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0;
+pub static GRAPH_WIDTH: f32 = (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0);
 pub static GRAPH_START_X: f32 = Point::ORIGIN.x + GRAPH_PADDING;
-
+pub static GRAPH_END_X: f32 = CHART_WIDGET_WIDTH - GRAPH_PADDING;
+pub static GRAPH_START_Y: f32 = Point::ORIGIN.y + GRAPH_PADDING; // Y-coordinate where the graph starts (top + padding)
+pub static GRAPH_END_Y: f32 = CHART_WIDGET_HEIGHT - GRAPH_PADDING; // Y-coordinate where the graph ends (bottom - padding)
 #[derive(Clone, Debug)]
 pub enum GraphMessage {
     GraphCursorMoved(Point),
@@ -220,7 +223,6 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
         ..DASHED_LINES_COLOR
     };
 
-
     let color_stops = create_color_stops(vec![
         (fade_in_out_color, 0.0),
         (DASHED_LINES_COLOR,0.1),
@@ -256,18 +258,15 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
     let block_height = BLOCK_HEIGHT;
 
     let mut current_x = CHART_WIDGET_WIDTH - GRAPH_PADDING; //START OF GRAPH
-    let mut current_y = Point::ORIGIN.y + GRAPH_PADDING + y_axis_arrow_padding;
+    let mut current_y = GRAPH_START_Y + y_axis_arrow_padding;
 
-    let mut draw_stroke = |start: Point, end: Point, stroke: Stroke| {
-        frame.stroke(&Path::line(start, end), stroke);
-    };
 
     //VERTICAL LINES
     if graph_widget_state.visible_vertical_lines {
         for _line in 1..=range {
             let point_top = Point {
                 x: Point::ORIGIN.x + current_x,
-                y: Point::ORIGIN.y + GRAPH_PADDING,
+                y: GRAPH_START_Y,
             };
 
             let point_bottom = Point {
@@ -275,7 +274,7 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
                 y: CHART_WIDGET_WIDTH - GRAPH_PADDING,
             };
 
-            draw_stroke(point_top, point_bottom, vertical_dashed_stroke);
+            draw_line(frame, point_top, point_bottom, vertical_dashed_stroke);
             current_x -= block_width;
         }
     }
@@ -293,65 +292,58 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
             y: Point::ORIGIN.y + current_y,
         };
 
-        draw_stroke(point_left, point_right, horizontal_dashed_stroke);
+        draw_line(frame, point_left, point_right, horizontal_dashed_stroke);
         current_y += block_height;
     }
 }
 
+/// Draws the x- and y-axis in the given `frame`.
+///
+/// The `animation_progress` parameter controls the animation of the axes.
+/// It is expected to be a value between `0.0` and `1.0`, and is used to
+/// multiply the axis lengths so that they appear to grow progressively
+/// as the animation progresses.
 fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<Renderer>) {
-    //LATER CREATE PARAMETER VIRTUAL GRAPH BOUNDS
-    let axis_color = active_mascot.get_primary_color();
 
-    let solid_mascot_colored_stroke = Stroke {
-        width: AXIS_THICKNESS,
-        line_cap: LineCap::Round,
-        line_join: LineJoin::Round,
-        style: stroke::Style::Solid(axis_color),
-        line_dash: Default::default(),
-    };
+    let axis_color = active_mascot.get_primary_color();
+    let solid_mascot_colored_stroke = generate_stroke(AXIS_THICKNESS,create_solid_stroke_style(axis_color));
 
     //Y-AXIS
-    frame.stroke(
-        &Path::line(
-            //TOP
-            Point {
-                x: Point::ORIGIN.x + GRAPH_PADDING,
-                y: Point::ORIGIN.y + GRAPH_PADDING,
-            },
-            //BOTTOM
-            Point {
-                x: Point::ORIGIN.x + GRAPH_PADDING,
-                y: (frame.height() - GRAPH_PADDING * 2.0) * animation_progress + GRAPH_PADDING,
-            },
-        ),
-        solid_mascot_colored_stroke,
-    );
+    let start_y_axis = Point {
+        x: GRAPH_START_X,
+        y: GRAPH_START_Y,
+    };
+
+    let end_y_axis = Point {
+        x: GRAPH_START_X,
+        y: GRAPH_HEIGHT * animation_progress + GRAPH_PADDING,
+    };
+
+    draw_line(frame,start_y_axis,end_y_axis,solid_mascot_colored_stroke);
 
     //X-AXIS
-    frame.stroke(
-        &Path::line(
-            //LEFT
-            Point {
-                x: Point::ORIGIN.x
-                    + (CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0) * (1.0 - animation_progress)
-                    + GRAPH_PADDING,
-                y: frame.height() - GRAPH_PADDING,
-            },
-            //RIGHT
-            Point {
-                x: CHART_WIDGET_WIDTH - GRAPH_PADDING,
-                y: frame.height() - GRAPH_PADDING,
-            },
-        ),
-        solid_mascot_colored_stroke,
-    );
+    let start_x_axis = Point {
+        x: Point::ORIGIN.x
+            + GRAPH_PADDING
+            + GRAPH_WIDTH * (1.0 - animation_progress),
 
-    //ARROW - Y
+        y: GRAPH_END_Y,
+    };
+
+    let end_x_axis = Point {
+        x: CHART_WIDGET_WIDTH - GRAPH_PADDING,
+        y: GRAPH_END_Y,
+    };
+
+    draw_line(frame,start_x_axis,end_x_axis,solid_mascot_colored_stroke);
+
+
+    //ARROW Y-AXIS
     let distance_from_tip = 10.0 * animation_progress;
 
     let y_tip = Point {
-        x: Point::ORIGIN.x + GRAPH_PADDING,
-        y: Point::ORIGIN.y + GRAPH_PADDING,
+        x: GRAPH_START_X,
+        y: GRAPH_START_Y
     };
     let y_left = Point {
         x: y_tip.x - distance_from_tip,
@@ -362,10 +354,10 @@ fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<
         y: y_tip.y + distance_from_tip,
     };
 
-    //ARROW - X
+    //ARROW X-AXIS
 
     let x_tip = Point {
-        x: CHART_WIDGET_WIDTH - GRAPH_PADDING,
+        x: GRAPH_END_X,
         y: frame.height() - GRAPH_PADDING,
     };
     let x_up = Point {
@@ -392,22 +384,22 @@ fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<
     draw_arrow(x_up, x_tip, x_bottom);
 }
 
+// Draws the data points of a graph onto the given `frame`
 fn draw_points(
     graph_widget_state: &GraphWidgetState,
     frame: &mut Frame<Renderer>,
     y_values: Vec<Kg>,
     mascot: &Mascot,
 ) {
-    //!You should pass a list with the y-values,which are things such as weight lifted,kms run,etc.
 
     let points = calculate_points(graph_widget_state, y_values);
-    let base_size_point = 3.0;
+    let min_size_point = 3.0;
     let max_size_point = 7.0;
-    let range_size_point = max_size_point - base_size_point;
-    let percentage = points.len() as f32 / MAX_AMOUNT_POINTS as f32;
+    let range_size_point = max_size_point - min_size_point;
+    let ratio = points.len() as f32 / MAX_AMOUNT_POINTS as f32;
 
     //CALCULATE POINTS RADIUS
-    let point_size = max_size_point - percentage * range_size_point;
+    let point_size = max_size_point - ratio * range_size_point;
 
     //DRAW POINTS
     for point in points.iter() {
@@ -428,9 +420,9 @@ fn draw_connections(
     mascot: &Mascot,
 ) {
     let mut points = calculate_points(graph_widget_state, y_values);
-    let base_size_stroke = 1.5;
+    let min_size_stroke = 1.5;
     let max_size_stroke = 4.2;
-    let range_size_stroke = max_size_stroke - base_size_stroke;
+    let range_size_stroke = max_size_stroke - min_size_stroke;
     let percentage = points.len() as f32 / MAX_AMOUNT_POINTS as f32;
 
     //CALCULATE POINTS RADIUS
@@ -770,7 +762,6 @@ fn draw_axis_labels(
     });
 }
 
-//LOGIC --------------------
 
 fn chop_weights(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>) -> Vec<Kg> {
     let chop_start_index: isize =
@@ -1064,12 +1055,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         &app.mascot_manager.selected_mascot,
         "+".to_string(),
         ButtonStyle::Active,
-        Some(Radius {
-            top_left: 0.0,
-            top_right: 10.0,
-            bottom_right: 10.0,
-            bottom_left: 0.0,
-        }),
+        Some(BUTTON_RADIUS_LEFT_ZERO),
     )
     .on_press(Message::Graph(GraphMessage::IncrementCounter));
 
@@ -1077,12 +1063,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         &app.mascot_manager.selected_mascot,
         "-".to_string(),
         ButtonStyle::Active,
-        Some(Radius {
-            top_left: 10.0,
-            top_right: 0.0,
-            bottom_right: 0.0,
-            bottom_left: 10.0,
-        }),
+        Some(BUTTON_RADIUS_RIGHT_ZERO),
     )
     .on_press(Message::Graph(GraphMessage::DecrementCounter));
 

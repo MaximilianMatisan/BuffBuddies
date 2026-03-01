@@ -4,7 +4,7 @@ use crate::client::backend::widget_state::progress_bar_manager::ProgressBarState
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityWidget;
 use crate::client::gui::bb_widget::bmi_calculator::BMIWidgetState;
 use crate::client::gui::bb_widget::circle_widget::CircleWidgetState;
-use crate::client::gui::bb_widget::graph::GraphWidgetState;
+use crate::client::gui::bb_widget::chart_widget::graph::GraphWidgetState;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::user_mod::user::UserInformation;
 
