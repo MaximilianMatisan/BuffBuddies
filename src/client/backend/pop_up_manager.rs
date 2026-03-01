@@ -4,8 +4,12 @@ use std::rc::Rc;
 
 #[derive(Clone)]
 pub enum PopUpType {
+    /// A popup of this type will replace the whole screen with this popup
     Major,
+    /// A popup of this type will be stacked over the current tab
     Minor,
+    /// Used for a "yes" or "no" question yes calls the true Message, no call the false Message
+    // Rc instead of Box to be able to derive Clone
     Question(Rc<dyn Fn(bool) -> Message>),
 }
 

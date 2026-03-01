@@ -30,6 +30,7 @@ pub struct LoginState {
 }
 
 impl LoginState {
+    /// checks if the current login state has a non-empty username and password
     pub fn try_login(&self) -> Result<LoginRequest, LoginStateError> {
         if self.username.is_empty() {
             return Err(LoginStateError::UsernameEmpty);
