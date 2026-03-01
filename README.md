@@ -72,6 +72,7 @@ The core functionality of the app!
 <p align="center">
 <img src="assets/images/showcase/mascot_tab.png" width="500">
 </p>
+
 This part gamifies workouts!
 
 - Buy mascots with coins earned by tracking workouts
@@ -94,6 +95,7 @@ Connect with your friends and other mascot collectors!
 <p align="center">
   <img src="assets/images/showcase/settings_tab.png" width="500">
 </p>
+
 Here you can configure your user profile!
 
 - Configure data from three different categories.
