@@ -30,8 +30,14 @@ impl StrengthSet {
             reps: strength_set_create.reps,
         }
     }
+    /// Calculates weight times reps of a set only if the operation doesn't overflow
     pub fn total_lifted_weight(&self) -> Kg {
-        self.weight * self.reps as Kg
+        let result = self.weight * self.reps as Kg;
+        if result.is_finite() && result > 0.0 {
+            result
+        } else {
+            0.0
+        }
     }
 }
 
