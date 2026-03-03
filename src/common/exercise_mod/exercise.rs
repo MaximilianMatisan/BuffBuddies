@@ -58,23 +58,27 @@ impl Exercise {
                 total_lifted_weight += set.total_lifted_weight();
             }
         }
-        total_lifted_weight
+        if total_lifted_weight.is_finite() {
+            total_lifted_weight
+        } else {
+            Kg::MAX
+        }
     }
-    /// Calculates the sum of all reps across all strength sets
+    /// Calculates the sum of all reps across all strength sets upto `Reps::MAX`
     pub fn all_time_reps(&self) -> Reps {
         let mut total_reps: Reps = 0;
         for sets_per_day in self.sets.values() {
             for set in sets_per_day {
-                total_reps += set.reps;
+                total_reps = total_reps.checked_add(set.reps).unwrap_or(Reps::MAX);
             }
         }
         total_reps
     }
-    /// Calculates the sum of all tracked sets
+    /// Calculates the sum of all tracked sets up to u64::MAX
     pub fn all_time_sets(&self) -> u64 {
         let mut all_time_sets: u64 = 0;
         for sets_per_day in self.sets.values() {
-            all_time_sets += sets_per_day.len() as u64
+            all_time_sets = all_time_sets.checked_add(sets_per_day.len() as u64).unwrap_or(u64::MAX);
         }
         all_time_sets
     }
