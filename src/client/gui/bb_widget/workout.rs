@@ -41,7 +41,7 @@ where
     description_font_size: f32,
     width: f32,
     height: f32,
-    font: <Renderer as iced_core::text::Renderer>::Font,
+    font: <Renderer>::Font,
     on_press: Option<Message>,
 }
 impl<Renderer> WorkoutWidget<Renderer>
@@ -58,7 +58,6 @@ where
             ))),
             title: "Default preset".to_string(),
             title_font_size: DEFAULT_TITLE_FONT_SIZE,
-            //TODO FETCH FROM DATABASE
             exercises: vec![
                 "Preacher Curl".to_string(),
                 "Bench Press".to_string(),
@@ -96,7 +95,6 @@ where
             image: None,
             title: "Today".to_string(),
             title_font_size: DEFAULT_TITLE_FONT_SIZE,
-            //TODO FETCH FROM DATABASE
             exercises: vec![
                 "Preacher Curl".to_string(),
                 "Bench Press".to_string(),
@@ -201,13 +199,13 @@ where
         let description_start_location_y: f32;
 
         if self.image.is_none() {
-            title_start_location_y = layout.bounds().y + INDENT + 0.5 * self.title_font_size;
+            title_start_location_y = layout.bounds().y + INDENT;
             description_start_location_y =
-                layout.bounds().y + 2.0 * INDENT + 1.5 * self.title_font_size;
+                layout.bounds().y + 2.0 * INDENT + 1.0 * self.title_font_size;
         } else {
-            title_start_location_y = layout.bounds().y + 3.0 * INDENT + IMAGE_HEIGHT;
+            title_start_location_y = layout.bounds().y + 2.0 * INDENT + IMAGE_HEIGHT;
             description_start_location_y =
-                layout.bounds().y + 3.0 * INDENT + IMAGE_HEIGHT + 1.5 * self.title_font_size
+                layout.bounds().y + 3.0 * INDENT + IMAGE_HEIGHT + 1.0 * self.title_font_size
         };
 
         renderer.fill_text(
@@ -218,7 +216,7 @@ where
                 line_height: Default::default(),
                 font: self.font,
                 horizontal_alignment: alignment::Horizontal::Center,
-                vertical_alignment: alignment::Vertical::Center,
+                vertical_alignment: alignment::Vertical::Top,
                 shaping: Default::default(),
                 wrapping: Default::default(),
             },
@@ -265,7 +263,7 @@ where
                     line_height: Default::default(),
                     font: renderer.default_font(),
                     horizontal_alignment: alignment::Horizontal::Left,
-                    vertical_alignment: alignment::Vertical::Center,
+                    vertical_alignment: alignment::Vertical::Top,
                     shaping: Default::default(),
                     wrapping: Default::default(),
                 },
