@@ -10,11 +10,7 @@ use crate::client::gui::bb_theme::combo_box::{
     get_combo_box_all_exercises_state, get_combo_box_tracked_exercise_state,
 };
 use crate::common::exercise_mod::exercise::{
-    Exercise, ExerciseDataPoints, generate_example_exercise,
-};
-use crate::common::exercise_mod::general_exercise::{
-    ExerciseCategory, ExerciseEquipment, ExerciseForce, ExerciseLevel, GeneralExerciseInfo, Id,
-    Muscle,
+    Exercise, ExerciseDataPoints
 };
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
@@ -23,6 +19,7 @@ use crate::common::workout_preset::WorkoutPreset;
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
+use crate::common::exercise_mod::general_exercise::Id;
 
 ///coins you receive each day you have done a workout
 const DAILY_COIN_REWARD: u32 = 5;
@@ -36,7 +33,7 @@ pub struct ExerciseManager {
     pub exercises: Vec<Exercise>,
 
     ///Show further general infos for these exercise_ids in the gui
-    pub extended_general_exercise_infos: HashSet<u32>,
+    pub extended_general_exercise_infos: HashSet<Id>,
 
     /// Selection options for a combo_box. Only containing tracked exercises
     pub tracked_exercise_state: combo_box::State<String>,
@@ -54,6 +51,7 @@ pub struct ExerciseManager {
     pub all_time_sets: u64,
     pub weight_personal_record: Kg,
     pub set_with_most_total_lifted_weight: (NaiveDate, Kg),
+
     /// Needed for exercise creation menu
     pub workout_in_creation: Option<WorkoutCreate>,
     /// shows which exercise is being edited during workout creation
@@ -65,56 +63,8 @@ pub struct ExerciseManager {
 }
 impl Default for ExerciseManager {
     fn default() -> Self {
-        //TODO delete examples
-        let general_info_preacher_curl = GeneralExerciseInfo {
-            id: 0,
-            name: "Preacher Curl".to_string(),
-            force: ExerciseForce::Pull,
-            level: ExerciseLevel::Beginner,
-            equipment: ExerciseEquipment::Barbell,
-            primary_muscle: Muscle::Biceps,
-            instructions: "To perform this movement you will need a preacher bench and an E-Z bar. Grab the E-Z curl bar at the close inner handle (either have someone hand you the bar which is preferable or grab the bar from the front bar rest provided by most preacher benches). The palm of your hands should be facing forward and they should be slightly tilted inwards due to the shape of the bar.
-With the upper arms positioned against the preacher bench pad and the chest against it, hold the E-Z Curl Bar at shoulder length. This will be your starting position.
-As you breathe in, slowly lower the bar until your upper arm is extended and the biceps is fully stretched.
-As you exhale, use the biceps to curl the weight up until your biceps is fully contracted and the bar is at shoulder height. Squeeze the biceps hard and hold this position for a second.
-Repeat for the recommended amount of repetitions.".to_string(),
-            category: ExerciseCategory::Strength,
-        };
-        let general_info_bench_press = GeneralExerciseInfo {
-            id: 1,
-            name: "Bench press".to_string(),
-            force: ExerciseForce::Push,
-            level: ExerciseLevel::Beginner,
-            equipment: ExerciseEquipment::Barbell,
-            primary_muscle: Muscle::Chest,
-            instructions: "Lie back on a flat bench. Using a medium width grip (a grip that creates a 90-degree angle in the middle of the movement between the forearms and the upper arms), lift the bar from the rack and hold it straight over you with your arms locked. This will be your starting position.
-From the starting position, breathe in and begin coming down slowly until the bar touches your middle chest.
-After a brief pause, push the bar back to the starting position as you breathe out. Focus on pushing the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position at the top of the motion, hold for a second and then start coming down slowly again. Tip: Ideally, lowering the weight should take about twice as long as raising it.
-Repeat the movement for the prescribed amount of repetitions.
-When you are done, place the bar back in the rack.".to_string(),
-            category: ExerciseCategory::Strength,
-        };
-        let general_info_barbell_row = GeneralExerciseInfo {
-            id: 2,
-            name: "Bent over barbell row".to_string(),
-            force: ExerciseForce::Pull,
-            level: ExerciseLevel::Beginner,
-            equipment: ExerciseEquipment::Barbell,
-            primary_muscle: Muscle::MiddleBack,
-            instructions: "Holding a barbell with a pronated grip (palms facing down), bend your knees slightly and bring your torso forward, by bending at the waist, while keeping the back straight until it is almost parallel to the floor. Tip: Make sure that you keep the head up. The barbell should hang directly in front of you as your arms hang perpendicular to the floor and your torso. This is your starting position.
-Now, while keeping the torso stationary, breathe out and lift the barbell to you. Keep the elbows close to the body and only use the forearms to hold the weight. At the top contracted position, squeeze the back muscles and hold for a brief pause.
-Then inhale and slowly lower the barbell back to the starting position.
-Repeat for the recommended amount of repetitions.".to_string(),
-            category: ExerciseCategory::Strength
-        };
-
-        let preacher_curl = generate_example_exercise(general_info_preacher_curl, 50, 40.0);
-        let bench_press = generate_example_exercise(general_info_bench_press, 200, 60.0);
-        let barbell_row = generate_example_exercise(general_info_barbell_row, 1, 80.0);
-
-        let exercises = vec![preacher_curl, bench_press, barbell_row];
-
-        let selected_exercise_name = "Bench press".to_string();
+        let exercises = Vec::new();
+        let selected_exercise_name = "".to_string();
         let mut exercise_manager = ExerciseManager {
             recent_workouts: get_up_to_three_most_recent_workout_exercise_names(&exercises),
             exercises,
@@ -276,13 +226,12 @@ impl ExerciseManager {
 
     /// Returns whether a set of any exercise was tracked on the given day or not
     pub fn is_set_tracked_on_date(&self, date: &NaiveDate) -> bool {
-        let mut first_workout_today = false;
         for exercise_data in &self.exercises {
             if exercise_data.sets.contains_key(date) {
-                first_workout_today = true;
+                return true
             }
         }
-        first_workout_today
+        false
     }
 
     /// clears the current workout in creation
