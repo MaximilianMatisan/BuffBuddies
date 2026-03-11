@@ -72,10 +72,7 @@ pub fn create_preset_button<Msg>(
     hovered_color: Color,
     custom_border_radius: Option<Radius>,
     button_type: ButtonType,
-) -> iced_anim::widget::Button<Msg, Theme, Renderer>
-where
-    Msg: Clone,
-{
+) -> iced_anim::widget::Button<Msg, Theme, Renderer> {
     let radius = if let Some(border_radius) = custom_border_radius {
         border_radius
     } else {

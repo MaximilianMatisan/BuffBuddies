@@ -69,7 +69,7 @@ pub fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>
         - crate::client::gui::bb_widget::chart_widget::graph::GRAPH_PADDING
         - x_axis_padding;
 
-    //FORMULA: lowest_point-(y_min - current_y)/(max_y - min_y) * height_graph
+    //FORMULA: lowest_point-(current_y - min_y)/(max_y - min_y) * height_graph
     let calculate_graph_value =
         |y: &Kg| -> f32 { lowest_point_graph - (percentage(*y) * height_graph) };
 

@@ -10,29 +10,17 @@ pub struct ProgressBarStateManager {
 impl ProgressBarStateManager {
     pub(crate) fn new(user_information: &UserInformation) -> Self {
         Self {
-            water_progress_bar_state: ProgressBarState::new(1.0, user_information.user_goals.water),
-            steps_progress_bar_state: ProgressBarState::new(
-                2000.0,
-                user_information.user_goals.steps,
-            ),
-            sleep_progress_bar_state: ProgressBarState::new(7.0, user_information.user_goals.sleep),
+            water_progress_bar_state: ProgressBarState::new(0.0, user_information.user_goals.water),
+            steps_progress_bar_state: ProgressBarState::new(0.0, user_information.user_goals.steps),
+            sleep_progress_bar_state: ProgressBarState::new(0.0, user_information.user_goals.sleep),
         }
     }
 
-    pub(crate) fn copy_states(progress_bar_state: &ProgressBarStateManager) -> Self {
+    pub(crate) fn duplicate_states(&self) -> Self {
         Self {
-            water_progress_bar_state: ProgressBarState::new(
-                progress_bar_state.water_progress_bar_state.current_value,
-                progress_bar_state.water_progress_bar_state.goal_value,
-            ),
-            steps_progress_bar_state: ProgressBarState::new(
-                progress_bar_state.steps_progress_bar_state.current_value,
-                progress_bar_state.steps_progress_bar_state.goal_value,
-            ),
-            sleep_progress_bar_state: ProgressBarState::new(
-                progress_bar_state.sleep_progress_bar_state.current_value,
-                progress_bar_state.sleep_progress_bar_state.goal_value,
-            ),
+            water_progress_bar_state: self.water_progress_bar_state.duplicate(),
+            steps_progress_bar_state: self.steps_progress_bar_state.duplicate(),
+            sleep_progress_bar_state: self.sleep_progress_bar_state.duplicate(),
         }
     }
 

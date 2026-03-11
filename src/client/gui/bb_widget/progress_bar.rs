@@ -192,6 +192,24 @@ pub struct ProgressBarState {
 }
 
 impl ProgressBarState {
+    pub fn new(current_value: f32, goal_value: f32) -> Self {
+        let animation_motion = Motion {
+            response: Duration::from_millis(3000),
+            damping: Motion::SMOOTH.damping(),
+        };
+
+        Self {
+            progress_bar: Cache::default(),
+            animation_progress: Animated::new(0.0, animation_motion),
+            current_value,
+            goal_value,
+        }
+    }
+
+    pub(crate) fn duplicate(&self) -> ProgressBarState {
+        Self::new(self.current_value, self.goal_value)
+    }
+
     pub(crate) fn increment(&mut self, progress_bar_type: ProgressBarType) {
         let value_to_increment = match progress_bar_type {
             ProgressBarType::Water => 0.25,
@@ -211,27 +229,8 @@ impl ProgressBarState {
 
         self.current_value += value_to_increment;
     }
-}
-
-impl ProgressBarState {
     pub(crate) fn update_progress_bar(&self) {
         self.progress_bar.clear();
-    }
-}
-
-impl ProgressBarState {
-    pub fn new(current_value: f32, goal_value: f32) -> Self {
-        let animation_motion = Motion {
-            response: Duration::from_millis(3000),
-            damping: Motion::SMOOTH.damping(),
-        };
-
-        Self {
-            progress_bar: Cache::default(),
-            animation_progress: Animated::new(0.0, animation_motion),
-            current_value,
-            goal_value,
-        }
     }
 }
 
