@@ -1,6 +1,5 @@
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
-use crate::client::gui::bb_tab::mascot::BoxType::Locked;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::custom_button::ButtonStyle::{Active, InactiveTab, Rainbow};
 use crate::client::gui::bb_theme::custom_button::create_element_button;
@@ -141,12 +140,11 @@ impl App {
             .mascot_manager
             .view_active_mascot()
             .width(Fill)
-            .height(Length::Fixed(MASCOT_IMAGE_HEIGHT));
+            .height(MASCOT_IMAGE_HEIGHT);
 
         let current_mascot_text: Element<Message> =
             text(self.mascot_manager.selected_mascot.get_name())
                 .font(FIRA_SANS_EXTRABOLD)
-                .color(TEXT_COLOR)
                 .size(35)
                 .width(Fill)
                 .center()
@@ -183,7 +181,7 @@ impl App {
             .push(current_mascot_text)
             .push(randomize_button)
             .spacing(16.0)
-            .align_x(Horizontal::Center)
+            .align_x(Horizontal::Center) //align the randomize_button
             .into();
 
         let my_mascots_text: Element<Message> = text("My mascots")
@@ -306,14 +304,6 @@ fn create_mascot_box(app: &App, mascot: Mascot, box_type: BoxType) -> Element<'s
         .align_y(Vertical::Center)
         .height(Fill);
 
-    let mascot_handle = app
-        .image_manager
-        .cropped_mascot_head_handles
-        .get(&mascot)
-        .unwrap();
-
-    let mascot_head_image = image(mascot_handle);
-
     match box_type {
         BoxType::Locked => {
             content = content.push(
@@ -325,6 +315,13 @@ fn create_mascot_box(app: &App, mascot: Mascot, box_type: BoxType) -> Element<'s
 
         _ => {
             let name = mascot.get_name().to_string();
+            let mascot_handle = app
+                .image_manager
+                .cropped_mascot_head_handles
+                .get(&mascot)
+                .unwrap();
+
+            let mascot_head_image = image(mascot_handle);
 
             content = content
                 .push(mascot_head_image)
@@ -347,7 +344,7 @@ fn create_mascot_box(app: &App, mascot: Mascot, box_type: BoxType) -> Element<'s
     .height(MASCOT_BOX_HEIGHT)
     .width(Fill);
 
-    if box_type != Locked {
+    if box_type != BoxType::Locked {
         mascot_box = mascot_box.on_press(Message::Mascot(MascotMessage::SelectMascot(mascot)))
     }
 

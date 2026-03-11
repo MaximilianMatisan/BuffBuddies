@@ -41,21 +41,18 @@ impl App {
         let recent_workouts_text = container(
             text("Recent workouts")
                 .font(FIRA_SANS_EXTRABOLD)
-                .color(color::TEXT_COLOR)
                 .size(TEXT_SIZE),
         )
         .height(HEIGHT_RECENT_WORKOUTS_TEXT)
         .align_y(Alignment::End);
 
-        let background_mascot_with_text = container(
-            Row::new()
-                .push(selected_mascot_image)
-                .push(Space::with_width(Length::FillPortion(1)))
-                .push(recent_workouts_text)
-                .push(Space::with_width(Length::FillPortion(10))),
-        )
-        .height(HEIGHT_RECENT_WORKOUTS_WIDGET)
-        .width(FRAME_WIDTH);
+        let background_mascot_with_text = Row::new()
+            .push(selected_mascot_image)
+            .push(Space::with_width(Length::FillPortion(1)))
+            .push(recent_workouts_text)
+            .push(Space::with_width(Length::FillPortion(10)))
+            .height(HEIGHT_RECENT_WORKOUTS_WIDGET)
+            .width(FRAME_WIDTH);
 
         let recent_workouts_row = Row::new()
             .push(new_widget::new_workout_widget_button(

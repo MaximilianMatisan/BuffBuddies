@@ -22,12 +22,13 @@ impl WidgetManager {
     pub(crate) fn new(user_information: &UserInformation) -> Self {
         let exercise_manager = ExerciseManager::default();
         let default_mascot = Mascot::default();
+        let activity_widget = ActivityWidget::new(
+            default_mascot,
+            calculate_activity_data(&exercise_manager.exercises),
+        );
 
         WidgetManager {
-            activity_widget: ActivityWidget::new(
-                default_mascot,
-                calculate_activity_data(&exercise_manager.exercises),
-            ),
+            activity_widget,
             graph_widget_state: GraphWidgetState::new(),
             circle_widget_state: CircleWidgetState::new(),
             bmi_widget_state: BMIWidgetState::new(),

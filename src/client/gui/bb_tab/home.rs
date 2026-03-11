@@ -29,39 +29,33 @@ impl App {
             format_button_text(text("Welcome back!")).size(WELCOME_BACK_TEXT_SIZE);
         let activity_widget: Element<Message> = self.widget_manager.activity_widget.view(self);
 
-        let mascot_message_icon = format_button_text(text("<")).size(SECONDARY_TEXT_SIZE);
-        let mascot_message = format_button_text(text("Keep going!")).size(SECONDARY_TEXT_SIZE);
-        let message_with_icon = Row::new()
-            .push(mascot_message_icon)
-            .push(mascot_message)
-            .spacing(SPACING);
+        let mascot_message = format_button_text(text("< Keep going!")).size(SECONDARY_TEXT_SIZE);
         let mascot_image = self.mascot_manager.view_active_mascot();
         let mascot_with_message = Row::new()
             .push(mascot_image)
-            .push(container(message_with_icon).align_y(Vertical::Top));
+            .push(container(mascot_message).align_y(Vertical::Top));
 
         let activity_widget_with_welcome = Column::new()
             .push(welcome_back_text)
             .push(activity_widget)
             .spacing(SPACING);
 
-        let activity_widget_with_mascot: Element<Message> =
-            match self.widget_manager.activity_widget.current_scope {
-                DateScope::Year => Row::new()
-                    .push(activity_widget_with_welcome)
-                    .align_y(Vertical::Center)
-                    .height(HEIGHT_MASCOT)
-                    .into(),
-                _ => Row::new()
-                    .push(activity_widget_with_welcome)
+        let mut activity_widget_with_mascot = Row::new()
+            .push(activity_widget_with_welcome)
+            .align_y(Vertical::Center)
+            .height(HEIGHT_MASCOT);
+
+        match self.widget_manager.activity_widget.current_scope {
+            DateScope::Year => {}
+
+            _ => {
+                activity_widget_with_mascot = activity_widget_with_mascot
                     .push(Space::with_width(Length::Fixed(
                         DISTANCE_MASCOT_ACTIVITY_WIDGET,
                     )))
                     .push(mascot_with_message)
-                    .align_y(Vertical::Center)
-                    .height(HEIGHT_MASCOT)
-                    .into(),
-            };
+            }
+        };
 
         let mut track_new_workout_and_presets = Column::new();
 

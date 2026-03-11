@@ -21,11 +21,11 @@ use crate::client::gui::user_interface::Message::HealthTab;
 use crate::common::mascot_mod::epic_mascot::EpicMascot::Capybara;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::rare_mascot::RareMascot::{Chameleon, Whale};
-use iced::widget::{Column, Row, Space, row, text};
+use iced::widget::{Column, Row, row, text};
 use iced::{Element, Task};
-use iced_core::Padding;
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
+use iced_core::{Length, Padding};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum HealthTabMessage {
@@ -41,9 +41,9 @@ impl HealthTabMessage {
                     .widget_manager
                     .pending_progress_bar_state_manager
                     .take() //now pending_progress_bar_state_manager is None and I get Option<ProgressBarState>
-                    .unwrap() //take() is going to return Option<ProgressBarState> since SaveProgressBarChanges can only be sent in edit_mode so it can't fail
+                    .unwrap() //take() is going to return Some(progressbar_state) since SaveProgressBarChanges can only be sent in edit_mode so it can't fail
 
-                //MODE IS AUTOMATICALLY SWITCHED AT THIS POINT
+                //MODE IS AUTOMATICALLY SWITCHED AT THIS POINT SINCE PENDING STATE IS NONE
             }
 
             SwitchEditMode => {
@@ -55,7 +55,7 @@ impl HealthTabMessage {
                     app.widget_manager.pending_progress_bar_state_manager = None
                 } else {
                     app.widget_manager.pending_progress_bar_state_manager =
-                        Some(ProgressBarStateManager::copy_states(
+                        Some(ProgressBarStateManager::duplicate_states(
                             &app.widget_manager.progress_bar_state_manager,
                         ))
                 }
@@ -87,13 +87,14 @@ impl App {
             .sleep_progress_bar_state;
 
         if edit_mode {
-            if let Some(editing_progress_bar_manager) =
-                &self.widget_manager.pending_progress_bar_state_manager
-            {
-                water_progress_bar_state = &editing_progress_bar_manager.water_progress_bar_state;
-                steps_progress_bar_state = &editing_progress_bar_manager.steps_progress_bar_state;
-                sleep_progress_bar_state = &editing_progress_bar_manager.sleep_progress_bar_state;
-            }
+            let editing_progress_bar_manager = &self
+                .widget_manager
+                .pending_progress_bar_state_manager
+                .as_ref()
+                .unwrap();
+            water_progress_bar_state = &editing_progress_bar_manager.water_progress_bar_state;
+            steps_progress_bar_state = &editing_progress_bar_manager.steps_progress_bar_state;
+            sleep_progress_bar_state = &editing_progress_bar_manager.sleep_progress_bar_state;
         }
 
         let health_header = text("Health")
@@ -110,30 +111,16 @@ impl App {
         let sleep_progress_bar =
             ProgressBarWidget::new(sleep_progress_bar_state, ProgressBarType::Sleep);
 
-        let edit_mode_image =
-            iced::widget::image(Handle::from_path("assets/images/pen_tool.png")).width(30.0);
-        let edit_image_with_space = Column::new()
-            .push(Space::with_height(5.0))
-            .push(edit_mode_image);
-        let edit_mode_button = create_element_button(
-            &self.mascot_manager.selected_mascot,
-            edit_image_with_space.into(),
-            InactiveTab,
-            Some(100.into()),
-        )
-        .height(50.0)
-        .on_press(HealthTab(HealthTabMessage::SwitchEditMode));
-
         let mut content = Column::new().push(health_header);
 
-        let save_changes_button_content = row![
-            iced::widget::image(Handle::from_path("assets/images/check_box.png")),
-            text("Save").font(FIRA_SANS_EXTRABOLD).color(TEXT_COLOR)
-        ]
-        .align_y(Vertical::Center)
-        .spacing(10.0);
-
         if edit_mode {
+            let save_changes_button_content = row![
+                iced::widget::image(Handle::from_path("assets/images/check_box.png")),
+                text("Save").font(FIRA_SANS_EXTRABOLD).color(TEXT_COLOR)
+            ]
+            .align_y(Vertical::Center)
+            .spacing(10.0);
+
             let save_changes_button = create_element_button(
                 &self.mascot_manager.selected_mascot,
                 save_changes_button_content.into(),
@@ -157,6 +144,22 @@ impl App {
 
             content = content.push(button_row)
         } else {
+            let edit_mode_image =
+                iced::widget::image(Handle::from_path("assets/images/pen_tool.png")).width(30.0);
+            let edit_image_with_space = Row::new()
+                .push(edit_mode_image)
+                .height(Length::Fill)
+                .align_y(Vertical::Center);
+
+            let edit_mode_button = create_element_button(
+                &self.mascot_manager.selected_mascot,
+                edit_image_with_space.into(),
+                InactiveTab,
+                Some(100.into()),
+            )
+            .height(50.0)
+            .on_press(HealthTab(HealthTabMessage::SwitchEditMode));
+
             content = content.push(edit_mode_button)
         }
 
