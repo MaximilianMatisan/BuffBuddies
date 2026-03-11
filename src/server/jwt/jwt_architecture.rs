@@ -31,7 +31,7 @@ pub fn create_jwt(username: String) -> String {
 pub fn decode_jwt(token: &str) -> Option<String> {
     //println!("Received {} token from client!", token);
 
-    let mut validation = Validation::new(Algorithm::HS256);
+    let mut validation = Validation::new(Algorithm::default());
     validation.validate_exp = false; // Could be future enhancement
 
     let token_data = decode::<Claims>(

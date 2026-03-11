@@ -110,10 +110,10 @@ pub enum SocialMessage {
 }
 
 impl SocialMessage {
-    pub fn update(&self, app: &mut App) -> Task<Message> {
+    pub fn update(self, app: &mut App) -> Task<Message> {
         match self {
             SocialMessage::AddUserAsFriend(username) => {
-                app.user_manager.add_user_as_friend(username);
+                app.user_manager.add_user_as_friend(&username);
                 if let Some(jwt) = app.jsonwebtoken.clone() {
                     return Task::perform(
                         add_foreign_user_as_friend_on_server(
@@ -135,7 +135,7 @@ impl SocialMessage {
                 }
             }
             SocialMessage::RemoveUserAsFriend(username) => {
-                app.user_manager.remove_user_as_friend(username);
+                app.user_manager.remove_user_as_friend(&username);
                 if let Some(jwt) = app.jsonwebtoken.clone() {
                     return Task::perform(
                         remove_foreign_user_as_friend_on_server(
@@ -170,7 +170,7 @@ impl SocialMessage {
                         app.user_manager.most_recently_viewed_user = UserType::Own
                     }
                     UserType::Other(username) => {
-                        let opt_user = app.user_manager.get_user_by_username(username);
+                        let opt_user = app.user_manager.get_user_by_username(&username);
                         if let Some(user) = opt_user {
                             app.widget_manager.activity_widget.update_data(
                                 user.user_information.favorite_mascot,

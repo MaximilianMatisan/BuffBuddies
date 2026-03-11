@@ -78,7 +78,9 @@ impl Exercise {
     pub fn all_time_sets(&self) -> u64 {
         let mut all_time_sets: u64 = 0;
         for sets_per_day in self.sets.values() {
-            all_time_sets = all_time_sets.checked_add(sets_per_day.len() as u64).unwrap_or(u64::MAX);
+            all_time_sets = all_time_sets
+                .checked_add(sets_per_day.len() as u64)
+                .unwrap_or(u64::MAX);
         }
         all_time_sets
     }
