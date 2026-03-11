@@ -87,7 +87,7 @@ impl UserGoals {
     }
 }
 
-/// Only increments/decrements the value as long as its within the bounds (including max min)
+/// Only increments/decrements the value as long as it's within the bounds (including max min)
 fn safe_increment_decrement_f32(value: &mut f32, step: f32, min: f32, max: f32, increment: bool) {
     if increment {
         *value = (*value + step).min(max);

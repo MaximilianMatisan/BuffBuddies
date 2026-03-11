@@ -9,9 +9,8 @@ use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
 use crate::client::gui::bb_theme::combo_box::{
     get_combo_box_all_exercises_state, get_combo_box_tracked_exercise_state,
 };
-use crate::common::exercise_mod::exercise::{
-    Exercise, ExerciseDataPoints
-};
+use crate::common::exercise_mod::exercise::{Exercise, ExerciseDataPoints};
+use crate::common::exercise_mod::general_exercise::Id;
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::user_mod::user::UserInformation;
@@ -19,7 +18,6 @@ use crate::common::workout_preset::WorkoutPreset;
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
 use std::collections::HashSet;
-use crate::common::exercise_mod::general_exercise::Id;
 
 ///coins you receive each day you have done a workout
 const DAILY_COIN_REWARD: u32 = 5;
@@ -228,7 +226,7 @@ impl ExerciseManager {
     pub fn is_set_tracked_on_date(&self, date: &NaiveDate) -> bool {
         for exercise_data in &self.exercises {
             if exercise_data.sets.contains_key(date) {
-                return true
+                return true;
             }
         }
         false

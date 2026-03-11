@@ -38,7 +38,7 @@ impl ProfileStatManager {
     }
 }
 
-pub fn calculate_activity_data(exercise_data: &Vec<Exercise>) -> ActivityData {
+pub fn calculate_activity_data(exercise_data: &[Exercise]) -> ActivityData {
     let mut map: ActivityData = HashMap::new();
 
     for exercise in exercise_data {
@@ -54,7 +54,9 @@ pub fn calculate_activity_data(exercise_data: &Vec<Exercise>) -> ActivityData {
 pub fn total_sets(exercise_data: &Vec<Exercise>) -> u64 {
     let mut result: u64 = 0;
     for exercise in exercise_data {
-        result = result.checked_add(exercise.all_time_sets()).unwrap_or(u64::MAX);
+        result = result
+            .checked_add(exercise.all_time_sets())
+            .unwrap_or(u64::MAX);
     }
     result
 }
@@ -62,7 +64,9 @@ pub fn total_sets(exercise_data: &Vec<Exercise>) -> u64 {
 pub fn total_reps(exercise_data: &Vec<Exercise>) -> u64 {
     let mut result: u64 = 0;
     for exercise in exercise_data {
-        result = result.checked_add(exercise.all_time_reps() as u64).unwrap_or(u64::MAX);
+        result = result
+            .checked_add(exercise.all_time_reps() as u64)
+            .unwrap_or(u64::MAX);
     }
     result
 }
@@ -73,11 +77,7 @@ pub fn total_lifted_weight(exercise_data: &Vec<Exercise>) -> Kg {
     for exercise in exercise_data {
         result += exercise.all_time_lifted_weight();
     }
-    if result.is_finite() {
-        result
-    } else {
-        Kg::MAX
-    }
+    if result.is_finite() { result } else { Kg::MAX }
 }
 /// Calculates the exercise name and weight of the set with
 /// the highest tracked weight across all exercises <br>
