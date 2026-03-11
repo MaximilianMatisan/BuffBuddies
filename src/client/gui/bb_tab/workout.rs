@@ -41,6 +41,7 @@ impl App {
         let recent_workouts_text = container(
             text("Recent workouts")
                 .font(FIRA_SANS_EXTRABOLD)
+                .color(TEXT_COLOR)
                 .size(TEXT_SIZE),
         )
         .height(HEIGHT_RECENT_WORKOUTS_TEXT)

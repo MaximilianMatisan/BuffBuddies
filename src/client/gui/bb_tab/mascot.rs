@@ -145,6 +145,7 @@ impl App {
         let current_mascot_text: Element<Message> =
             text(self.mascot_manager.selected_mascot.get_name())
                 .font(FIRA_SANS_EXTRABOLD)
+                .color(TEXT_COLOR)
                 .size(35)
                 .width(Fill)
                 .center()
