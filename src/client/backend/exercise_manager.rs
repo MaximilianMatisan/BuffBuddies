@@ -17,7 +17,7 @@ use crate::common::user_mod::user::UserInformation;
 use crate::common::workout_preset::WorkoutPreset;
 use chrono::{Local, NaiveDate};
 use iced::widget::combo_box;
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 
 ///coins you receive each day you have done a workout
 const DAILY_COIN_REWARD: u32 = 5;
@@ -141,6 +141,25 @@ impl ExerciseManager {
             self.weight_personal_record = 0.0;
             self.set_with_most_total_lifted_weight = (NaiveDate::default(), 0.0);
         }
+    }
+
+    /// Each sub-vector contains exercises with the same first char of their name
+    /// The exercises inside the subvectors are sorted by name in ascending order
+    /// The key of each BTreeMap entry is uppercase
+    pub fn get_exercises_grouped_by_first_char_of_name(&self) -> BTreeMap<char, Vec<&Exercise>> {
+        let mut hash_map: BTreeMap<char, Vec<&Exercise>> = BTreeMap::new();
+
+        for exercise in &self.exercises {
+            if let Some(first_char) = exercise.general_exercise_info.name.chars().next() {
+                let upper_first_char = first_char.to_uppercase().next().unwrap_or(first_char);
+                hash_map
+                    .entry(upper_first_char)
+                    .and_modify(|exercise_vec| exercise_vec.push(exercise))
+                    .or_insert(vec![exercise]);
+            }
+        }
+
+        hash_map
     }
 
     /// Saves the workout supplied as an input and the current date.
@@ -284,6 +303,7 @@ impl ExerciseManager {
         set
     }
 }
+
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
@@ -344,6 +364,107 @@ mod tests {
             ex_manager.set_with_most_total_lifted_weight,
             (NaiveDate::default(), 10.0)
         );
+    }
+
+    #[test]
+    fn grouping_empty_exercises() {
+        let exercise_manager = ExerciseManager {
+            exercises: vec![],
+            ..Default::default()
+        };
+
+        let grouped_exercises = exercise_manager.get_exercises_grouped_by_first_char_of_name();
+
+        assert!(grouped_exercises.is_empty())
+    }
+    #[test]
+    fn group_one_exercise() {
+        let exercises = vec![Exercise::new(GeneralExerciseInfo::test_obj())];
+
+        let exercise_manager = ExerciseManager {
+            exercises,
+            ..Default::default()
+        };
+
+        let grouped_exercises = exercise_manager.get_exercises_grouped_by_first_char_of_name();
+
+        assert_eq!(grouped_exercises.len(), 1);
+        assert_eq!(grouped_exercises.get(&'T').unwrap().len(), 1);
+    }
+    #[test]
+    fn grouping_different_exercise_name_cases() {
+        let exercises = get_test_group_exercises_data();
+
+        let exercise_manager = ExerciseManager {
+            exercises,
+            ..Default::default()
+        };
+
+        let grouped_exercises = exercise_manager.get_exercises_grouped_by_first_char_of_name();
+
+        assert_eq!(grouped_exercises.len(), 3);
+        assert_eq!(grouped_exercises.get(&'A').unwrap().len(), 1);
+        assert_eq!(grouped_exercises.get(&'B').unwrap().len(), 3);
+        assert_eq!(grouped_exercises.get(&'Z').unwrap().len(), 1);
+    }
+    #[test]
+    fn grouping_sub_vectors_are_in_order() {
+        let exercises = get_test_group_exercises_data();
+
+        let exercise_manager = ExerciseManager {
+            exercises,
+            ..Default::default()
+        };
+
+        let grouped_exercises = exercise_manager.get_exercises_grouped_by_first_char_of_name();
+
+        let exercises_starting_with_b = grouped_exercises.get(&'B').unwrap();
+
+        assert!(
+            exercises_starting_with_b
+                .is_sorted_by(|a, b| a.general_exercise_info.name <= b.general_exercise_info.name)
+        );
+    }
+
+    /// This function builds example data for exercise grouping tests
+    /// it contains exercises with names starting with:
+    /// - 'a' once
+    /// - 'b' once
+    /// - 'B' once
+    /// - 'z' once
+    fn get_test_group_exercises_data() -> Vec<Exercise> {
+        let exercise_a = Exercise::new(GeneralExerciseInfo {
+            id: 0,
+            name: "a exercise".to_string(),
+            ..Default::default()
+        });
+        let exercise_b1 = Exercise::new(GeneralExerciseInfo {
+            id: 1,
+            name: "Baexercise".to_string(),
+            ..Default::default()
+        });
+        let exercise_b2 = Exercise::new(GeneralExerciseInfo {
+            id: 2,
+            name: "bzexercise2".to_string(),
+            ..Default::default()
+        });
+        let exercise_b3 = Exercise::new(GeneralExerciseInfo {
+            id: 3,
+            name: "biexercise3".to_string(),
+            ..Default::default()
+        });
+        let exercise_z = Exercise::new(GeneralExerciseInfo {
+            id: 4,
+            name: "zyx".to_string(),
+            ..Default::default()
+        });
+        vec![
+            exercise_a,
+            exercise_b1,
+            exercise_b3,
+            exercise_z,
+            exercise_b2,
+        ]
     }
 
     #[test]

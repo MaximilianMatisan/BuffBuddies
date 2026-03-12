@@ -17,21 +17,77 @@ use iced::widget::{Column, Container, Row, Space, container, text};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
 
-pub fn display_general_exercise_infos<'a>(
+const TITLE_SIZE: f32 = 30.0;
+
+pub fn general_exercise_browser<'a>(
+    active_mascot: &Mascot,
+    exercise_manager: &'a ExerciseManager,
+) -> Container<'a, Message> {
+    let general_exercise_info_elements =
+        display_general_exercise_infos(active_mascot, exercise_manager);
+    let browse_exercises_title = text("Browse exercises")
+        .size(TITLE_SIZE)
+        .font(FIRA_SANS_EXTRABOLD)
+        .color(TEXT_COLOR);
+
+    let title_bar = Row::new()
+        .push(browse_exercises_title)
+        .push(format_description_text(text(format!(
+            " - {} exercises",
+            exercise_manager.exercises.len()
+        ))))
+        .align_y(Vertical::Center);
+
+    let exercise_browser = Column::new()
+        .push(title_bar)
+        .push(general_exercise_info_elements)
+        .spacing(INDENT);
+
+    let exercise_browser_container = container(exercise_browser)
+        .style(create_container_style(ContainerStyle::Default, None, None))
+        .padding(LARGE_INDENT);
+
+    exercise_browser_container
+}
+
+fn display_general_exercise_infos<'a>(
     active_mascot: &Mascot,
     exercise_manager: &'a ExerciseManager,
 ) -> Column<'a, Message> {
     let mut content = Column::new().spacing(5);
-    for exercise in &exercise_manager.exercises {
-        let show_extended_info = exercise_manager
-            .extended_general_exercise_infos
-            .contains(&exercise.general_exercise_info.id);
-        content = content.push(general_exercise_info_element(
-            active_mascot,
-            exercise,
-            show_extended_info,
-        ));
+
+    let exercises_grouped_by_first_char =
+        exercise_manager.get_exercises_grouped_by_first_char_of_name();
+
+    for (char, exercise_group) in exercises_grouped_by_first_char {
+        let exercise_string = if exercise_group.len() == 1 {
+            "exercise"
+        } else {
+            "exercises"
+        };
+
+        let letter_header_row = Row::new()
+            .push(format_description_text(text(char)).size(TITLE_SIZE))
+            .push(format_description_text(text(format!(
+                " - {} {exercise_string}",
+                exercise_group.len()
+            ))))
+            .align_y(Vertical::Center);
+
+        content = content.push(letter_header_row);
+        for exercise in exercise_group {
+            let show_extended_info = exercise_manager
+                .extended_general_exercise_infos
+                .contains(&exercise.general_exercise_info.id);
+
+            content = content.push(general_exercise_info_element(
+                active_mascot,
+                exercise,
+                show_extended_info,
+            ));
+        }
     }
+
     content
 }
 fn general_exercise_info_element<'a>(

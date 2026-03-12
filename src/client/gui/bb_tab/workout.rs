@@ -1,26 +1,23 @@
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::tab::Tab;
-use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::color::{BACKGROUND_COLOR, CONTAINER_COLOR, TEXT_COLOR};
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::{ButtonType, create_button_style};
 use crate::client::gui::bb_theme::scrollable::{
     ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH,
     create_scrollable,
 };
-use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_description_text};
-use crate::client::gui::bb_widget::general_exercise_info_elements::display_general_exercise_infos;
+use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
+use crate::client::gui::bb_widget::general_exercise_info_elements::general_exercise_browser;
 use crate::client::gui::bb_widget::new_widget;
 use crate::client::gui::bb_widget::preset_workout_rows::{
     view_preset_row, view_recent_workout_row,
 };
-use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
+use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::size::FRAME_WIDTH;
 use crate::client::gui::user_interface::Message;
 use iced::Element;
 use iced::widget::{Column, Row, Space, Stack, container, text};
 use iced_anim::Motion;
-use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Alignment, Border, Length, Padding, Theme};
 use std::time::Duration;
@@ -93,7 +90,7 @@ impl App {
         let workout_presets_button = iced_anim::widget::button(
             text("Workout presets >")
                 .font(FIRA_SANS_EXTRABOLD)
-                .color(color::TEXT_COLOR)
+                .color(TEXT_COLOR)
                 .size(TEXT_SIZE),
         )
         .on_press(Message::Select(Tab::PresetOverview))
@@ -112,40 +109,24 @@ impl App {
             )
         });
 
-        let general_exercise_info_elements = display_general_exercise_infos(
+        let exercise_browser_container = container(general_exercise_browser(
             &self.mascot_manager.selected_mascot,
             &self.exercise_manager,
-        );
-        let browse_exercises_title = text("Browse exercises")
-            .size(TEXT_SIZE)
-            .font(FIRA_SANS_EXTRABOLD)
-            .color(TEXT_COLOR);
-
-        let title_bar = Row::new()
-            .push(browse_exercises_title)
-            .push(format_description_text(text(format!(
-                " - {} results",
-                self.exercise_manager.exercises.len()
-            ))))
-            .align_y(Vertical::Center);
-
-        let exercise_browser = Column::new()
-            .push(title_bar)
-            .push(general_exercise_info_elements)
-            .spacing(SPACING);
-
-        let exercise_info_container = container(exercise_browser)
-            .style(create_container_style(ContainerStyle::Default, None, None))
-            .padding(LARGE_INDENT);
+        ))
+        .padding(Padding {
+            right: SPACING,
+            ..0.0.into()
+        });
 
         let workout_interface = Column::new()
             .push(recent_workouts_with_mascot)
             .push(workout_presets_button)
             .push(workout_preset_scrollable_with_button)
-            .push(exercise_info_container)
+            .push(exercise_browser_container)
             .spacing(SPACING)
             .padding(Padding {
                 top: SPACING,
+                bottom: SPACING,
                 ..0.0.into()
             });
 
