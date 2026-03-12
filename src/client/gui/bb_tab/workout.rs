@@ -23,13 +23,13 @@ use iced_core::{Alignment, Border, Length, Padding, Theme};
 use std::time::Duration;
 
 const SPACING: f32 = 20.0;
-const MASCOT_SIZE: u16 = 200;
-const TEXT_SIZE: u16 = 31;
-const HEIGHT_RECENT_WORKOUTS_TEXT: u16 = 100; // Vertical space reserved for the "Recent Workouts" header
-const HEIGHT_RECENT_WORKOUTS_WIDGET: u16 = 285; // Vertical space reserved for the row of recent workouts
+const MASCOT_SIZE: f32 = 200.0;
+const TEXT_SIZE: f32 = 31.0;
+const HEIGHT_RECENT_WORKOUTS_TEXT: f32 = 100.0; // Vertical space reserved for the "Recent Workouts" header
+const HEIGHT_RECENT_WORKOUTS_WIDGET: f32 = 285.0; // Vertical space reserved for the row of recent workouts
 
 impl App {
-    pub fn workout_screen(&self) -> Element<Message> {
+    pub fn workout_screen(&self) -> Element<'_, Message> {
         let selected_mascot_image: iced::widget::Image<Handle> = self
             .mascot_manager
             .view_active_mascot()
@@ -46,9 +46,9 @@ impl App {
 
         let background_mascot_with_text = Row::new()
             .push(selected_mascot_image)
-            .push(Space::with_width(Length::FillPortion(1)))
+            .push(Space::new().width(Length::FillPortion(1)))
             .push(recent_workouts_text)
-            .push(Space::with_width(Length::FillPortion(10)))
+            .push(Space::new().width(Length::FillPortion(10)))
             .height(HEIGHT_RECENT_WORKOUTS_WIDGET)
             .width(FRAME_WIDTH);
 

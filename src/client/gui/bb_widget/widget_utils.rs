@@ -18,6 +18,7 @@ pub fn background_quad(layout: Layout<'_>) -> Quad {
             radius: 10.0.into(),
         },
         shadow: Shadow::default(),
+        snap: false,
     }
 }
 pub fn descriptor_space_fill_text_row<'a, Msg>(
@@ -42,6 +43,6 @@ where
     Row::new()
         .align_y(Vertical::Center)
         .push(format_description_text(text(description_text)))
-        .push(Space::with_width(Length::Fill))
+        .push(Space::new().width(Length::Fill))
         .push(data_element)
 }

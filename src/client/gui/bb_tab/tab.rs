@@ -58,13 +58,13 @@ pub fn view_tab_button_bar<'a>(
     user_info: &'a UserInformation,
 ) -> impl Into<Element<'a, Message>> {
     let lower_tab_container_button = Row::new()
-        .push(Space::with_width(Length::Fill))
+        .push(Space::new().width(Length::Fill))
         .push(view_money_tab_button(mascot, user_info.coin_balance))
         .width(310);
 
     let all_tab_buttons = Column::new()
         .push(view_tab_buttons(mascot, screen, user_info))
-        .push(Space::with_height(Length::Fill))
+        .push(Space::new().height(Length::Fill))
         .push(lower_tab_container_button)
         .padding(INDENT);
 
@@ -108,7 +108,7 @@ fn view_tab_buttons<'a>(
     tab_buttons
 }
 
-fn view_money_tab_button(mascot: &Mascot, coin_balance: u32) -> impl Into<Element<Message>> {
+fn view_money_tab_button(mascot: &Mascot, coin_balance: u32) -> impl Into<Element<'_, Message>> {
     let money_button: iced_anim::widget::Button<'_, Message, Theme, iced::Renderer> =
         create_element_button(
             mascot,
@@ -116,7 +116,7 @@ fn view_money_tab_button(mascot: &Mascot, coin_balance: u32) -> impl Into<Elemen
                 iced::widget::image(Handle::from_path("assets/images/coin.png"))
                     .width(25)
                     .height(25),
-                Space::with_width(Length::Fill),
+                Space::new().width(Length::Fill),
                 format_button_text(iced::widget::text(coin_balance))
             ]
             .align_y(Vertical::Center)
@@ -130,7 +130,7 @@ fn view_money_tab_button(mascot: &Mascot, coin_balance: u32) -> impl Into<Elemen
     money_button
 }
 
-pub fn view_tab_content(app: &App) -> Option<Element<Message>> {
+pub fn view_tab_content(app: &App) -> Option<Element<'_, Message>> {
     let tab_window: Option<Element<Message>> = match app.screen {
         Tab::Loading => Some(app.view_loading_screen()), // Loading should be handled earlier, as it covers the whole screen
         Tab::Home => Some(app.homescreen()),

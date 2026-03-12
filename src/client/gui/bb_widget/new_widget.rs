@@ -27,10 +27,10 @@ pub fn new_workout_widget_button<'a>(
     mascot: Mascot,
 ) -> iced_anim::widget::Button<'a, Message, Theme, Renderer> {
     let content = Column::new()
-        .push(Space::with_height(Length::Fill))
+        .push(Space::new().height(Length::Fill))
         .push(format_button_text(text("New workout")).size(DEFAULT_TITLE_FONT_SIZE))
         .push(format_button_text(text("+").size(ADD_SYMBOL_SIZE)))
-        .push(Space::with_height(Length::Fill))
+        .push(Space::new().height(Length::Fill))
         .width(BUTTONS_WIDTH)
         .height(NEW_WORKOUT_BUTTON_HEIGHT)
         .align_x(Horizontal::Center);
@@ -50,10 +50,10 @@ pub fn new_preset_widget_button<'a>(
     mascot: Mascot,
 ) -> iced_anim::widget::Button<'a, Message, Theme, Renderer> {
     let content = Column::new()
-        .push(Space::with_height(Length::Fill))
+        .push(Space::new().height(Length::Fill))
         .push(format_button_text(text("New preset")).size(DEFAULT_TITLE_FONT_SIZE))
         .push(format_button_text(text("+").size(ADD_SYMBOL_SIZE)))
-        .push(Space::with_height(Length::Fill))
+        .push(Space::new().height(Length::Fill))
         .width(BUTTONS_WIDTH)
         .height(NEW_PRESET_BUTTON_HEIGHT)
         .align_x(Horizontal::Center);

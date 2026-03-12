@@ -21,6 +21,7 @@ pub struct ExerciseJson {
     pub(crate) sets: Vec<crate::client::server_communication::exercise_communicator::SetJson>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SetJson {
     pub(crate) weight: f64,

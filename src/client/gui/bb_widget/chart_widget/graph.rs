@@ -6,7 +6,7 @@ use crate::client::gui::bb_theme::color::{
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use iced::Renderer;
 use iced::advanced::graphics::geometry::Frame;
-use iced::widget::canvas::{Cache, Event, Geometry, Path, event};
+use iced::widget::canvas::{Cache, Event, Geometry, Path};
 use iced::{Task, mouse};
 use iced_core::Color;
 use std::time::Duration;
@@ -25,17 +25,19 @@ use crate::client::gui::bb_widget::chart_widget::graph_logic::{
     calculate_points, chop_dates, chop_weights, extract_dates, extract_weights, get_f32_max,
     get_f32_min,
 };
+use crate::client::gui::size::FRAME_WIDTH;
 use crate::client::gui::user_interface::Message;
 use crate::common::exercise_mod::exercise::ExerciseDataPoints;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::Element;
-use iced::widget::canvas;
+use iced::widget::{Action, canvas};
 use iced_anim::{Animated, Animation, Motion};
-use iced_core::alignment::{Horizontal, Vertical};
+use iced_core::alignment::Vertical;
 use iced_core::keyboard::Key;
 use iced_core::mouse::Cursor;
+use iced_core::text::Alignment;
 use iced_core::{Point, Rectangle, Size, Theme};
 
 pub(crate) const GRAPH_PADDING: f32 = 50.0;
@@ -638,12 +640,13 @@ fn draw_cursor_information(
             content,
             size: 25.0.into(),
             position: cursor_information_text,
+            max_width: FRAME_WIDTH,
             color: bb_theme::color::TEXT_COLOR,
             font: FIRA_SANS_EXTRABOLD,
-            horizontal_alignment: Horizontal::Left,
-            vertical_alignment: Vertical::Top,
+            align_x: Alignment::Left,
             line_height: Default::default(),
             shaping: iced_core::text::Shaping::Advanced,
+            align_y: Vertical::Top,
         });
     }
 }
@@ -761,28 +764,24 @@ impl canvas::Program<Message> for GraphWidget<'_> {
     fn update(
         &self,
         _state: &mut Self::State,
-        event: Event,
+        event: &Event,
         _bounds: Rectangle,
         _cursor: iced_core::mouse::Cursor,
-    ) -> (event::Status, Option<Message>) {
+    ) -> Option<Action<Message>> {
         self.graph_state.update_graph();
 
         match event {
-            canvas::Event::Mouse(mouse::Event::CursorMoved { position }) => (
-                iced::widget::canvas::event::Status::Captured,
-                Some(Message::Graph(GraphMessage::GraphCursorMoved(position))),
-            ),
-            canvas::Event::Keyboard(iced::keyboard::Event::KeyPressed { key, .. }) => (
-                iced::widget::canvas::event::Status::Captured,
-                Some(Message::Graph(GraphMessage::GraphKeyPressed(key))),
+            canvas::Event::Mouse(mouse::Event::CursorMoved { position }) => Some(Action::publish(
+                Message::Graph(GraphMessage::GraphCursorMoved(*position)),
+            )),
+
+            canvas::Event::Keyboard(iced::keyboard::Event::KeyPressed { key, .. }) => Some(
+                Action::publish(Message::Graph(GraphMessage::GraphKeyPressed(key.clone()))),
             ),
 
-            _ => (
-                event::Status::Ignored,
-                Some(Message::Graph(GraphMessage::UpdateAnimatedSelection(
-                    iced_anim::Event::Target(1.0),
-                ))),
-            ),
+            _ => Some(Action::publish(Message::Graph(
+                GraphMessage::UpdateAnimatedSelection(iced_anim::Event::Target(1.0)),
+            ))),
         }
     }
 

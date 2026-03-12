@@ -8,16 +8,18 @@ use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use crate::common::workout_preset::WorkoutPreset;
+use iced::Element;
 use iced::widget::Row;
-use iced::{Element, event};
+use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::Style;
+use iced_core::text::Alignment;
 use iced_core::widget::Tree;
 use iced_core::{
-    Clipboard, Event, Image, Layout, Length, Point, Rectangle, Shell, Size, Theme, Widget,
-    alignment, image, mouse, text,
+    Clipboard, Event, Image, Layout, Length, Point, Rectangle, Shell, Size, Theme, Widget, image,
+    mouse, text,
 };
 
 const SCALE: f32 = 1.0;
@@ -163,7 +165,7 @@ where
         Size::new(Length::Fixed(self.width), Length::Fixed(self.height))
     }
 
-    fn layout(&self, _tree: &mut Tree, _renderer: &Renderer, _limits: &Limits) -> Node {
+    fn layout(&mut self, _tree: &mut Tree, _renderer: &Renderer, _limits: &Limits) -> Node {
         Node::new(Size {
             width: self.width,
             height: self.height,
@@ -185,15 +187,14 @@ where
             bb_theme::color::CONTAINER_COLOR,
         );
         if let Some(img) = &self.image {
-            renderer.draw_image(
-                img.clone(),
-                Rectangle {
-                    x: layout.bounds().x + INDENT,
-                    y: layout.bounds().y + INDENT,
-                    width: self.width - 2.0 * INDENT, //Jeweils indent links und rechts
-                    height: IMAGE_HEIGHT,
-                },
-            );
+            let image_rectangle = Rectangle {
+                x: layout.bounds().x + INDENT,
+                y: layout.bounds().y + INDENT,
+                width: self.width - 2.0 * INDENT, //Jeweils indent links und rechts
+                height: IMAGE_HEIGHT,
+            };
+
+            renderer.draw_image(img.clone(), image_rectangle, image_rectangle);
         }
         let title_start_location_y: f32;
         let description_start_location_y: f32;
@@ -215,10 +216,10 @@ where
                 size: iced_core::Pixels(self.title_font_size),
                 line_height: Default::default(),
                 font: self.font,
-                horizontal_alignment: alignment::Horizontal::Center,
-                vertical_alignment: alignment::Vertical::Top,
+                align_x: Alignment::Center,
                 shaping: Default::default(),
                 wrapping: Default::default(),
+                align_y: Vertical::Top,
             },
             Point {
                 x: layout.bounds().x + self.width / 2.0,
@@ -262,10 +263,10 @@ where
                     size: iced_core::Pixels(self.description_font_size),
                     line_height: Default::default(),
                     font: renderer.default_font(),
-                    horizontal_alignment: alignment::Horizontal::Left,
-                    vertical_alignment: alignment::Vertical::Top,
+                    align_x: Alignment::Left,
                     shaping: Default::default(),
                     wrapping: Default::default(),
+                    align_y: Vertical::Top,
                 },
                 Point {
                     x: layout.bounds().x + INDENT,
@@ -277,30 +278,22 @@ where
             );
         }
     }
-    fn on_event(
+    fn update(
         &mut self,
         _state: &mut Tree,
-        event: Event,
+        event: &Event,
         layout: Layout<'_>,
         cursor: Cursor,
         _renderer: &Renderer,
         _clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         _viewport: &Rectangle,
-    ) -> event::Status {
-        if cursor.is_over(layout.bounds()) {
-            match event {
-                Event::Mouse(mouse::Event::ButtonPressed(_)) => match &self.on_press {
-                    Some(msg) => {
-                        shell.publish(msg.clone());
-                        event::Status::Captured
-                    }
-                    None => event::Status::Ignored,
-                },
-                _ => event::Status::Ignored,
-            }
-        } else {
-            event::Status::Ignored
+    ) {
+        if cursor.is_over(layout.bounds())
+            && let Event::Mouse(mouse::Event::ButtonPressed(_)) = event
+            && let Some(msg) = &self.on_press
+        {
+            shell.publish(msg.clone());
         }
     }
 

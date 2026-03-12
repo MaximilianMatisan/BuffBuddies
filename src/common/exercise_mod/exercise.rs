@@ -2,7 +2,7 @@ use crate::common::exercise_mod::general_exercise::{GeneralExerciseInfo, Id};
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::{ExerciseWeight, Kg};
 use chrono::{Duration, Local, NaiveDate};
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
@@ -78,9 +78,7 @@ impl Exercise {
     pub fn all_time_sets(&self) -> u64 {
         let mut all_time_sets: u64 = 0;
         for sets_per_day in self.sets.values() {
-            all_time_sets = all_time_sets
-                .checked_add(sets_per_day.len() as u64)
-                .unwrap_or(u64::MAX);
+            all_time_sets = all_time_sets.saturating_add(sets_per_day.len() as u64);
         }
         all_time_sets
     }

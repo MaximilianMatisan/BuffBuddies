@@ -1,5 +1,5 @@
-use iced::widget::canvas::{Cache, Frame, Geometry, Path, event};
-use iced::widget::{Column, Row, Space, canvas, container, text};
+use iced::widget::canvas::{Cache, Frame, Geometry, Path};
+use iced::widget::{Action, Column, Row, Space, canvas, container, text};
 use iced::{Element, Rectangle, Renderer, Theme};
 use iced::{Task, mouse};
 use iced_anim::{Animated, Animation, Event, Motion};
@@ -246,18 +246,15 @@ impl canvas::Program<Message> for ProgressBarWidget<'_> {
     fn update(
         &self,
         _state: &mut Self::State,
-        _event: iced::widget::canvas::Event,
+        _event: &iced::widget::canvas::Event,
         _bounds: Rectangle,
         _cursor: iced_core::mouse::Cursor,
-    ) -> (iced::event::Status, std::option::Option<Message>) {
+    ) -> Option<Action<Message>> {
         self.progress_bar_state.update_progress_bar();
 
-        (
-            event::Status::Ignored,
-            Some(crate::client::gui::user_interface::Message::ProgressBar(
-                ProgressBarMessage::UpdateProgressBarAnimation(iced_anim::Event::Target(1.0)),
-            )),
-        )
+        Some(Action::publish(ProgressBar(
+            ProgressBarMessage::UpdateProgressBarAnimation(iced_anim::Event::Target(1.0)),
+        )))
     }
 
     fn draw(
@@ -421,13 +418,13 @@ pub fn create_progress_bar_environment<'a>(
         )));
 
         header = header
-            .push(Space::with_width(Length::Fixed(INDENT)))
+            .push(Space::new().width(Length::Fixed(INDENT)))
             .push(decrement_button)
             .push(increment_button)
     }
 
     header = header
-        .push(Space::with_width(Length::Fill))
+        .push(Space::new().width(Length::Fill))
         .push(progress_text);
 
     let progress_bar = progress_bar_widget.view();

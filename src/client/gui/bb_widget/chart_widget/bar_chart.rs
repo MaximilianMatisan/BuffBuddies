@@ -7,11 +7,12 @@ use crate::common::exercise_mod::exercise;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::Element;
-use iced_core::alignment::{Horizontal, Vertical};
+use iced_core::alignment::Vertical;
 use iced_core::border::Radius;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::{Quad, Style};
+use iced_core::text::Alignment;
 use iced_core::widget::Tree;
 use iced_core::{
     Border, Layout, Length, Point, Rectangle, Size, Text, Theme, Widget, renderer, text,
@@ -65,7 +66,7 @@ where
         Size::new(Length::Fixed(self.width), Length::Fixed(self.height))
     }
 
-    fn layout(&self, _tree: &mut Tree, _renderer: &Renderer, _limits: &Limits) -> Node {
+    fn layout(&mut self, _tree: &mut Tree, _renderer: &Renderer, _limits: &Limits) -> Node {
         Node::new(Size::new(self.width, self.height))
     }
 
@@ -103,10 +104,10 @@ where
                     size: 40.into(),
                     line_height: Default::default(),
                     font: self.font,
-                    horizontal_alignment: Horizontal::Center,
-                    vertical_alignment: Vertical::Center,
+                    align_x: Alignment::Center,
                     shaping: Default::default(),
                     wrapping: Default::default(),
+                    align_y: Vertical::Center,
                 },
                 Point {
                     x: layout.bounds().center_x(),
@@ -130,6 +131,7 @@ where
                             },
                         },
                         shadow: Default::default(),
+                        snap: false,
                     },
                     color::BACKGROUND_COLOR,
                 );
@@ -189,6 +191,7 @@ where
                                 },
                             },
                             shadow: Default::default(),
+                            snap: false,
                         },
                         self.active_mascot.get_primary_color(),
                     );
@@ -203,10 +206,10 @@ where
                                 size: AXIS_FONT_SIZE.into(),
                                 line_height: Default::default(),
                                 font: self.font,
-                                horizontal_alignment: Horizontal::Left,
-                                vertical_alignment: Vertical::Top,
+                                align_x: Alignment::Left,
                                 shaping: Default::default(),
                                 wrapping: Default::default(),
+                                align_y: Vertical::Top,
                             },
                             Point {
                                 x: x_of_column,
@@ -239,10 +242,10 @@ where
                             size: AXIS_FONT_SIZE.into(),
                             line_height: Default::default(),
                             font: self.font,
-                            horizontal_alignment: Horizontal::Right,
-                            vertical_alignment: Vertical::Center,
+                            align_x: Alignment::Right,
                             shaping: Default::default(),
                             wrapping: Default::default(),
+                            align_y: Vertical::Center,
                         },
                         Point {
                             x: layout.bounds().x + widget_y_axis_padding - INDENT,
@@ -307,6 +310,7 @@ where
                         },
                         border: Default::default(),
                         shadow: Default::default(),
+                        snap: false,
                     },
                     see_through_mouse_follower_color,
                 );
@@ -327,6 +331,7 @@ where
                             ..Default::default()
                         },
                         shadow: Default::default(),
+                        snap: false,
                     },
                     see_through_mouse_follower_color,
                 );

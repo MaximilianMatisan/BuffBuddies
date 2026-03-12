@@ -292,12 +292,11 @@ impl ExerciseManager {
     pub fn get_last_done_set(&self, exercise: &String) -> Option<StrengthSet> {
         let mut set = None;
         for exercise_data in &self.exercises {
-            if exercise_data.general_exercise_info.name == *exercise {
-                if let Some((_date, sets)) = exercise_data.sets.iter().next_back() {
-                    if !sets.is_empty() {
-                        set = Some(sets[0].clone())
-                    }
-                }
+            if exercise_data.general_exercise_info.name == *exercise
+                && let Some((_date, sets)) = exercise_data.sets.iter().next_back()
+                && !sets.is_empty()
+            {
+                set = Some(sets[0].clone())
             }
         }
         set

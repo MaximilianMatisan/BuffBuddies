@@ -88,6 +88,7 @@ pub fn view_pop_up(app: &App) -> Element<'_, Message> {
                 offset: Vector::new(0.0, 0.0),
                 blur_radius: 15.0,
             },
+            snap: false,
         })
         .width(Fill)
         .height(Shrink);
@@ -100,6 +101,7 @@ pub fn view_pop_up(app: &App) -> Element<'_, Message> {
             background: None,
             border: Default::default(),
             shadow: Default::default(),
+            snap: false,
         })
         .center(Fill)
         .into()

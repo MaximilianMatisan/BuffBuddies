@@ -1,6 +1,6 @@
 use iced::mouse;
-use iced::widget::canvas;
-use iced::widget::canvas::{Cache, Frame, Geometry, Path, event};
+use iced::widget::canvas::{Cache, Frame, Geometry, Path};
+use iced::widget::{Action, canvas};
 use iced::{Element, Rectangle, Renderer, Size, Theme};
 use iced_anim::{Animated, Animation, Event, Motion};
 use iced_core::Point;
@@ -99,18 +99,15 @@ impl canvas::Program<Message> for CircleWidget<'_> {
     fn update(
         &self,
         _state: &mut Self::State,
-        _event: iced::widget::canvas::Event,
+        _event: &iced::widget::canvas::Event,
         _bounds: Rectangle,
         _cursor: iced_core::mouse::Cursor,
-    ) -> (iced::event::Status, std::option::Option<Message>) {
+    ) -> Option<Action<Message>> {
         self.circle_widget_state.update_circle();
 
-        (
-            event::Status::Ignored,
-            Some(crate::client::gui::user_interface::Message::Circle(
-                CircleMessage::UpdateCircleAnimation(iced_anim::Event::Target(1.0)),
-            )),
-        )
+        Some(Action::publish(Message::Circle(
+            CircleMessage::UpdateCircleAnimation(iced_anim::Event::Target(1.0)),
+        )))
     }
 
     fn draw(

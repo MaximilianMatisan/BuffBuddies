@@ -17,14 +17,14 @@ use iced::widget::{Column, Row, Space, container, row, text};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
 
-const WELCOME_BACK_TEXT_SIZE: u16 = 42;
-const SECONDARY_TEXT_SIZE: u16 = 31;
+const WELCOME_BACK_TEXT_SIZE: f32 = 42.0;
+const SECONDARY_TEXT_SIZE: f32 = 31.0;
 const SPACING: f32 = 20.0;
 const DISTANCE_MASCOT_ACTIVITY_WIDGET: f32 = 62.5;
-const HEIGHT_MASCOT: u16 = 250;
+const HEIGHT_MASCOT: f32 = 250.0;
 
 impl App {
-    pub fn homescreen(&self) -> Element<Message> {
+    pub fn homescreen(&self) -> Element<'_, Message> {
         let welcome_back_text =
             format_button_text(text("Welcome back!")).size(WELCOME_BACK_TEXT_SIZE);
         let activity_widget: Element<Message> = self.widget_manager.activity_widget.view(self);
@@ -50,9 +50,7 @@ impl App {
 
             _ => {
                 activity_widget_with_mascot = activity_widget_with_mascot
-                    .push(Space::with_width(Length::Fixed(
-                        DISTANCE_MASCOT_ACTIVITY_WIDGET,
-                    )))
+                    .push(Space::new().width(Length::Fixed(DISTANCE_MASCOT_ACTIVITY_WIDGET)))
                     .push(mascot_with_message)
             }
         };
@@ -71,7 +69,7 @@ impl App {
             );
             track_new_workout_and_presets = track_new_workout_and_presets
                 .push(track_new_workout_text)
-                .push(Space::with_height(Length::Fixed(SPACING)))
+                .push(Space::new().height(Length::Fixed(SPACING)))
                 .push(
                     create_scrollable(
                         workout_presets,
@@ -80,7 +78,7 @@ impl App {
                     )
                     .add_horizontal_scrollbar(WIDGET_SCROLLBAR_WIDTH, 0.0),
                 )
-                .push(Space::with_height(Length::Fixed(INDENT)))
+                .push(Space::new().height(Length::Fixed(INDENT)))
         }
 
         let stats_text = format_button_text(text("Stats")).size(SECONDARY_TEXT_SIZE);
@@ -100,10 +98,10 @@ impl App {
 
         let home_screen_content = Column::new()
             .push(activity_widget_with_mascot)
-            .push(Space::with_height(Length::Fixed(SPACING)))
+            .push(Space::new().height(Length::Fixed(SPACING)))
             .push(track_new_workout_and_presets)
             .push(stats_text)
-            .push(Space::with_height(Length::Fixed(SPACING)))
+            .push(Space::new().height(Length::Fixed(SPACING)))
             .push(chart_widget_with_circle_widget)
             .padding(Padding {
                 top: SPACING,
@@ -111,7 +109,7 @@ impl App {
             });
 
         create_scrollable(
-            row![home_screen_content, Space::with_width(Length::Fill)], //the row is needed for the scrollbar to go to the end of the frame,
+            row![home_screen_content, Space::new().width(Length::Fill)], //the row is needed for the scrollbar to go to the end of the frame,
             self.mascot_manager.selected_mascot,
             ScrollableStyle::Default,
         )

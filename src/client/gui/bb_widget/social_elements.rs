@@ -55,15 +55,15 @@ pub fn friend_user_button<'a>(
     let mascot_image = image(mascot_handle).width(FRIEND_BUTTON_WIDTH - 2.0 * INDENT);
 
     let contents = Column::new()
-        .push(Space::with_height(Length::FillPortion(1)))
+        .push(Space::new().height(Length::FillPortion(1)))
         .push(profile_picture)
         .push(name)
         .push(streak)
-        .push(Space::with_height(Length::FillPortion(2)))
+        .push(Space::new().height(Length::FillPortion(2)))
         .push(mascot_image)
         .align_x(Horizontal::Center);
 
-    let button = create_element_button(
+    create_element_button(
         &user.user_information.favorite_mascot,
         contents.into(),
         ButtonStyle::InactiveTab,
@@ -73,9 +73,7 @@ pub fn friend_user_button<'a>(
     .height(FRIEND_BUTTON_HEIGHT)
     .on_press(Message::Social(SocialMessage::ViewProfile(
         UserType::Other(user.user_information.username.clone()),
-    )));
-
-    button
+    )))
 }
 pub fn user_profile_button<'a>(
     active_mascot: &Mascot,
@@ -110,13 +108,13 @@ pub fn user_profile_button<'a>(
 
     let contents = Row::new()
         .push(profile_picture)
-        .push(Space::with_width(50))
+        .push(Space::new().width(50))
         .push(text_column)
-        .push(Space::with_width(Length::Fill))
+        .push(Space::new().width(Length::Fill))
         .push(add_friend_button)
         .align_y(Vertical::Center);
 
-    let user_profile_button = create_element_button(
+    create_element_button(
         active_mascot,
         contents.into(),
         ButtonStyle::InactiveTab,
@@ -126,9 +124,7 @@ pub fn user_profile_button<'a>(
     .height(Length::Shrink)
     .on_press(Message::Social(SocialMessage::ViewProfile(
         UserType::Other(user.user_information.username.clone()),
-    )));
-
-    user_profile_button
+    )))
 }
 
 pub fn profile_tab_button<'a>(
@@ -141,7 +137,7 @@ pub fn profile_tab_button<'a>(
                 .width(100)
                 .height(100),
         )
-        .push(Space::with_width(Length::FillPortion(2)))
+        .push(Space::new().width(Length::FillPortion(2)))
         .push(column![
             format_button_text(iced::widget::text(&user_info.username)).size(25),
             format_button_text(
@@ -152,7 +148,7 @@ pub fn profile_tab_button<'a>(
                 .size(12)
             )
         ])
-        .push(Space::with_width(Length::FillPortion(7)))
+        .push(Space::new().width(Length::FillPortion(7)))
         .align_y(Vertical::Center)
         .into();
 
