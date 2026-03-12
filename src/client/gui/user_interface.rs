@@ -6,18 +6,11 @@ use crate::client::gui::bb_tab::health::HealthTabMessage;
 use crate::client::gui::bb_tab::login::{LoginMessage, view_login};
 use crate::client::gui::bb_tab::mascot::MascotMessage;
 use crate::client::gui::bb_tab::preset_creation::PresetCreationMessage;
-use crate::client::gui::bb_tab::preset_overview::preset_overview_screen;
 use crate::client::gui::bb_tab::settings::SettingsMessage;
 use crate::client::gui::bb_tab::social::SocialMessage;
-use crate::client::gui::bb_tab::tab::Tab;
-use crate::client::gui::bb_tab::user::view_profile;
+use crate::client::gui::bb_tab::tab::{Tab, view_tab_button_bar, view_tab_content};
 use crate::client::gui::bb_tab::workout_creation::WorkoutCreationMessage;
 use crate::client::gui::bb_theme::color;
-use crate::client::gui::bb_theme::container::ContainerStyle;
-use crate::client::gui::bb_theme::custom_button::{
-    ButtonStyle, TAB_BUTTON_HEIGHT, TAB_BUTTON_WIDTH, create_element_button, create_text_button,
-};
-use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
 use crate::client::gui::bb_widget::bmi_calculator::BMIMessage;
 use crate::client::gui::bb_widget::chart_widget::chart::ChartTypes;
@@ -25,19 +18,14 @@ use crate::client::gui::bb_widget::chart_widget::graph::GraphMessage;
 use crate::client::gui::bb_widget::circle_widget::CircleMessage;
 use crate::client::gui::bb_widget::pop_up::view_pop_up;
 use crate::client::gui::bb_widget::progress_bar::ProgressBarMessage;
-use crate::client::gui::bb_widget::social_elements::profile_tab_button;
-use crate::client::gui::bb_widget::widget_utils::INDENT;
-use crate::client::gui::{bb_theme, size};
+use crate::client::gui::size;
 use crate::client::server_communication::request_data::LoginServerRequestData;
 use crate::client::server_communication::server_communicator::ServerRequestError;
 use crate::common::exercise_mod::general_exercise::Id;
-use crate::common::user_mod::user::UserType;
-use iced::widget::{Column, Row, Space, Stack, container, row};
+use iced::widget::{Row, Stack, container};
 use iced::{Element, Task};
-use iced_core::alignment::{Horizontal, Vertical};
-use iced_core::image::Handle;
 use iced_core::window::{Position, Settings};
-use iced_core::{Length, Padding, Size, Theme};
+use iced_core::{Length, Size, Theme};
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -208,120 +196,27 @@ impl App {
         if self.login_state.state == LoginStates::NotLoggedIn && self.screen != Tab::Loading {
             return view_login(self);
         }
-
-        let mut tab_buttons: Column<Message> =
-            Column::new().padding(INDENT).align_x(Horizontal::Center);
-        tab_buttons = tab_buttons.push(profile_tab_button(self));
-        for tab in Tab::get_tab_button_categories() {
-            tab_buttons = tab_buttons.push(
-                create_text_button(
-                    &self.mascot_manager.selected_mascot,
-                    tab.to_string(),
-                    if self.screen == tab {
-                        ButtonStyle::ActiveTab
-                    } else {
-                        ButtonStyle::InactiveTab
-                    },
-                    None,
-                )
-                .width(TAB_BUTTON_WIDTH)
-                .height(TAB_BUTTON_HEIGHT)
-                .on_press(Message::Select(tab)),
-            );
+        if self.screen == Tab::Loading {
+            return self.view_loading_screen();
         }
-        let money_button: iced_anim::widget::Button<'_, Message, Theme, iced::Renderer> =
-            create_element_button(
-                &self.mascot_manager.selected_mascot,
-                row![
-                    iced::widget::image(Handle::from_path("assets/images/coin.png"))
-                        .width(25)
-                        .height(25),
-                    Space::with_width(Length::Fill),
-                    format_button_text(iced::widget::text(
-                        self.user_manager.user_info.coin_balance
-                    ))
-                ]
-                .align_y(Vertical::Center)
-                .into(),
-                ButtonStyle::InactiveTab,
-                None,
-            )
-            .on_press(Message::Select(Tab::Mascot))
-            .width(Length::Fill)
-            .height(Length::Shrink);
 
-        let lower_tab_container_buttons =
-            row![Space::with_width(Length::Fill), money_button].width(310);
+        let tab_button_container = view_tab_button_bar(
+            &self.mascot_manager.selected_mascot,
+            &self.screen,
+            &self.user_manager.user_info,
+        );
 
-        tab_buttons = tab_buttons.push(Space::with_height(Length::Fill));
-        tab_buttons = tab_buttons.push(lower_tab_container_buttons);
+        let tab_content = view_tab_content(self);
 
-        let mut tab_container = container(tab_buttons.spacing(INDENT))
-            .style(bb_theme::container::create_container_style(
-                ContainerStyle::Default,
-                None,
-                None,
-            ))
-            .height(Length::Fill)
-            .width(310);
+        let mut content = Row::new().push(tab_button_container).spacing(20);
 
-        tab_container = container(tab_container).padding(Padding {
-            right: 0.0,
-            ..15.into()
-        });
-
-        let tab_window: Option<Element<Message>> = match self.screen {
-            Tab::Loading => return self.view_loading_screen(),
-            Tab::Home => Some(self.homescreen()),
-            Tab::Workout => Some(self.workout_screen()),
-            Tab::Health => Some(self.health_screen()),
-            Tab::Social => Some(self.social_screen()),
-            Tab::Mascot => Some(self.mascot_screen()),
-            Tab::Settings => Some(self.settings_screen()),
-            Tab::Exit => None,
-            Tab::CreateWorkout => Some(self.workout_creation_screen()),
-            Tab::CreatePreset => Some(self.preset_creation_screen()),
-            Tab::PresetOverview => Some(preset_overview_screen(
-                &self.mascot_manager.selected_mascot,
-                &self.workout_preset_manager.presets,
-            )),
-            Tab::ViewProfile => {
-                let user_type = &self.user_manager.most_recently_viewed_user;
-
-                match user_type {
-                    UserType::Own => Some(view_profile(
-                        self,
-                        &self.user_manager.user_info,
-                        &self.mascot_manager.owned_mascots,
-                        false,
-                    )),
-                    UserType::Other(username) => {
-                        let viewed_profile = self.user_manager.get_user_by_username(username);
-
-                        viewed_profile.map(|profile| {
-                            view_profile(
-                                self,
-                                &profile.user_information,
-                                &profile.owned_mascots,
-                                profile.friends_with_active_user,
-                            )
-                        })
-                    }
-                }
-            }
-        };
-
-        let mut content = Row::new().push(tab_container).spacing(20);
-
-        if let Some(tab_content) = tab_window {
+        if let Some(tab) = tab_content {
             if self.pop_up_manager.minor_pop_up {
-                let mut tab_window_with_popup = Stack::new();
-                tab_window_with_popup = tab_window_with_popup.push(tab_content);
-                tab_window_with_popup = tab_window_with_popup.push(view_pop_up(self));
+                let tab_window_with_popup = Stack::new().push(tab).push(view_pop_up(self));
 
                 content = content.push(tab_window_with_popup);
             } else {
-                content = content.push(tab_content);
+                content = content.push(tab);
             }
         };
 
