@@ -44,7 +44,7 @@ pub async fn import_exercises(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         }
     }
 
-    exercises.sort_by(|a,b| a.name.cmp(&b.name));
+    exercises.sort_by(|a, b| a.name.cmp(&b.name));
 
     for exercise in exercises {
         insert_exercise_in_db(&mut transaction, &exercise)
