@@ -507,7 +507,8 @@ impl SettingsMessage {
                     let new_height_integer: u32 = pending_user_info_strings
                         .height
                         .parse()
-                        .unwrap_or(existing_user_info.height);
+                        .unwrap_or(existing_user_info.height)
+                        .max(1);
                     pending_info.height = new_height_integer;
                 }
                 app.widget_manager
@@ -537,7 +538,8 @@ impl SettingsMessage {
                     let new_weight_float: Kg = pending_user_info_strings
                         .weight
                         .parse()
-                        .unwrap_or(existing_user_info.weight);
+                        .unwrap_or(existing_user_info.weight)
+                        .max(1.0);
                     let new_weight_float_shortened = (new_weight_float * 10.0).round() / 10.0;
                     pending_info.weight = new_weight_float_shortened;
                 }
@@ -574,13 +576,24 @@ impl SettingsMessage {
                 if let Some((pending_user_info, _)) =
                     app.user_manager.pending_user_info_changes.take()
                 {
-                    app.user_manager.user_info = pending_user_info.clone();
+                    let user_info = &mut app.user_manager.user_info;
+
+                    // General Info
+                    user_info.favorite_mascot = pending_user_info.favorite_mascot;
+                    user_info.gender = pending_user_info.gender;
+                    user_info.weight = pending_user_info.weight;
+                    user_info.height = pending_user_info.height;
+                    user_info.description = pending_user_info.description;
+                    //Goals
+                    user_info.user_goals = pending_user_info.user_goals;
+                    // Profile Picture
+                    user_info.profile_picture_path = pending_user_info.profile_picture_path;
 
                     update_progress_bar_goals_after_updated_user_info(app);
 
                     if let Some(jwt) = opt_jwt {
                         return Task::perform(
-                            update_user_info_on_server(jwt, pending_user_info),
+                            update_user_info_on_server(jwt, app.user_manager.user_info.clone()),
                             |result| Message::UpdateInfoOnServerResult(result, "user".to_string()),
                         );
                     } else {
