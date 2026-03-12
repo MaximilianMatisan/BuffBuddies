@@ -9,7 +9,7 @@ use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::profile_picture::{
     MEDIUM_PROFILE_PICTURE_DIMENSION, SMALL_PROFILE_PICTURE_DIMENSION,
 };
-use crate::common::user_mod::user::{ForeignUser, UserType};
+use crate::common::user_mod::user::{ForeignUser, UserInformation, UserType};
 use iced::Element;
 use iced::widget::{Column, Row, Space, column, image, text};
 use iced_core::Length;
@@ -131,25 +131,23 @@ pub fn user_profile_button<'a>(
     user_profile_button
 }
 
-pub fn profile_tab_button(app: &App) -> iced_anim::widget::Button<Message> {
+pub fn profile_tab_button<'a>(
+    user_info: &'a UserInformation,
+    mascot: &Mascot,
+) -> iced_anim::widget::Button<'a, Message> {
     let user: Element<Message> = Row::new()
         .push(
-            iced::widget::image(Handle::from_path(
-                &app.user_manager.user_info.profile_picture_path,
-            ))
-            .width(100)
-            .height(100),
+            iced::widget::image(Handle::from_path(&user_info.profile_picture_path))
+                .width(100)
+                .height(100),
         )
         .push(Space::with_width(Length::FillPortion(2)))
         .push(column![
-            format_button_text(iced::widget::text(&app.user_manager.user_info.username)).size(25),
+            format_button_text(iced::widget::text(&user_info.username)).size(25),
             format_button_text(
                 iced::widget::text(format!(
                     "{} week streak",
-                    app.user_manager
-                        .user_info
-                        .profile_stat_manager
-                        .weekly_workout_streak
+                    user_info.profile_stat_manager.weekly_workout_streak
                 ))
                 .size(12)
             )
@@ -159,7 +157,7 @@ pub fn profile_tab_button(app: &App) -> iced_anim::widget::Button<Message> {
         .into();
 
     create_element_button(
-        &app.mascot_manager.selected_mascot,
+        mascot,
         user,
         ButtonStyle::InactiveTransparent,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
