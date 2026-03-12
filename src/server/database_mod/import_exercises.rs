@@ -22,6 +22,8 @@ pub async fn import_exercises(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         .await
         .expect("exercise folder err");
 
+    let mut exercises: Vec<ExerciseJson> = Vec::new();
+
     while let Some(exercise_folder) = exercise_folders
         .next_entry()
         .await
@@ -38,11 +40,18 @@ pub async fn import_exercises(pool: &SqlitePool) -> Result<(), sqlx::Error> {
             serde_json::from_str(&exercise_json).expect("deserialize err");
 
         if exercise_info.category == "strength" {
-            insert_exercise_in_db(&mut transaction, &exercise_info)
-                .await
-                .expect("insert in db err");
+            exercises.push(exercise_info);
         }
     }
+
+    exercises.sort_by(|a,b| a.name.cmp(&b.name));
+
+    for exercise in exercises {
+        insert_exercise_in_db(&mut transaction, &exercise)
+            .await
+            .expect("insert in db err");
+    }
+
     transaction.commit().await.expect("commit err");
     Ok(())
 }
