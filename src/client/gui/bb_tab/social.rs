@@ -22,7 +22,7 @@ use iced_core::Length;
 use iced_core::alignment::Horizontal;
 
 impl App {
-    pub fn social_screen(&self) -> Element<Message> {
+    pub fn social_screen(&self) -> Element<'_, Message> {
         let friends = self.user_manager.get_friends();
         let non_friend_users = self.user_manager.get_non_friend_users();
 
@@ -88,9 +88,9 @@ impl App {
         }
 
         let aligned_content = Row::new()
-            .push(Space::with_width(Length::Fill))
+            .push(Space::new().width(Length::Fill))
             .push(content)
-            .push(Space::with_width(Length::Fill));
+            .push(Space::new().width(Length::Fill));
 
         create_scrollable(
             aligned_content,

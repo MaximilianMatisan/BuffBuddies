@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = { version ="0.13.1", features = ["tokio","image", "advanced","canvas"] }
-iced_core = "0.13.2"
-iced_anim = { version = "0.2.1", features = ["widgets"] }
+iced = { version = "0.14.0", features = ["tokio","image", "advanced","canvas"] }
+iced_core = "0.14.0"
+iced_anim = { version = "0.3.1", features = ["widgets"] }
 serde = "1.0.228"
 serde_json = "1.0.145"
 reqwest = { version = "0.12", features = ["json", "blocking"] }
@@ -15,9 +15,9 @@ sqlx = { version = "0.8.6", features = ["sqlite", "runtime-tokio", "tls-native-t
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"]}
 
 axum = "0.8.7"
-strum = "0.27.2"
-strum_macros = "0.27.2"
-rand = "0.9.2"
+strum = "0.28.0"
+strum_macros = "0.28.0"
+rand = "0.10.0"
 image = "0.25.9"
 #dates
 chrono = { version = "0.4.42", features = ["serde"] }

@@ -6,7 +6,7 @@ use crate::common::user_mod::user_goals::UserGoals;
 use crate::server::database_mod::{database, database_mascot, database_user, database_user_goals};
 use crate::server::routes::workout::ExerciseJson;
 use chrono::{Duration, Local, NaiveDate};
-use rand::Rng;
+use rand::RngExt;
 use sqlx::SqlitePool;
 use std::string::ToString;
 

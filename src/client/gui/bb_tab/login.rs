@@ -10,7 +10,7 @@ use crate::client::gui::user_interface::Message;
 use crate::client::server_communication::request_data::request_login_data;
 use crate::client::server_communication::user_communicator::{valid_login, valid_register};
 use crate::common::login::{RequestValidRegisterError, RequestValidUserError};
-use iced::widget::{Column, Space, container, text, text_input};
+use iced::widget::{Column, container, text, text_input};
 use iced::{Element, Task};
 use iced_core::Length::Fill;
 use iced_core::Theme;
@@ -191,7 +191,6 @@ pub fn view_login(app: &App) -> Element<'_, Message> {
         .push(error_text)
         .push(username_field)
         .push(password_field)
-        .push(Space::with_height(0))
         .push(login_button)
         .push(register_button)
         .width(Fill)
@@ -214,6 +213,7 @@ pub fn view_login(app: &App) -> Element<'_, Message> {
             background: Some(iced::Background::Color(BACKGROUND_COLOR)),
             border: Default::default(),
             shadow: Default::default(),
+            snap: false,
         })
         .center(Fill)
         .into()

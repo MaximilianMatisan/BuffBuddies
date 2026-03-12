@@ -1,8 +1,10 @@
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
+use crate::client::gui::size::FRAME_WIDTH;
 use iced::widget::canvas;
 use iced::widget::canvas::path::Arc;
 use iced::widget::canvas::{Frame, LineCap, LineDash, LineJoin, Path, Stroke, stroke};
-use iced_core::alignment::{Horizontal, Vertical};
+use iced_core::alignment::Vertical;
+use iced_core::text::Alignment;
 use iced_core::{Color, Degrees, Point};
 
 pub fn generate_stroke<'a>(width: f32, stroke_style: stroke::Style) -> Stroke<'a> {
@@ -36,12 +38,13 @@ pub fn draw_text(
         content,
         size: font_size.into(),
         position,
+        max_width: FRAME_WIDTH,
         color,
         font: FIRA_SANS_EXTRABOLD,
-        horizontal_alignment: Horizontal::Center,
-        vertical_alignment: Vertical::Center,
+        align_x: Alignment::Center,
         line_height: Default::default(),
         shaping: iced_core::text::Shaping::Advanced,
+        align_y: Vertical::Center,
     });
 }
 

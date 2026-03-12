@@ -42,5 +42,6 @@ pub fn create_container_style(
             radius: border_radius,
         },
         shadow: Default::default(),
+        snap: false,
     }
 }

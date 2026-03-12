@@ -14,14 +14,14 @@ use iced::{Element, mouse};
 use iced::{Event, Renderer};
 use iced::{Length, Rectangle, Size};
 use iced_core::alignment::Vertical;
-use iced_core::event::Status;
 use iced_core::image::Handle;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::Quad;
+use iced_core::text::Alignment;
 use iced_core::widget::Tree;
 use iced_core::{Border, Shadow, image};
-use iced_core::{Image, Point, Theme, alignment};
+use iced_core::{Image, Point, Theme};
 
 const PADDING: f32 = DEFAULT_PRESET_HEIGHT / 16.0 * SCALE;
 const INDENT: f32 = DEFAULT_PRESET_HEIGHT / 12.0 * SCALE;
@@ -69,7 +69,7 @@ where
                 mascot,
                 row![
                     format_button_text(iced::widget::text("Buy")),
-                    Space::with_width(Length::Fill),
+                    Space::new().width(Length::Fill),
                     row![
                         format_button_text(iced::widget::text(price.to_string())),
                         iced::widget::image(Handle::from_path("assets/images/coin.png"))
@@ -108,10 +108,10 @@ where
         Size::new(Length::Fixed(self.width), Length::Fixed(self.height))
     }
 
-    fn layout(&self, tree: &mut Tree, renderer: &Renderer, limits: &Limits) -> Node {
+    fn layout(&mut self, tree: &mut Tree, renderer: &Renderer, limits: &Limits) -> Node {
         let mut child_node =
             self.buy_element
-                .as_widget()
+                .as_widget_mut()
                 .layout(&mut tree.children[0], renderer, limits);
 
         let widget_size = Size {
@@ -147,18 +147,19 @@ where
                     radius: 10.0.into(),
                 },
                 shadow: Shadow::default(),
+                snap: false,
             },
             bb_theme::color::CONTAINER_COLOR,
         );
-        renderer.draw_image(
-            self.image.clone(),
-            Rectangle {
-                x: layout.bounds().x + DEFAULT_PRESET_WIDTH / 2.0 - IMAGE_WIDTH / 2.0,
-                y: layout.bounds().y + PADDING,
-                width: IMAGE_WIDTH,
-                height: IMAGE_HEIGHT,
-            },
-        );
+
+        let image_rectangle = Rectangle {
+            x: layout.bounds().x + DEFAULT_PRESET_WIDTH / 2.0 - IMAGE_WIDTH / 2.0,
+            y: layout.bounds().y + PADDING,
+            width: IMAGE_WIDTH,
+            height: IMAGE_HEIGHT,
+        };
+
+        renderer.draw_image(self.image.clone(), image_rectangle, image_rectangle);
 
         renderer.fill_text(
             iced_core::text::Text {
@@ -167,10 +168,10 @@ where
                 size: iced_core::Pixels(TITLE_FONT_SIZE),
                 line_height: Default::default(),
                 font: self.font.unwrap_or(renderer.default_font()),
-                horizontal_alignment: alignment::Horizontal::Center,
-                vertical_alignment: alignment::Vertical::Center,
+                align_x: Alignment::Center,
                 shaping: Default::default(),
                 wrapping: Default::default(),
+                align_y: Vertical::Center,
             },
             Point {
                 x: layout.bounds().x + DEFAULT_PRESET_WIDTH / 2.0,
@@ -199,27 +200,27 @@ where
         tree.diff_children(std::slice::from_ref(&self.buy_element));
     }
 
-    fn on_event(
+    fn update(
         &mut self,
         state: &mut Tree,
-        event: Event,
+        event: &Event,
         layout: Layout<'_>,
         cursor: Cursor,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
-    ) -> Status {
+    ) {
         if state.children.is_empty() {
-            return Status::Ignored;
+            return;
         }
         let child_layout = match layout.children().next() {
-            None => return Status::Ignored,
+            None => return,
             Some(layout) => layout,
         };
 
         let child_tree = &mut state.children[0];
-        self.buy_element.as_widget_mut().on_event(
+        self.buy_element.as_widget_mut().update(
             child_tree,
             event,
             child_layout,

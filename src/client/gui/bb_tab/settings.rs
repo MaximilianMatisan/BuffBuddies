@@ -46,7 +46,7 @@ const GOAL_DATA_TITLE: &str = "Goals";
 const PROFILE_PICTURE_TITLE: &str = "Profile picture";
 
 impl App {
-    pub fn settings_screen(&self) -> Element<Message> {
+    pub fn settings_screen(&self) -> Element<'_, Message> {
         let user_info_container = user_settings(self).map(Message::Settings);
         let log_out_button =
             log_out_button(&self.mascot_manager.selected_mascot).map(Message::Settings);
@@ -57,9 +57,9 @@ impl App {
             .spacing(INDENT);
 
         let padded_content: Element<Message> = Row::new()
-            .push(Space::with_width(Length::FillPortion(1)))
+            .push(Space::new().width(Length::FillPortion(1)))
             .push(content)
-            .push(Space::with_width(Length::FillPortion(1)))
+            .push(Space::new().width(Length::FillPortion(1)))
             .padding(Padding {
                 top: 20.0,
                 ..0.0.into()
@@ -69,14 +69,14 @@ impl App {
         padded_content
     }
 }
-fn user_settings(app: &App) -> Element<SettingsMessage> {
+fn user_settings(app: &App) -> Element<'_, SettingsMessage> {
     if app.user_manager.pending_user_info_changes.is_none() {
         user_settings_preview(app)
     } else {
         user_settings_edit(app)
     }
 }
-fn user_settings_preview(app: &App) -> Element<SettingsMessage> {
+fn user_settings_preview(app: &App) -> Element<'_, SettingsMessage> {
     let user_info = &app.user_manager.user_info;
 
     let profile_picture = image(Handle::from_path(&user_info.profile_picture_path))
@@ -90,7 +90,7 @@ fn user_settings_preview(app: &App) -> Element<SettingsMessage> {
 
     arrange_and_wrap_user_settings_in_container(profile_picture, username_and_data_column).into()
 }
-fn user_settings_edit(app: &App) -> Element<SettingsMessage> {
+fn user_settings_edit(app: &App) -> Element<'_, SettingsMessage> {
     if let Some((pending_info, _)) = &app.user_manager.pending_user_info_changes {
         let profile_picture = image(Handle::from_path(pending_info.profile_picture_path.clone()))
             .width(LARGE_PROFILE_PICTURE_DIMENSION)
@@ -118,13 +118,13 @@ fn arrange_and_wrap_user_settings_in_container(
     username_and_data_column: Column<SettingsMessage>,
 ) -> Container<SettingsMessage> {
     let contents = Row::new()
-        .push(Space::with_width(Length::FillPortion(1)))
+        .push(Space::new().width(Length::FillPortion(1)))
         .push(profile_picture)
-        .push(Space::with_width(Length::FillPortion(1)))
+        .push(Space::new().width(Length::FillPortion(1)))
         .push(username_and_data_column)
-        .push(Space::with_width(Length::FillPortion(1)));
+        .push(Space::new().width(Length::FillPortion(1)));
 
-    let user_info_container = container(contents)
+    container(contents)
         .style(create_container_style(ContainerStyle::Default, None, None))
         .height(Length::Shrink)
         .width(Length::FillPortion(10))
@@ -132,11 +132,9 @@ fn arrange_and_wrap_user_settings_in_container(
             top: LARGE_INDENT,
             bottom: LARGE_INDENT,
             ..Default::default()
-        });
-
-    user_info_container
+        })
 }
-fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
+fn preview_user_info_column(app: &App) -> Column<'_, SettingsMessage> {
     let user_info = &app.user_manager.user_info;
 
     let username = text(&user_info.username)
@@ -175,7 +173,7 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
 
     let description = Row::new()
         .push(format_description_text(text("Description:")))
-        .push(Space::with_width(Length::Fill))
+        .push(Space::new().width(Length::Fill))
         .push(description_text_container);
 
     let user_data_title =
@@ -205,12 +203,12 @@ fn preview_user_info_column(app: &App) -> Column<SettingsMessage> {
 
     let username_and_data_column: Column<SettingsMessage> = Column::new()
         .push(username_and_edit_button)
-        .push(Space::with_height(INDENT))
+        .push(Space::new().height(INDENT))
         .push(user_data_column);
 
     username_and_data_column
 }
-fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
+fn edit_user_info_column(app: &App) -> Column<'_, SettingsMessage> {
     let pending_info: &UserInformation;
     //These strings are necessary for proper text_input functionality
     let pending_info_strings: &UserInformationStrings;
@@ -301,16 +299,14 @@ fn edit_user_info_column(app: &App) -> Column<SettingsMessage> {
         ));
     }
 
-    let username_and_data_column = Column::new()
+    Column::new()
         .push(username)
         .push(user_data_title)
         .push(user_data_column)
         .spacing(INDENT)
-        .width(Length::FillPortion(15));
-
-    username_and_data_column
+        .width(Length::FillPortion(15))
 }
-fn preview_goals_column(app: &App) -> Column<SettingsMessage> {
+fn preview_goals_column(app: &App) -> Column<'_, SettingsMessage> {
     let goal_title =
         create_settings_sub_header(&app.mascot_manager.selected_mascot, GOAL_DATA_TITLE);
 
@@ -328,7 +324,7 @@ fn preview_goals_column(app: &App) -> Column<SettingsMessage> {
 
     goal_previews
 }
-fn edit_goals_column(app: &App) -> Column<SettingsMessage> {
+fn edit_goals_column(app: &App) -> Column<'_, SettingsMessage> {
     let pending_info = if let Some((user_info, _)) = &app.user_manager.pending_user_info_changes {
         user_info
     } else {
@@ -357,24 +353,22 @@ fn edit_goals_column(app: &App) -> Column<SettingsMessage> {
     }
     contents
 }
-fn edit_profile_picture_column(mascot: &Mascot) -> Column<SettingsMessage> {
+fn edit_profile_picture_column(mascot: &Mascot) -> Column<'_, SettingsMessage> {
     let header = create_settings_sub_header(mascot, PROFILE_PICTURE_TITLE);
 
     let picture_selection_row = profile_picture_selection_row(mascot);
 
-    let content = Column::new()
+    Column::new()
         .push(header)
         .push(picture_selection_row)
-        .spacing(SETTINGS_ENTRY_SPACING);
-
-    content
+        .spacing(SETTINGS_ENTRY_SPACING)
 }
 fn number_inc_decrementer_buttons(
     mascot: &Mascot,
     number: String,
     increment_message: SettingsMessage,
     decrement_message: SettingsMessage,
-) -> Row<SettingsMessage> {
+) -> Row<'_, SettingsMessage> {
     let number_text = format_button_text(text(number));
     let increment_button = create_text_button(
         mascot,
@@ -391,14 +385,12 @@ fn number_inc_decrementer_buttons(
     )
     .on_press(decrement_message);
 
-    let row = Row::new()
+    Row::new()
         .push(number_text)
-        .push(Space::with_width(INDENT / 2.0))
+        .push(Space::new().width(INDENT / 2.0))
         .push(increment_button)
         .push(decrement_button)
-        .align_y(Vertical::Center);
-
-    row
+        .align_y(Vertical::Center)
 }
 fn create_settings_sub_header<'a>(
     mascot: &'a Mascot,
@@ -412,7 +404,7 @@ fn create_settings_sub_header<'a>(
         .push(separator)
         .push(user_data_title)
 }
-fn save_or_discard_pending_user_info(mascot: &Mascot) -> Row<SettingsMessage> {
+fn save_or_discard_pending_user_info(mascot: &Mascot) -> Row<'_, SettingsMessage> {
     let save_changes_button = create_text_button(
         mascot,
         "Save changes".to_string(),
@@ -431,21 +423,20 @@ fn save_or_discard_pending_user_info(mascot: &Mascot) -> Row<SettingsMessage> {
     .width(Length::Fill)
     .on_press(SettingsMessage::DiscardPendingUserInfoChanges);
 
-    let button_row = Row::new()
+    Row::new()
         .push(save_changes_button)
         .push(discard_changes_button)
-        .spacing(INDENT);
-    button_row
+        .spacing(INDENT)
 }
-fn log_out_button(active_mascot: &Mascot) -> Element<SettingsMessage> {
+fn log_out_button(active_mascot: &Mascot) -> Element<'_, SettingsMessage> {
     let log_out_button_text = text("Log out")
         .font(FIRA_SANS_EXTRABOLD)
         .color(color::ERROR_COLOR);
 
     let row = Row::new()
-        .push(Space::with_width(INDENT))
+        .push(Space::new().width(INDENT))
         .push(image(Handle::from_path("assets/images/log-out.png")).height(20))
-        .push(Space::with_width(LARGE_INDENT))
+        .push(Space::new().width(LARGE_INDENT))
         .push(log_out_button_text)
         .align_y(Vertical::Center)
         .padding(5);

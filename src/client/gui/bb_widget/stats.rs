@@ -14,7 +14,7 @@ use iced_core::image::Handle;
 
 const DISPLAYED_EXERCISE_STATS: usize = 5;
 const DISPLAYED_EXERCISE_STAT_LAST_INDEX: usize = DISPLAYED_EXERCISE_STATS - 1;
-pub fn exercise_stat_column(app: &App) -> Column<Message> {
+pub fn exercise_stat_column(app: &App) -> Column<'_, Message> {
     let mut lines: Column<Message> = Column::new();
     let stats: [(String, String); DISPLAYED_EXERCISE_STATS] = [
         (
@@ -48,7 +48,7 @@ pub fn exercise_stat_column(app: &App) -> Column<Message> {
     for (i, (title, data)) in stats.iter().enumerate() {
         let line = Row::new()
             .push(format_button_text(text(title.clone())))
-            .push(Space::with_width(Length::Fill))
+            .push(Space::new().width(Length::Fill))
             .push(format_button_text(text(data.clone())));
 
         let container_style = if i % 2 == 0 {

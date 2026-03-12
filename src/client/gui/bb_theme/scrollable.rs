@@ -1,10 +1,10 @@
 use crate::client::gui::bb_theme::color::HIGHLIGHTED_CONTAINER_COLOR;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use iced::widget::scrollable::{Direction, Rail, Scrollbar, Scroller, Status, Style};
+use iced::widget::scrollable::{AutoScroll, Direction, Rail, Scrollbar, Scroller, Status, Style};
 use iced::widget::{Scrollable, scrollable};
 use iced::{Element, Renderer};
-use iced_core::{Border, Color, Theme};
+use iced_core::{Background, Border, Color, Theme};
 
 pub const SCROLLBAR_PADDING: f32 = 15.0;
 pub const TAB_SCROLLBAR_PADDING: f32 = 6.0;
@@ -55,7 +55,7 @@ fn transparent_style() -> Style {
             background: None,
             border: Default::default(),
             scroller: Scroller {
-                color: Color::TRANSPARENT,
+                background: Background::Color(Color::TRANSPARENT),
                 border: Default::default(),
             },
         },
@@ -63,11 +63,17 @@ fn transparent_style() -> Style {
             background: None,
             border: Default::default(),
             scroller: Scroller {
-                color: Color::TRANSPARENT,
+                background: Background::Color(Color::TRANSPARENT),
                 border: Default::default(),
             },
         },
         gap: None,
+        auto_scroll: AutoScroll {
+            background: Background::Color(Color::TRANSPARENT),
+            border: Default::default(),
+            shadow: Default::default(),
+            icon: Default::default(),
+        },
     }
 }
 
@@ -103,7 +109,7 @@ fn create_style(status: Status, mascot: Mascot, scrollable_style: ScrollableStyl
         background: None,
         border: Default::default(),
         scroller: Scroller {
-            color: hovered_color,
+            background: Background::Color(hovered_color),
             border: Border {
                 color: Color::TRANSPARENT,
                 width: 0.5,
@@ -113,7 +119,7 @@ fn create_style(status: Status, mascot: Mascot, scrollable_style: ScrollableStyl
     };
     let dragged_rail = Rail {
         scroller: Scroller {
-            color: dragged_color,
+            background: Background::Color(dragged_color),
             border: Border {
                 color: Color::TRANSPARENT,
                 width: 0.1,
@@ -124,7 +130,7 @@ fn create_style(status: Status, mascot: Mascot, scrollable_style: ScrollableStyl
     };
 
     match status {
-        scrollable::Status::Active => {}
+        scrollable::Status::Active { .. } => {}
 
         scrollable::Status::Hovered { .. } => {
             result_scrollable_style.horizontal_rail = hovered_rail;

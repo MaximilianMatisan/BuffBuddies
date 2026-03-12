@@ -88,11 +88,11 @@ impl WorkoutCreationMessage {
             WorkoutCreationMessage::DeleteExercise(exercise_number) => {
                 if let Some(workout) = workout_in_creation {
                     (*workout).remove(*exercise_number - 1);
-                    if let Some(exercise_number_edit) = *exercise_in_edit_number {
-                        if *exercise_number == exercise_number_edit {
-                            *exercise_in_edit_number = None;
-                            app.exercise_manager.exercise_in_edit_strings = None;
-                        }
+                    if let Some(exercise_number_edit) = *exercise_in_edit_number
+                        && *exercise_number == exercise_number_edit
+                    {
+                        *exercise_in_edit_number = None;
+                        app.exercise_manager.exercise_in_edit_strings = None;
                     }
                 }
                 Task::none()
@@ -267,10 +267,10 @@ pub fn view_exercise<'a>(
     number: ExerciseNumber,
     app: &'a App,
 ) -> Element<'a, Message> {
-    if let Some(edited_exercise) = app.exercise_manager.exercise_in_edit_number {
-        if edited_exercise == number {
-            return view_exercise_edit(exercise, number, app);
-        }
+    if let Some(edited_exercise) = app.exercise_manager.exercise_in_edit_number
+        && edited_exercise == number
+    {
+        return view_exercise_edit(exercise, number, app);
     }
     view_exercise_no_edit(exercise, number, app)
 }
@@ -434,16 +434,16 @@ pub fn view_descriptions<'a>() -> Element<'a, Message> {
 pub fn view_exercise_name(
     workout: &[ExerciseCreate],
     exercise_number: ExerciseNumber,
-) -> Element<Message> {
+) -> Element<'_, Message> {
     format_button_text(text(workout[exercise_number - 1].name.clone()))
         .size(30)
         .width(FillPortion(3))
         .into()
 }
 
-pub fn view_delete_button(exercise_number: ExerciseNumber, app: &App) -> Element<Message> {
+pub fn view_delete_button(exercise_number: ExerciseNumber, app: &App) -> Element<'_, Message> {
     container(row![
-        Space::with_width(Fill),
+        Space::new().width(Fill),
         create_element_button(
             &app.mascot_manager.selected_mascot,
             image(Handle::from_path("assets/images/trash_red.png")).into(),
@@ -459,7 +459,7 @@ pub fn view_delete_button(exercise_number: ExerciseNumber, app: &App) -> Element
     .into()
 }
 
-pub fn view_set_no_edit(set: &StrengthSetCreate, number: SetNumber) -> Element<Message> {
+pub fn view_set_no_edit(set: &StrengthSetCreate, number: SetNumber) -> Element<'_, Message> {
     let set_number: Element<Message> = container(format_button_text(text(number.to_string())))
         .width(FillPortion(1))
         .center(Fill)
@@ -493,7 +493,7 @@ pub fn view_set_no_edit(set: &StrengthSetCreate, number: SetNumber) -> Element<M
         .into()
 }
 
-pub fn view_set_edit(number: SetNumber, app: &App) -> Element<Message> {
+pub fn view_set_edit(number: SetNumber, app: &App) -> Element<'_, Message> {
     let set_number: Element<Message> = container(format_button_text(text(number.to_string())))
         .center(FillPortion(1))
         .into();
@@ -558,7 +558,7 @@ pub fn view_set_edit(number: SetNumber, app: &App) -> Element<Message> {
             .spacing(10)
             .height(40),
         Row::new()
-            .push(Space::with_width(FillPortion(15)))
+            .push(Space::new().width(FillPortion(15)))
             .push(delete_button)
     ]
     .into();
@@ -574,7 +574,7 @@ pub fn view_set_edit(number: SetNumber, app: &App) -> Element<Message> {
 }
 
 impl App {
-    pub fn workout_creation_screen(&self) -> Element<Message> {
+    pub fn workout_creation_screen(&self) -> Element<'_, Message> {
         let mut column = Column::new().spacing(20);
 
         if let Some(current_workout) = &self.exercise_manager.workout_in_creation {

@@ -154,7 +154,7 @@ fn view_exercise_preset(
     exercise_name: String,
     exercise_number: ExerciseNumber,
     selected_mascot: &Mascot,
-) -> Element<Message> {
+) -> Element<'_, Message> {
     let number: Element<Message> = format_button_text(text(format!("{exercise_number}.")))
         .size(30)
         .width(FillPortion(1))
@@ -194,7 +194,7 @@ fn view_exercise_preset(
         .into()
 }
 impl App {
-    pub fn preset_creation_screen(&self) -> Element<Message> {
+    pub fn preset_creation_screen(&self) -> Element<'_, Message> {
         let preset_name =
             if let Some(current_preset) = &self.workout_preset_manager.preset_in_creation {
                 current_preset.workout_preset.name.clone().to_string()
@@ -287,12 +287,12 @@ impl App {
 
         let mut image_selection: Column<Message> = Column::new();
 
-        if let Some(preset) = &self.workout_preset_manager.preset_in_creation {
-            if preset.edit_image {
-                image_selection = image_selection.push(view_preset_image_selection(
-                    &self.mascot_manager.selected_mascot,
-                ))
-            }
+        if let Some(preset) = &self.workout_preset_manager.preset_in_creation
+            && preset.edit_image
+        {
+            image_selection = image_selection.push(view_preset_image_selection(
+                &self.mascot_manager.selected_mascot,
+            ))
         }
 
         let mut exercises = Column::new().spacing(INDENT);
@@ -365,7 +365,7 @@ impl App {
             .push(title_container)
             .push(image_selection)
             .push(separator)
-            .push(Space::with_height(INDENT))
+            .push(Space::new().height(INDENT))
             .push(exercises_scrollable)
             .push(add_exercise_and_finish)
             .spacing(INDENT);
@@ -389,7 +389,7 @@ impl App {
     }
 }
 
-pub fn view_preset_image_selection(mascot: &Mascot) -> Element<Message> {
+pub fn view_preset_image_selection(mascot: &Mascot) -> Element<'_, Message> {
     let mut preset_selection_buttons = Row::new();
     for preset_image in PresetImage::iter() {
         let image_path = preset_image.get_file_path(mascot);

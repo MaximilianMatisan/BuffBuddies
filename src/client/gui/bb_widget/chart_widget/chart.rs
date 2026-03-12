@@ -64,7 +64,7 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
             let bar_chart: Element<Message> =
                 BarChart::new(app.mascot_manager.selected_mascot, &app.exercise_manager).into();
             let column = Column::new()
-                .push(Space::with_height(INDENT))
+                .push(Space::new().height(INDENT))
                 .push(bar_chart);
 
             column.into()
@@ -89,13 +89,13 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
 
     let header_row = Row::new()
         .width(Length::Fixed(CHART_WIDGET_WIDTH))
-        .push(Space::with_width(Length::FillPortion(1)))
+        .push(Space::new().width(Length::FillPortion(1)))
         .push(title)
-        .push(Space::with_width(Length::FillPortion(2)))
+        .push(Space::new().width(Length::FillPortion(2)))
         .push(chart_type_buttons(app))
-        .push(Space::with_width(Length::FillPortion(2)))
+        .push(Space::new().width(Length::FillPortion(2)))
         .push(search_bar)
-        .push(Space::with_width(Length::FillPortion(1)))
+        .push(Space::new().width(Length::FillPortion(1)))
         .align_y(Vertical::Center);
 
     let contents = Column::new()
@@ -119,7 +119,7 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .into()
 }
 
-fn chart_type_buttons(app: &App) -> Row<Message> {
+fn chart_type_buttons(app: &App) -> Row<'_, Message> {
     let (line_button_style, bar_button_style) =
         match app.widget_manager.graph_widget_state.shown_chart_type {
             ChartTypes::Graph => (ButtonStyle::Active, ButtonStyle::InactiveTab),
@@ -170,9 +170,9 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
 
     let row_counter_with_buttons = row![
         decrement_button,
-        Space::with_width(Length::FillPortion(1)),
+        Space::new().width(Length::FillPortion(1)),
         counter,
-        Space::with_width(Length::FillPortion(1)),
+        Space::new().width(Length::FillPortion(1)),
         increment_button,
     ]
     .align_y(Vertical::Center);
@@ -231,19 +231,19 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
 
     let settings_row = Row::new()
         .width(Length::Fixed(CHART_WIDGET_WIDTH))
-        .push(Space::with_width(Length::Fixed(LARGE_INDENT)))
+        .push(Space::new().width(Length::Fixed(LARGE_INDENT)))
         .push(counter_with_buttons)
-        .push(Space::with_width(Length::FillPortion(1)))
+        .push(Space::new().width(Length::FillPortion(1)))
         .push(toggle_dots_button)
-        .push(Space::with_width(Length::FillPortion(1)))
+        .push(Space::new().width(Length::FillPortion(1)))
         .push(toggle_cursor_button)
-        .push(Space::with_width(Length::FillPortion(1)))
+        .push(Space::new().width(Length::FillPortion(1)))
         .push(toggle_vertical_lines)
-        .push(Space::with_width(Length::FillPortion(15)))
+        .push(Space::new().width(Length::FillPortion(15)))
         .align_y(Vertical::Bottom);
 
     let settings_row_with_padding = Column::new()
-        .push(Space::with_height(21.5))
+        .push(Space::new().height(21.5))
         .push(settings_row);
 
     settings_row_with_padding.into()

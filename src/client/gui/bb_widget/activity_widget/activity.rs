@@ -18,6 +18,7 @@ use iced_core::alignment::Vertical;
 use iced_core::layout::{Limits, Node};
 use iced_core::mouse::Cursor;
 use iced_core::renderer::{Quad, Style};
+use iced_core::text::Alignment;
 use iced_core::widget::Tree;
 use iced_core::{
     Border, Color, Layout, Length, Rectangle, Size, Text, Theme, Widget, renderer, text,
@@ -223,7 +224,7 @@ impl<'a> ActivityWidget {
         time_offset_buttons
     }
     fn get_gui_square_border_of_date(&self, date: &NaiveDate) -> Border {
-        let activity_border = match self.activity.get(date) {
+        match self.activity.get(date) {
             _ if *date == self.today => Border {
                 color: Color::WHITE,
                 width: 2.0,
@@ -239,8 +240,7 @@ impl<'a> ActivityWidget {
                 width: 0.0,
                 radius: ACTIVITY_SQUARE_BORDER_RADIUS.into(),
             },
-        };
-        activity_border
+        }
     }
 }
 
@@ -256,7 +256,7 @@ where
         }
     }
 
-    fn layout(&self, _tree: &mut Tree, _renderer: &Renderer, _limits: &Limits) -> Node {
+    fn layout(&mut self, _tree: &mut Tree, _renderer: &Renderer, _limits: &Limits) -> Node {
         Node::new(Size {
             width: self.width,
             height: self.height,
@@ -306,6 +306,7 @@ where
                     },
                     border: activity_border,
                     shadow: Default::default(),
+                    snap: false,
                 },
                 activity_color,
             );
@@ -319,10 +320,10 @@ where
                         size: TIME_TEXT_HEIGHT.into(),
                         line_height: Default::default(),
                         font: renderer.default_font(),
-                        horizontal_alignment: iced::alignment::Horizontal::Left,
-                        vertical_alignment: Vertical::Top,
+                        align_x: Alignment::Left,
                         shaping: Default::default(),
                         wrapping: Default::default(),
+                        align_y: Vertical::Top,
                     },
                     Point {
                         x: cur_x,

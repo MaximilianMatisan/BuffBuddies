@@ -40,6 +40,7 @@ pub fn create_menu_style(mascot: &Mascot) -> impl Fn(&Theme) -> menu::Style {
         text_color: color::TEXT_COLOR,
         selected_text_color: color::TEXT_COLOR,
         selected_background: Background::Color(mascot.get_primary_color()),
+        shadow: Default::default(),
     }
 }
 pub fn get_combo_box_all_exercises_state(exercise: &[Exercise]) -> combo_box::State<String> {

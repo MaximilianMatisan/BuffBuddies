@@ -31,10 +31,10 @@ use strum::IntoEnumIterator;
 
 const SCROLLABLE_MASCOTS_HEIGHT: f32 = 540.0;
 const MASCOT_IMAGE_HEIGHT: f32 = 360.0;
-const MASCOT_BOX_HEIGHT: u16 = 46;
-const MASCOT_BOX_TEXT_SIZE: u16 = 18;
+const MASCOT_BOX_HEIGHT: f32 = 46.0;
+const MASCOT_BOX_TEXT_SIZE: f32 = 18.0;
 const BOX_PADDING: f32 = 12.5;
-const HEADERS_TEXT_SIZE: u16 = 30;
+const HEADERS_TEXT_SIZE: f32 = 30.0;
 
 #[derive(Clone, Debug)]
 pub enum MascotMessage {
@@ -135,7 +135,7 @@ impl MascotMessage {
 }
 
 impl App {
-    pub fn mascot_screen(&self) -> Element<Message> {
+    pub fn mascot_screen(&self) -> Element<'_, Message> {
         let current_mascot_image = self
             .mascot_manager
             .view_active_mascot()
@@ -159,7 +159,7 @@ impl App {
 
         let randomize_text_with_image = container(row![
             dice_image,
-            Space::with_width(Length::Fixed(5.0)),
+            Space::new().width(Length::Fixed(5.0)),
             randomize_text
         ])
         .align_y(Vertical::Center)
@@ -300,7 +300,7 @@ enum BoxType {
 
 fn create_mascot_box(app: &App, mascot: Mascot, box_type: BoxType) -> Element<'static, Message> {
     let mut content = Row::new()
-        .push(Space::with_width(Length::Fixed(BOX_PADDING)))
+        .push(Space::new().width(Length::Fixed(BOX_PADDING)))
         .spacing(INDENT)
         .align_y(Vertical::Center)
         .height(Fill);
@@ -352,7 +352,7 @@ fn create_mascot_box(app: &App, mascot: Mascot, box_type: BoxType) -> Element<'s
     mascot_box.into()
 }
 
-fn create_mascot_button(app: &App, mascot: Mascot) -> Element<Message> {
+fn create_mascot_button(app: &App, mascot: Mascot) -> Element<'_, Message> {
     if app.mascot_manager.owns_mascot(mascot) {
         if app.mascot_manager.selected_mascot == mascot {
             create_mascot_box(app, mascot, BoxType::Current)

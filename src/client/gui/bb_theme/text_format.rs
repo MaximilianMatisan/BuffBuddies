@@ -23,7 +23,7 @@ pub fn format_button_text(msg: Text<Theme, Renderer>) -> Text<Theme, Renderer> {
         .center()
 }
 /// create default styling for description text
-pub fn format_description_text(msg: Text<Theme, Renderer>) -> Text<'_, Theme, Renderer> {
+pub fn format_description_text(msg: Text<'_, Theme, Renderer>) -> Text<'_, Theme, Renderer> {
     msg.font(FIRA_SANS_EXTRABOLD)
         .color(color::DESCRIPTION_TEXT_COLOR)
 }

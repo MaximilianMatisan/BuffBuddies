@@ -41,8 +41,7 @@ impl MascotManager {
     }
 
     pub fn view_active_mascot(&self) -> Image {
-        let image = image(self.selected_mascot.get_file_path());
-        image
+        image(self.selected_mascot.get_file_path())
     }
 
     pub fn get_random_owned_mascot(&self) -> Mascot {

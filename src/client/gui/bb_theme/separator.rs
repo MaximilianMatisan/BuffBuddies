@@ -12,7 +12,7 @@ pub fn separator_line<'a, Msg>(mascot: &'a Mascot, height: impl Into<Length>) ->
 where
     Msg: Clone + 'a,
 {
-    container(Space::new(0, 0))
+    container(Space::new())
         .style(|_theme| Style {
             text_color: None,
             background: Some(Background::Color(mascot.get_primary_color())),

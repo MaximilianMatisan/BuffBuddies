@@ -236,23 +236,29 @@ pub fn client_main() -> iced::Result {
     let default_size = Size::new(size::FRAME_WIDTH, size::FRAME_HEIGHT);
     let settings: Settings = Settings {
         size: default_size,
+        maximized: false,
+        fullscreen: false,
         position: Position::Default,
         min_size: Some(default_size),
         max_size: None,
         visible: true,
         resizable: true,
 
+        closeable: true,
+        minimizable: true,
         decorations: true,
         transparent: true,
+        blur: false,
         level: Default::default(),
         icon: None,
         platform_specific: Default::default(),
         exit_on_close_request: true,
     };
-    iced::application("BuffBuddies", App::update, App::view)
+    iced::application(App::default, App::update, App::view)
         .window(settings)
+        .title("BuffBuddies")
         .font(include_bytes!(
             "../../../assets/Fira_Sans/FiraSans-ExtraBold.ttf"
         ))
-        .run_with(|| (App::default(), Task::none()))
+        .run()
 }

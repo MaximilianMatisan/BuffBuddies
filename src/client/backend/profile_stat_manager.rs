@@ -54,9 +54,7 @@ pub fn calculate_activity_data(exercise_data: &[Exercise]) -> ActivityData {
 pub fn total_sets(exercise_data: &Vec<Exercise>) -> u64 {
     let mut result: u64 = 0;
     for exercise in exercise_data {
-        result = result
-            .checked_add(exercise.all_time_sets())
-            .unwrap_or(u64::MAX);
+        result = result.saturating_add(exercise.all_time_sets());
     }
     result
 }
@@ -64,9 +62,7 @@ pub fn total_sets(exercise_data: &Vec<Exercise>) -> u64 {
 pub fn total_reps(exercise_data: &Vec<Exercise>) -> u64 {
     let mut result: u64 = 0;
     for exercise in exercise_data {
-        result = result
-            .checked_add(exercise.all_time_reps() as u64)
-            .unwrap_or(u64::MAX);
+        result = result.saturating_add(exercise.all_time_reps() as u64);
     }
     result
 }

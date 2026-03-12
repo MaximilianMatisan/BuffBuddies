@@ -43,11 +43,9 @@ pub fn general_exercise_browser<'a>(
         .push(general_exercise_info_elements)
         .spacing(INDENT);
 
-    let exercise_browser_container = container(exercise_browser)
+    container(exercise_browser)
         .style(create_container_style(ContainerStyle::Default, None, None))
-        .padding(LARGE_INDENT);
-
-    exercise_browser_container
+        .padding(LARGE_INDENT)
 }
 
 fn display_general_exercise_infos<'a>(
@@ -123,7 +121,7 @@ fn general_exercise_info_element<'a>(
 
     let header = Row::new()
         .push(exercise_name)
-        .push(Space::with_width(Length::Fill))
+        .push(Space::new().width(Length::Fill))
         .push(toggle_more_info_button)
         .align_y(Vertical::Center);
 
@@ -139,8 +137,8 @@ fn general_exercise_info_element<'a>(
         .padding(3)
         .style(create_container_style(ContainerStyle::Light, None, None))
 }
-fn create_extended_infos(general_exercise_info: &GeneralExerciseInfo) -> Row<Message> {
-    let content = Row::new()
+fn create_extended_infos(general_exercise_info: &GeneralExerciseInfo) -> Row<'_, Message> {
+    Row::new()
         .push(instruction_container(&general_exercise_info.instructions))
         .push(detail_column(general_exercise_info))
         .spacing(INDENT)
@@ -148,12 +146,10 @@ fn create_extended_infos(general_exercise_info: &GeneralExerciseInfo) -> Row<Mes
             right: LARGE_INDENT,
             bottom: INDENT / 2.0,
             ..Default::default()
-        });
-
-    content
+        })
 }
 
-fn instruction_container(instructions: &String) -> Container<Message> {
+fn instruction_container(instructions: &String) -> Container<'_, Message> {
     let instruction_title = format_description_text(text("Instruction:"));
     let instruction_text = text(instructions)
         .font(FIRA_SANS_EXTRABOLD)
@@ -162,14 +158,12 @@ fn instruction_container(instructions: &String) -> Container<Message> {
 
     let instruction_column = Column::new().push(instruction_title).push(instruction_text);
 
-    let instruction_container = container(instruction_column)
+    container(instruction_column)
         .style(create_container_style(ContainerStyle::Default, None, None))
         .padding(DEFAULT_TEXT_CONTAINER_PADDING)
-        .width(Length::FillPortion(7));
-
-    instruction_container
+        .width(Length::FillPortion(7))
 }
-fn detail_column(general_exercise_info: &GeneralExerciseInfo) -> Column<Message> {
+fn detail_column(general_exercise_info: &GeneralExerciseInfo) -> Column<'_, Message> {
     let mut content = Column::new().width(Length::FillPortion(5));
 
     let fields = [

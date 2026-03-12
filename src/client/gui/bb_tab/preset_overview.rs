@@ -33,17 +33,17 @@ pub fn preset_overview_screen<'a>(
 
     let contents = Column::new()
         .push(preset_title)
-        .push(Space::with_height(INDENT))
+        .push(Space::new().height(INDENT))
         .push(separator_line)
-        .push(Space::with_height(INDENT))
+        .push(Space::new().height(INDENT))
         .push(preset_grid)
         .padding([LARGE_INDENT, 0.0]) //[TOP/BOTTOM,LEFT_RIGHT]
         .align_x(Horizontal::Center);
 
     let padded_contents = Row::new()
-        .push(Space::with_width(Length::Fill))
+        .push(Space::new().width(Length::Fill))
         .push(contents)
-        .push(Space::with_width(Length::Fill));
+        .push(Space::new().width(Length::Fill));
 
     create_scrollable(padded_contents, *mascot, ScrollableStyle::Default)
         .add_vertical_scrollbar(TAB_SCROLLBAR_WIDTH, TAB_SCROLLBAR_PADDING)

@@ -67,7 +67,7 @@ impl HealthTabMessage {
 }
 
 impl App {
-    pub fn health_screen(&self) -> Element<Message> {
+    pub fn health_screen(&self) -> Element<'_, Message> {
         let edit_mode: bool = self
             .widget_manager
             .pending_progress_bar_state_manager

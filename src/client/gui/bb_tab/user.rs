@@ -51,7 +51,7 @@ pub fn view_profile<'a>(
         )));
 
         username = username
-            .push(Space::with_width(Length::Fill))
+            .push(Space::new().width(Length::Fill))
             .push(delete_friend_button)
             .align_y(Vertical::Center);
     }
@@ -69,7 +69,7 @@ pub fn view_profile<'a>(
 
     let description_element: Row<Message> = row![
         format_description_text(text("Description: ")),
-        Space::with_width(Length::FillPortion(1)),
+        Space::new().width(Length::FillPortion(1)),
         description_container
     ];
 
