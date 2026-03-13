@@ -2,9 +2,7 @@ use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color::BACKGROUND_COLOR;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
-use crate::client::gui::bb_theme::custom_button::{
-    BUTTON_RADIUS_LEFT_ZERO, BUTTON_RADIUS_RIGHT_ZERO, ButtonStyle, create_text_button,
-};
+use crate::client::gui::bb_theme::custom_button::{BUTTON_RADIUS_LEFT_ZERO, BUTTON_RADIUS_RIGHT_ZERO, ButtonStyle, create_text_button, BUTTON_RADIUS_BOTH_ZERO};
 use crate::client::gui::bb_theme::text_format;
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::chart_widget::bar_chart::BarChart;
@@ -12,12 +10,14 @@ use crate::client::gui::bb_widget::chart_widget::graph::{GraphMessage, GraphWidg
 use crate::client::gui::bb_widget::stats::exercise_stat_column;
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;
-use crate::client::gui::user_interface::Message::ChangeShownChartType;
+use crate::client::gui::user_interface::Message::{ChangeShownChartType, ChangeShownGoalType};
 use iced::Element;
 use iced::widget::{Column, Row, Space, combo_box, container, row, text};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::{Length, Padding};
 use std::cmp::PartialEq;
+use std::fmt::Pointer;
+use crate::common::user_mod::user_goals::GoalType;
 
 pub const CHART_WIDGET_WIDTH: f32 = 700.0;
 pub const CHART_WIDGET_HEIGHT: f32 = 500.0;
@@ -25,7 +25,7 @@ pub const CHART_WIDGET_HEIGHT: f32 = 500.0;
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub enum DataPointsType {
     Exercise (ChartTypes),
-    Health (ChartTypes),
+    Health (ChartTypes,GoalType),
 }
 
 impl Default for DataPointsType {
@@ -108,8 +108,9 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .push(Space::new().width(Length::FillPortion(1)))
         .push(title)
         .push(Space::new().width(Length::FillPortion(2)))
-        .push(chart_type_buttons(app))
+        .push(chart_type_buttons(app,DataPointsType::Exercise(chart_type.clone())))
         .push(Space::new().width(Length::FillPortion(2)))
+
         .push(search_bar)
         .push(Space::new().width(Length::FillPortion(1)))
         .align_y(Vertical::Center);
@@ -136,14 +137,25 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
 }
 
 
-fn chart_type_buttons(app: &App) -> Row<Message> {
+fn chart_type_buttons(app: &App, data_points_type: DataPointsType) -> Row<Message> {
+    let current_chart = match &data_points_type {
+        DataPointsType::Exercise(chart) => chart,
+        DataPointsType::Health(chart, _) => chart,
+    };
 
-    let DataPointsType::Exercise(chart_type) = &app.widget_manager.exercise_graph_widget_state.data_points_type else { panic!("Wrong chart type!") };
-    let (line_button_style, bar_button_style) =
-        match chart_type {
-            ChartTypes::Graph => (ButtonStyle::Active, ButtonStyle::InactiveTab),
-            ChartTypes::Bar => (ButtonStyle::InactiveTab, ButtonStyle::Active),
-        };
+    let (line_button_style, bar_button_style) = match current_chart {
+        ChartTypes::Graph => (ButtonStyle::Active, ButtonStyle::InactiveTab),
+        ChartTypes::Bar => (ButtonStyle::InactiveTab, ButtonStyle::Active),
+    };
+
+    let make_message = |chart_type| {
+        ChangeShownChartType(match &data_points_type {
+            DataPointsType::Exercise(_) => DataPointsType::Exercise(chart_type),
+            DataPointsType::Health(_, goal_type) => {
+                DataPointsType::Health(chart_type, goal_type.clone())
+            }
+        })
+    };
 
     let line_button = create_text_button(
         &app.mascot_manager.selected_mascot,
@@ -151,7 +163,7 @@ fn chart_type_buttons(app: &App) -> Row<Message> {
         line_button_style,
         Some(BUTTON_RADIUS_RIGHT_ZERO),
     )
-    .on_press(ChangeShownChartType(ChartTypes::Graph));
+        .on_press(make_message(ChartTypes::Graph));
 
     let bar_button = create_text_button(
         &app.mascot_manager.selected_mascot,
@@ -159,9 +171,47 @@ fn chart_type_buttons(app: &App) -> Row<Message> {
         bar_button_style,
         Some(BUTTON_RADIUS_LEFT_ZERO),
     )
-    .on_press(ChangeShownChartType(ChartTypes::Bar));
+        .on_press(make_message(ChartTypes::Bar));
 
     Row::new().push(line_button).push(bar_button)
+}
+
+fn goal_type_buttons (app: &App) -> Row<Message> {
+
+    let DataPointsType::Health(chart_type,goal_type) = &app.widget_manager.health_graph_widget_state.data_points_type else { panic!("Wrong chart type!") };
+    let (sleep_button_style, water_button_style,weight_button_style) =
+        match goal_type {
+            GoalType::Sleep => (ButtonStyle::Active, ButtonStyle::InactiveTab, ButtonStyle::InactiveTab),
+            GoalType::Water => (ButtonStyle::InactiveTab, ButtonStyle::Active, ButtonStyle::InactiveTab),
+            GoalType::Weight => (ButtonStyle::InactiveTab, ButtonStyle::InactiveTab, ButtonStyle::Active),
+            _ => panic!("There is no graph option for the other goal types")
+        };
+
+    let sleep_button = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        GoalType::Sleep.to_string(),
+        sleep_button_style,
+        Some(BUTTON_RADIUS_RIGHT_ZERO),
+    )
+        .on_press(ChangeShownGoalType(chart_type.clone(),GoalType::Sleep));
+
+    let water_button = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        GoalType::Water.to_string(),
+        water_button_style,
+        Some(BUTTON_RADIUS_BOTH_ZERO),
+    )
+        .on_press(ChangeShownGoalType(chart_type.clone(),GoalType::Water));
+
+    let weight_button = create_text_button(
+        &app.mascot_manager.selected_mascot,
+        GoalType::Weight.to_string(),
+        weight_button_style,
+        Some(BUTTON_RADIUS_LEFT_ZERO),
+    )
+        .on_press(ChangeShownGoalType(chart_type.clone(),GoalType::Weight));
+
+    Row::new().push(sleep_button).push(water_button).push(weight_button)
 }
 
 pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
@@ -266,4 +316,62 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         .push(settings_row);
 
     settings_row_with_padding.into()
+}
+
+pub fn health_chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
+
+    let DataPointsType::Health(chart_type,goal_type) = &app.widget_manager.health_graph_widget_state.data_points_type else { panic!("Wrong chart type!") };
+    let title_content: String = goal_type.to_string();
+
+    let chart: Element<'a, Message> = match chart_type {
+        ChartTypes::Bar => {
+            let bar_chart: Element<Message> =
+                BarChart::new(app.mascot_manager.selected_mascot, &app.exercise_manager.data_points).into();
+            let column = Column::new()
+                .push(Space::new().height(INDENT))
+                .push(bar_chart);
+
+            column.into()
+        }
+        ChartTypes::Graph => {
+            let column = Column::new()
+                .push(view_graph_widget_settings(app))
+                .push(GraphWidget::new(app).view());
+
+            column.into()
+        }
+    };
+
+    let title: Element<'a, Message> =
+        format_button_text(iced::widget::text(title_content).size(40)).into();
+
+    let header_row = Row::new()
+        .width(Length::Fixed(CHART_WIDGET_WIDTH))
+        .push(Space::new().width(Length::Fixed(LARGE_INDENT)))
+        .push(title)
+        .push(Space::new().width(Length::FillPortion(1)))
+        .push(chart_type_buttons(app,DataPointsType::Health(chart_type.clone(), goal_type.clone())))
+        .push(Space::new().width(Length::FillPortion(5)))
+        .push(goal_type_buttons(app))
+        .push(Space::new().width(Length::FillPortion(2)))
+        .align_y(Vertical::Center);
+
+    let contents = Column::new()
+        .width(Length::Shrink)
+        .push(header_row)
+        .push(chart)
+        .padding(Padding {
+            top: LARGE_INDENT / 2.0,
+            ..Default::default()
+        })
+        .align_x(Horizontal::Center);
+
+    container(contents)
+        .width(Length::Shrink)
+        .style(bb_theme::container::create_container_style(
+            ContainerStyle::Default,
+            None,
+            None,
+        ))
+        .into()
 }

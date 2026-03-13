@@ -4,6 +4,7 @@ use crate::client::backend::widget_state::progress_bar_manager::ProgressBarState
 use crate::client::gui::app::App;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityWidget;
 use crate::client::gui::bb_widget::bmi_calculator::BMIWidgetState;
+use crate::client::gui::bb_widget::chart_widget::chart::DataPointsType;
 use crate::client::gui::bb_widget::chart_widget::graph::GraphWidgetState;
 use crate::client::gui::bb_widget::circle_widget::CircleWidgetState;
 use crate::common::mascot_mod::mascot::Mascot;
@@ -30,8 +31,8 @@ impl WidgetManager {
 
         WidgetManager {
             activity_widget,
-            exercise_graph_widget_state: GraphWidgetState::new(),
-            health_graph_widget_state: GraphWidgetState::new(),
+            exercise_graph_widget_state: GraphWidgetState::new(DataPointsType::Exercise(Default::default())),
+            health_graph_widget_state: GraphWidgetState::new(DataPointsType::Health(Default::default(), Default::default())),
             circle_widget_state: CircleWidgetState::new(),
             bmi_widget_state: BMIWidgetState::new(),
             progress_bar_state_manager: ProgressBarStateManager::new(user_information),

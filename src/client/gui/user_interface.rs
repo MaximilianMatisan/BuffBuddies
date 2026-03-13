@@ -27,6 +27,7 @@ use iced::{Element, Task};
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
 use std::sync::Arc;
+use crate::common::user_mod::user_goals::GoalType;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -35,7 +36,8 @@ pub enum Message {
     // ChartMessage (Combine) maybe include in WidgetMessage?
     SelectExercise(String),
     Graph(GraphMessage),
-    ChangeShownChartType(ChartTypes),
+    ChangeShownChartType(DataPointsType),
+    ChangeShownGoalType(ChartTypes,GoalType),
 
     // WidgetMessage? (Combine)
     Activity(ActivityMessage),
@@ -95,10 +97,20 @@ impl App {
             }
             Message::Graph(graph_message) => GraphMessage::update_graph(graph_message, self),
 
-            Message::ChangeShownChartType(chart_type) => {
-                self.widget_manager.exercise_graph_widget_state.data_points_type = DataPointsType::Exercise(chart_type);
+            Message::ChangeShownChartType(data_points_type) => {
+                match data_points_type {
+                    DataPointsType::Exercise(chart_type) => {self.widget_manager.exercise_graph_widget_state.data_points_type = DataPointsType::Exercise(chart_type);}
+                    DataPointsType::Health(chart_type, goal_type) => {self.widget_manager.health_graph_widget_state.data_points_type = DataPointsType::Health(chart_type,goal_type)}
+                }
+                
                 Task::none()
             }
+
+            Message::ChangeShownGoalType(chart_type,goal_type) => {
+                self.widget_manager.health_graph_widget_state.data_points_type = DataPointsType::Health(chart_type,goal_type);
+                Task::none()
+            }
+
             Message::Circle(circle_message) => match circle_message {
                 CircleMessage::UpdateCircleAnimation(event) => {
                     self.widget_manager

@@ -143,7 +143,7 @@ pub struct GraphWidgetState {
 }
 
 impl GraphWidgetState {
-    pub fn new() -> Self {
+    pub fn new(data_points_type: DataPointsType) -> Self {
         let animation_motion = Motion {
             response: Duration::from_millis(3000),
             damping: Motion::SMOOTH.damping(),
@@ -156,7 +156,7 @@ impl GraphWidgetState {
             visible_cursor_information: true,
             visible_vertical_lines: true,
             points_to_draw: 9,
-            data_points_type: DataPointsType::default(),
+            data_points_type,
         }
     }
     pub fn invert_visible_points(&mut self) {

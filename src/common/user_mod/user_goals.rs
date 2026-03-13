@@ -8,11 +8,12 @@ use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 
 /// GoalsTypes of a user also see UserGoals
-#[derive(PartialEq, Debug, Clone, Display, EnumIter)]
+#[derive(Default, Debug, Clone, Display, EnumIter, PartialEq, Eq)]
 pub enum GoalType {
     #[strum(to_string = "Weekly workouts")]
     WeeklyWorkouts,
 
+    #[default]
     Weight,
     Water,
     Steps,

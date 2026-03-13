@@ -30,6 +30,7 @@ use iced::{Element, Task};
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
+use crate::client::gui::bb_widget::chart_widget::chart::health_chart_environment_widget;
 use crate::client::gui::bb_widget::chart_widget::graph::GraphWidget;
 use crate::common::user_mod::user_goals::GoalType;
 
@@ -169,9 +170,14 @@ impl App {
             content = content.push(edit_mode_button)
         }
 
+        let bmi_widget_with_graph = Row::new()
+            .push(bmi_widget)
+            .push(health_chart_environment_widget(self))
+            .spacing(INDENT);
+
         content = content
             .push(health_stat_container())
-            .push(Row::new().push(bmi_widget).push(GraphWidget::new(self).view()))
+            .push(bmi_widget_with_graph)
             .push(create_progress_bar_environment(
                 water_progress_bar,
                 &Mascot::Rare(Whale),
