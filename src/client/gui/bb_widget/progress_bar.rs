@@ -28,7 +28,7 @@ use strum_macros::Display;
 const PROGRESS_BAR_WIDTH: f32 = 700.0;
 const ROUNDED_CORNERS_PADDING: f32 = 7.5;
 //THICKNESS IS ALSO THE HEIGHT OF THE WIDGET
-const BAR_THICKNESS: f32 = 15.0;
+const BAR_THICKNESS: f32 = 13.0;
 const PADDING_BETWEEN_BARS: f32 = 40.0;
 const PROGRESS_BAR_TITLE_FONT_SIZE: f32 = 24.0;
 
@@ -282,15 +282,14 @@ impl canvas::Program<Message> for ProgressBarWidget<'_> {
 
 fn draw_bar_completion(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget) {
     let start_point = Point {
-        x: Point::ORIGIN.x + ROUNDED_CORNERS_PADDING,
-        y: Point::ORIGIN.y + frame.center().y,
+        x:  ROUNDED_CORNERS_PADDING,
+        y: frame.center().y,
     };
 
     let end_point = Point {
-        x: Point::ORIGIN.x
-            + ROUNDED_CORNERS_PADDING
+        x:    ROUNDED_CORNERS_PADDING
             + calculate_length_completion_bar(progress_bar_widget.progress_bar_state),
-        y: Point::ORIGIN.y + frame.center().y,
+        y:  frame.center().y,
     };
 
     frame.stroke(
@@ -310,16 +309,15 @@ fn draw_bar_remaining(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget
         < progress_bar_widget.progress_bar_state.goal_value
     {
         let start_point = Point {
-            x: Point::ORIGIN.x
-                + ROUNDED_CORNERS_PADDING
+            x:    ROUNDED_CORNERS_PADDING
                 + calculate_length_completion_bar(progress_bar_widget.progress_bar_state)
                 + PADDING_BETWEEN_BARS / 2.0,
-            y: Point::ORIGIN.y + frame.center().y,
+            y:  frame.center().y,
         };
 
         let end_point = Point {
             x: PROGRESS_BAR_WIDTH,
-            y: Point::ORIGIN.y + frame.center().y,
+            y:  frame.center().y,
         };
 
         frame.stroke(

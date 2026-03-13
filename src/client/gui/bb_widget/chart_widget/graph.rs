@@ -56,9 +56,9 @@ pub static BLOCK_HEIGHT: f32 =
     (CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0) / FREQUENCY_OF_Y_AXIS_LABELS as f32;
 pub static GRAPH_HEIGHT: f32 = CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0;
 pub static GRAPH_WIDTH: f32 = CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0;
-pub static GRAPH_START_X: f32 = Point::ORIGIN.x + GRAPH_PADDING;
+pub static GRAPH_START_X: f32 = GRAPH_PADDING;
 pub static GRAPH_END_X: f32 = CHART_WIDGET_WIDTH - GRAPH_PADDING;
-pub static GRAPH_START_Y: f32 = Point::ORIGIN.y + GRAPH_PADDING; // Y-coordinate where the graph starts (top + padding)
+pub static GRAPH_START_Y: f32 =  GRAPH_PADDING; // Y-coordinate where the graph starts (top + padding)
 pub static GRAPH_END_Y: f32 = CHART_WIDGET_HEIGHT - GRAPH_PADDING; // Y-coordinate where the graph ends (bottom - padding)
 #[derive(Clone, Debug)]
 pub enum GraphMessage {
@@ -322,12 +322,12 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
     if graph_widget_state.visible_vertical_lines {
         for _line in 1..=range {
             let point_top = Point {
-                x: Point::ORIGIN.x + current_x,
+                x: current_x,
                 y: GRAPH_START_Y,
             };
 
             let point_bottom = Point {
-                x: Point::ORIGIN.x + current_x,
+                x: current_x,
                 y: CHART_WIDGET_WIDTH - GRAPH_PADDING,
             };
 
@@ -341,12 +341,12 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
         // -1 since we the dashed line at the height of the y-axis arrow should not be drawn
         let point_left = Point {
             x: GRAPH_START_X,
-            y: Point::ORIGIN.y + current_y,
+            y: current_y,
         };
 
         let point_right = Point {
             x: CHART_WIDGET_WIDTH - GRAPH_PADDING,
-            y: Point::ORIGIN.y + current_y,
+            y:  current_y,
         };
 
         draw_line(frame, point_left, point_right, horizontal_dashed_stroke);
@@ -380,7 +380,7 @@ fn draw_axis(animation_progress: f32, active_mascot: &Mascot, frame: &mut Frame<
 
     //X-AXIS
     let start_x_axis = Point {
-        x: Point::ORIGIN.x + GRAPH_PADDING + GRAPH_WIDTH * (1.0 - animation_progress),
+        x: GRAPH_PADDING + GRAPH_WIDTH * (1.0 - animation_progress),
 
         y: GRAPH_END_Y,
     };
@@ -569,8 +569,8 @@ fn draw_cursor_information(
 
     let mut information_offset_from_cursor_x = -70.0;
     let mut information_offset_from_cursor_y = 50.0;
-    let cursor_adjust_x = 10.0;
-    let cursor_adjust_y = 37.5;
+    let cursor_adjust_x = 12.5; //the bigger, the more left
+    let cursor_adjust_y = 37.5; //the bigger, the lower
 
     if graph_bounds.contains(cursor.position().unwrap_or_default()) {
         let cursor_position_in_graph =
@@ -595,7 +595,7 @@ fn draw_cursor_information(
                     y: kg_position_y,
                 }
             } else {
-                Point { x: 0.0, y: 0.0 }
+               Point::ORIGIN
             };
 
         let cursor_information_position =
@@ -604,7 +604,7 @@ fn draw_cursor_information(
                 position.x += information_offset_from_cursor_x;
                 position
             } else {
-                Point { x: 0.0, y: 0.0 }
+                Point::ORIGIN
             };
 
         let cursor_information_shadow_position = Point {
