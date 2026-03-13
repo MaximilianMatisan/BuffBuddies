@@ -27,7 +27,7 @@ ___
 
 ## 💪 Get started
 ### Prerequisites
- - Rust **1.85.0** or newer
+ - Rust **1.94.0** or newer
 
 ### Run the project
  Clone this repository and execute:
