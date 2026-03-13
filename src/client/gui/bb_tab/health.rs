@@ -10,6 +10,10 @@ use crate::client::gui::bb_theme::custom_button::ButtonStyle::InactiveTab;
 use crate::client::gui::bb_theme::custom_button::{
     ButtonStyle, create_element_button, create_text_button,
 };
+use crate::client::gui::bb_theme::scrollable::{
+    ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH,
+    create_scrollable,
+};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use crate::client::gui::bb_widget::bmi_calculator;
 use crate::client::gui::bb_widget::progress_bar::{
@@ -26,6 +30,7 @@ use iced::{Element, Task};
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
+use crate::client::gui::bb_widget::stats::health_stat_container;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum HealthTabMessage {
@@ -163,7 +168,8 @@ impl App {
             content = content.push(edit_mode_button)
         }
 
-        content
+        content = content
+            .push(health_stat_container())
             .push(bmi_widget)
             .push(create_progress_bar_environment(
                 water_progress_bar,
@@ -185,6 +191,14 @@ impl App {
                 ..0.0.into()
             })
             .spacing(LARGE_INDENT)
-            .into()
+            .into();
+
+        create_scrollable(
+            content,
+            self.mascot_manager.selected_mascot,
+            ScrollableStyle::Transparent,
+        )
+        .add_vertical_scrollbar(TAB_SCROLLBAR_WIDTH, TAB_SCROLLBAR_PADDING)
+        .into()
     }
 }

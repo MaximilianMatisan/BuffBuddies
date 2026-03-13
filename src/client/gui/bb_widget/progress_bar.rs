@@ -282,14 +282,14 @@ impl canvas::Program<Message> for ProgressBarWidget<'_> {
 
 fn draw_bar_completion(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget) {
     let start_point = Point {
-        x:  ROUNDED_CORNERS_PADDING,
+        x: ROUNDED_CORNERS_PADDING,
         y: frame.center().y,
     };
 
     let end_point = Point {
-        x:    ROUNDED_CORNERS_PADDING
+        x: ROUNDED_CORNERS_PADDING
             + calculate_length_completion_bar(progress_bar_widget.progress_bar_state),
-        y:  frame.center().y,
+        y: frame.center().y,
     };
 
     frame.stroke(
@@ -309,15 +309,15 @@ fn draw_bar_remaining(frame: &mut Frame, progress_bar_widget: &ProgressBarWidget
         < progress_bar_widget.progress_bar_state.goal_value
     {
         let start_point = Point {
-            x:    ROUNDED_CORNERS_PADDING
+            x: ROUNDED_CORNERS_PADDING
                 + calculate_length_completion_bar(progress_bar_widget.progress_bar_state)
                 + PADDING_BETWEEN_BARS / 2.0,
-            y:  frame.center().y,
+            y: frame.center().y,
         };
 
         let end_point = Point {
             x: PROGRESS_BAR_WIDTH,
-            y:  frame.center().y,
+            y: frame.center().y,
         };
 
         frame.stroke(
