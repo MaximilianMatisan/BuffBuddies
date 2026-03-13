@@ -16,10 +16,10 @@ use crate::client::gui::bb_theme::scrollable::{
 };
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use crate::client::gui::bb_widget::bmi_calculator;
-use crate::client::gui::bb_widget::progress_bar::{
-    ProgressBarType, ProgressBarWidget, create_progress_bar_environment,
+use crate::client::gui::bb_widget::progress_bar::{ ProgressBarWidget, create_progress_bar_environment,
 };
-use crate::client::gui::bb_widget::widget_utils::LARGE_INDENT;
+use crate::client::gui::bb_widget::stats::health_stat_container;
+use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;
 use crate::client::gui::user_interface::Message::HealthTab;
 use crate::common::mascot_mod::epic_mascot::EpicMascot::Capybara;
@@ -30,7 +30,8 @@ use iced::{Element, Task};
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
-use crate::client::gui::bb_widget::stats::health_stat_container;
+use crate::client::gui::bb_widget::chart_widget::graph::GraphWidget;
+use crate::common::user_mod::user_goals::GoalType;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum HealthTabMessage {
@@ -108,13 +109,13 @@ impl App {
             .size(42);
         let bmi_widget = bmi_calculator::BMIWidget::new(self).view();
         let water_progress_bar =
-            ProgressBarWidget::new(water_progress_bar_state, ProgressBarType::Water);
+            ProgressBarWidget::new(water_progress_bar_state, GoalType::Water);
 
         let steps_progress_bar =
-            ProgressBarWidget::new(steps_progress_bar_state, ProgressBarType::Steps);
+            ProgressBarWidget::new(steps_progress_bar_state, GoalType::Steps);
 
         let sleep_progress_bar =
-            ProgressBarWidget::new(sleep_progress_bar_state, ProgressBarType::Sleep);
+            ProgressBarWidget::new(sleep_progress_bar_state, GoalType::Sleep);
 
         let mut content = Column::new().push(health_header);
 
@@ -170,7 +171,7 @@ impl App {
 
         content = content
             .push(health_stat_container())
-            .push(bmi_widget)
+            .push(Row::new().push(bmi_widget).push(GraphWidget::new(self).view()))
             .push(create_progress_bar_environment(
                 water_progress_bar,
                 &Mascot::Rare(Whale),

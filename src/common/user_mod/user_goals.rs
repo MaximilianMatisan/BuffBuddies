@@ -1,7 +1,11 @@
+use iced_core::Color;
 use crate::client::gui::bb_theme::text_format::{hours_to_string, kg_to_string, liter_to_string};
 use crate::common::exercise_mod::weight::Kg;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter};
+use crate::common::mascot_mod::epic_mascot::EpicMascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::mascot_mod::rare_mascot::RareMascot;
 
 /// GoalsTypes of a user also see UserGoals
 #[derive(PartialEq, Debug, Clone, Display, EnumIter)]
@@ -41,6 +45,36 @@ impl GoalType {
             GoalType::Water => 10.0,
             GoalType::Steps => 100000.0,
             GoalType::Sleep => 20.0,
+        }
+    }
+
+    pub(crate) fn get_unit(&self) -> String {
+        match self {
+            GoalType::Water => "L".to_string(),
+            GoalType::Steps => "".to_string(),
+            GoalType::Sleep => "h".to_string(),
+            GoalType::Weight => "kg".to_string(),
+            GoalType::WeeklyWorkouts => "".to_string()
+        }
+    }
+
+    pub(crate) fn get_completed_bar_color(&self) -> Color {
+        match self {
+            GoalType::Water => RareMascot::Whale.get_primary_color(),
+            GoalType::Steps => RareMascot::Chameleon.get_primary_color(),
+            GoalType::Sleep => EpicMascot::Capybara.get_primary_color(),
+            GoalType::Weight => RareMascot::Duck.get_primary_color(),
+            GoalType::WeeklyWorkouts => EpicMascot::Reindeer.get_primary_color()
+        }
+    }
+
+    pub(crate) fn get_remaining_bar_color(&self) -> Color {
+        match self {
+            GoalType::Water => RareMascot::Whale.get_secondary_color(),
+            GoalType::Steps => RareMascot::Chameleon.get_secondary_color(),
+            GoalType::Sleep => EpicMascot::Capybara.get_secondary_color(),
+            GoalType::Weight => RareMascot::Duck.get_secondary_color(),
+            GoalType::WeeklyWorkouts => EpicMascot::Reindeer.get_secondary_color()
         }
     }
 }

@@ -22,6 +22,18 @@ use std::cmp::PartialEq;
 pub const CHART_WIDGET_WIDTH: f32 = 700.0;
 pub const CHART_WIDGET_HEIGHT: f32 = 500.0;
 
+#[derive(Eq, PartialEq, Clone, Debug)]
+pub enum DataPointsType {
+    Exercise (ChartTypes),
+    Health (ChartTypes),
+}
+
+impl Default for DataPointsType {
+    fn default() -> Self {
+        DataPointsType::Exercise(Default::default())
+    }
+}
+
 #[derive(Default, Eq, PartialEq, Clone, Debug)]
 pub enum ChartTypes {
     #[default]
@@ -59,7 +71,8 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
     .padding([8, 16])
     .into();
 
-    let chart: Element<'a, Message> = match app.widget_manager.graph_widget_state.shown_chart_type {
+    let DataPointsType::Exercise(chart_type) = &app.widget_manager.exercise_graph_widget_state.data_points_type else { panic!("Wrong chart type!") };
+    let chart: Element<'a, Message> = match chart_type {
         ChartTypes::Bar => {
             let bar_chart: Element<Message> = BarChart::new(
                 app.mascot_manager.selected_mascot,
@@ -122,9 +135,12 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .into()
 }
 
-fn chart_type_buttons(app: &App) -> Row<'_, Message> {
+
+fn chart_type_buttons(app: &App) -> Row<Message> {
+
+    let DataPointsType::Exercise(chart_type) = &app.widget_manager.exercise_graph_widget_state.data_points_type else { panic!("Wrong chart type!") };
     let (line_button_style, bar_button_style) =
-        match app.widget_manager.graph_widget_state.shown_chart_type {
+        match chart_type {
             ChartTypes::Graph => (ButtonStyle::Active, ButtonStyle::InactiveTab),
             ChartTypes::Bar => (ButtonStyle::InactiveTab, ButtonStyle::Active),
         };
@@ -151,7 +167,7 @@ fn chart_type_buttons(app: &App) -> Row<'_, Message> {
 pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
     let counter = format_button_text(text!(
         "{}",
-        app.widget_manager.graph_widget_state.points_to_draw
+        app.widget_manager.exercise_graph_widget_state.points_to_draw
     ))
     .size(19);
 
@@ -188,7 +204,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         ))
         .width(Length::Fixed(100.0));
 
-    let button_style_dots_button = match app.widget_manager.graph_widget_state.visible_points {
+    let button_style_dots_button = match app.widget_manager.exercise_graph_widget_state.visible_points {
         true => ButtonStyle::Active,
         _ => ButtonStyle::InactiveTab,
     };
@@ -203,7 +219,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
 
     let button_style_cursor_button = match app
         .widget_manager
-        .graph_widget_state
+        .exercise_graph_widget_state
         .visible_cursor_information
     {
         true => ButtonStyle::Active,
@@ -219,7 +235,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
     .on_press(Message::Graph(GraphMessage::ToggleCursor));
 
     let button_style_vertical_lines_button =
-        match app.widget_manager.graph_widget_state.visible_vertical_lines {
+        match app.widget_manager.exercise_graph_widget_state.visible_vertical_lines {
             true => ButtonStyle::Active,
             _ => ButtonStyle::InactiveTab,
         };
