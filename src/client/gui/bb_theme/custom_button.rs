@@ -37,6 +37,14 @@ pub const BUTTON_RADIUS_RIGHT_ZERO: Radius = Radius {
     bottom_right: 0.0,
     bottom_left: DEFAULT_BUTTON_RADIUS,
 };
+
+pub const BUTTON_RADIUS_BOTH_ZERO: Radius = Radius {
+    top_left: 0.0,
+    top_right: 0.0,
+    bottom_right: 0.0,
+    bottom_left: 0.0,
+};
+
 pub const ANIMATION_MOTION: Motion = Motion {
     response: Duration::from_millis(400),
     damping: Motion::BOUNCY.damping,
