@@ -5,15 +5,17 @@ use crate::client::gui::bb_theme::container::{
     ContainerStyle, DEFAULT_CONTAINER_RADIUS, create_container_style,
 };
 use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
-use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_button_text, kg_to_string, format_description_text};
+use crate::client::gui::bb_theme::text_format::{
+    FIRA_SANS_EXTRABOLD, format_button_text, format_description_text, kg_to_string,
+};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use iced::Length;
 use iced::widget::{Column, Container, Row, Space, container, image, text};
+use iced_core::Padding;
 use iced_core::alignment::Horizontal;
 use iced_core::border::Radius;
 use iced_core::image::Handle;
-use iced_core::Padding;
 
 const DISPLAYED_EXERCISE_STATS: usize = 5;
 const DISPLAYED_EXERCISE_STAT_LAST_INDEX: usize = DISPLAYED_EXERCISE_STATS - 1;
@@ -123,14 +125,17 @@ pub fn profile_stat_container<'a>(
 
 const HEALTH_STAT_CONTAINER_WIDTH: f32 = 350.0;
 pub const HEALTH_STAT_CONTAINER_HEIGHT: f32 = 135.0;
-pub const HEALTH_STATS_TEXT_SIZE: u16 = 26;
-pub const DESCRIPTION_TEXT_SIZE: u16 = 16;
+pub const HEALTH_STATS_TEXT_SIZE: u32 = 26;
+pub const DESCRIPTION_TEXT_SIZE: u32 = 16;
 
-pub fn health_stat_container <'a>  ()-> Container<'a, Message> {
+pub fn health_stat_container<'a>() -> Container<'a, Message> {
     let stats_header = format_button_text(text("Stats")).size(HEALTH_STATS_TEXT_SIZE);
-    let all_time_water_text = format_description_text(text("All-time-water")).size(DESCRIPTION_TEXT_SIZE);
-    let all_time_steps_text = format_description_text(text("All-time-steps")).size(DESCRIPTION_TEXT_SIZE);
-    let all_time_sleep_text = format_description_text(text("All-time-sleep")).size(DESCRIPTION_TEXT_SIZE);
+    let all_time_water_text =
+        format_description_text(text("All-time-water")).size(DESCRIPTION_TEXT_SIZE);
+    let all_time_steps_text =
+        format_description_text(text("All-time-steps")).size(DESCRIPTION_TEXT_SIZE);
+    let all_time_sleep_text =
+        format_description_text(text("All-time-sleep")).size(DESCRIPTION_TEXT_SIZE);
 
     let water_value = format_button_text(text("3.402 L")).size(DESCRIPTION_TEXT_SIZE);
     let steps_value = format_button_text(text("5.982.231")).size(DESCRIPTION_TEXT_SIZE);
@@ -145,7 +150,7 @@ pub fn health_stat_container <'a>  ()-> Container<'a, Message> {
         .align_x(Horizontal::Left);
 
     let values_column = Column::new()
-        .push(Space::with_height(Length::Fixed(35.0)))
+        .push(Space::new().height(Length::Fixed(35.0)))
         .push(water_value)
         .push(steps_value)
         .push(sleep_value)
@@ -154,9 +159,9 @@ pub fn health_stat_container <'a>  ()-> Container<'a, Message> {
 
     let contents = Row::new()
         .push(headers_column)
-        .push(Space::with_width(Length::Fill))
+        .push(Space::new().width(Length::Fill))
         .push(values_column)
-        .padding(Padding{
+        .padding(Padding {
             right: INDENT,
             bottom: INDENT,
             ..12.5.into()

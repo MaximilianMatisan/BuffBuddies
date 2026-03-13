@@ -13,7 +13,7 @@ use crate::client::gui::bb_tab::workout_creation::WorkoutCreationMessage;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
 use crate::client::gui::bb_widget::bmi_calculator::BMIMessage;
-use crate::client::gui::bb_widget::chart_widget::chart::ChartTypes;
+use crate::client::gui::bb_widget::chart_widget::chart::{ChartTypes, DataPointsType};
 use crate::client::gui::bb_widget::chart_widget::graph::GraphMessage;
 use crate::client::gui::bb_widget::circle_widget::CircleMessage;
 use crate::client::gui::bb_widget::pop_up::view_pop_up;
@@ -96,7 +96,7 @@ impl App {
             Message::Graph(graph_message) => GraphMessage::update_graph(graph_message, self),
 
             Message::ChangeShownChartType(chart_type) => {
-                self.widget_manager.graph_widget_state.shown_chart_type = chart_type;
+                self.widget_manager.exercise_graph_widget_state.data_points_type = DataPointsType::Exercise(chart_type);
                 Task::none()
             }
             Message::Circle(circle_message) => match circle_message {

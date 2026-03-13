@@ -11,7 +11,8 @@ use crate::common::user_mod::user::UserInformation;
 
 pub struct WidgetManager {
     pub activity_widget: ActivityWidget,
-    pub graph_widget_state: GraphWidgetState,
+    pub exercise_graph_widget_state: GraphWidgetState,
+    pub health_graph_widget_state: GraphWidgetState,
     pub circle_widget_state: CircleWidgetState,
     pub bmi_widget_state: BMIWidgetState,
     pub progress_bar_state_manager: ProgressBarStateManager,
@@ -29,7 +30,8 @@ impl WidgetManager {
 
         WidgetManager {
             activity_widget,
-            graph_widget_state: GraphWidgetState::new(),
+            exercise_graph_widget_state: GraphWidgetState::new(),
+            health_graph_widget_state: GraphWidgetState::new(),
             circle_widget_state: CircleWidgetState::new(),
             bmi_widget_state: BMIWidgetState::new(),
             progress_bar_state_manager: ProgressBarStateManager::new(user_information),

@@ -23,6 +23,7 @@ use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced_core::alignment::Horizontal;
 use iced_core::border::Radius;
 use strum_macros::Display;
+use crate::common::user_mod::user_goals::GoalType;
 
 //LENGTH OF THE BAR ITSELF
 const PROGRESS_BAR_WIDTH: f32 = 700.0;
@@ -40,42 +41,9 @@ const BUTTON_HEIGHT: f32 = 25.8;
 static PROGRESS_BAR_WIDGET_WIDTH: f32 = PROGRESS_BAR_WIDTH + ROUNDED_CORNERS_PADDING * 2.0;
 #[derive(Clone, Debug)]
 pub enum ProgressBarMessage {
-    IncrementCurrentValue(ProgressBarType),
-    DecrementCurrentValue(ProgressBarType),
+    IncrementCurrentValue(GoalType),
+    DecrementCurrentValue(GoalType),
     UpdateProgressBarAnimation(Event<f32>),
-}
-
-#[derive(Debug, Display, Clone)]
-pub enum ProgressBarType {
-    Water,
-    Steps,
-    Sleep,
-}
-
-impl ProgressBarType {
-    fn get_unit(&self) -> String {
-        match self {
-            ProgressBarType::Water => "L".to_string(),
-            ProgressBarType::Steps => "".to_string(),
-            ProgressBarType::Sleep => "h".to_string(),
-        }
-    }
-
-    fn get_completed_bar_color(&self) -> Color {
-        match self {
-            ProgressBarType::Water => RareMascot::Whale.get_primary_color(),
-            ProgressBarType::Steps => RareMascot::Chameleon.get_primary_color(),
-            ProgressBarType::Sleep => EpicMascot::Capybara.get_primary_color(),
-        }
-    }
-
-    fn get_remaining_bar_color(&self) -> Color {
-        match self {
-            ProgressBarType::Water => RareMascot::Whale.get_secondary_color(),
-            ProgressBarType::Steps => RareMascot::Chameleon.get_secondary_color(),
-            ProgressBarType::Sleep => EpicMascot::Capybara.get_secondary_color(),
-        }
-    }
 }
 
 impl ProgressBarMessage {
@@ -104,15 +72,16 @@ impl ProgressBarMessage {
                     .unwrap();
 
                 match progress_bar_type {
-                    ProgressBarType::Water => progress_bars
+                    GoalType::Water => progress_bars
                         .water_progress_bar_state
                         .increment(progress_bar_type),
-                    ProgressBarType::Steps => progress_bars
+                    GoalType::Steps => progress_bars
                         .steps_progress_bar_state
                         .increment(progress_bar_type),
-                    ProgressBarType::Sleep => progress_bars
+                    GoalType::Sleep => progress_bars
                         .sleep_progress_bar_state
                         .increment(progress_bar_type),
+                    GoalType::WeeklyWorkouts | GoalType::Weight => panic!("There are no progress bars of these types yet!"),
                 };
                 Task::none()
             }
@@ -125,27 +94,28 @@ impl ProgressBarMessage {
                     .as_mut()
                     .unwrap();
                 match progress_bar_type {
-                    ProgressBarType::Water => {
+                    GoalType::Water => {
                         if progress_bars.water_progress_bar_state.current_value > 0.0 {
                             progress_bars
                                 .water_progress_bar_state
                                 .decrement(progress_bar_type)
                         }
                     }
-                    ProgressBarType::Steps => {
+                    GoalType::Steps => {
                         if progress_bars.steps_progress_bar_state.current_value > 0.0 {
                             progress_bars
                                 .steps_progress_bar_state
                                 .decrement(progress_bar_type)
                         }
                     }
-                    ProgressBarType::Sleep => {
+                    GoalType::Sleep => {
                         if progress_bars.sleep_progress_bar_state.current_value > 0.0 {
                             progress_bars
                                 .sleep_progress_bar_state
                                 .decrement(progress_bar_type)
                         }
-                    }
+                    },
+                    GoalType::WeeklyWorkouts | GoalType::Weight => panic!("There are no progress bars of these types yet!"),
                 };
                 Task::none()
             }
@@ -155,13 +125,13 @@ impl ProgressBarMessage {
 
 pub struct ProgressBarWidget<'a> {
     progress_bar_state: &'a ProgressBarState,
-    progress_bar_type: ProgressBarType,
+    progress_bar_type: GoalType,
 }
 
 impl<'a> ProgressBarWidget<'a> {
     pub(crate) fn new(
         progress_bar_state: &'a ProgressBarState,
-        progress_bar_type: ProgressBarType,
+        progress_bar_type: GoalType,
     ) -> Self {
         ProgressBarWidget {
             progress_bar_state,
@@ -210,21 +180,23 @@ impl ProgressBarState {
         Self::new(self.current_value, self.goal_value)
     }
 
-    pub(crate) fn increment(&mut self, progress_bar_type: ProgressBarType) {
+    pub(crate) fn increment(&mut self, progress_bar_type: GoalType) {
         let value_to_increment = match progress_bar_type {
-            ProgressBarType::Water => 0.25,
-            ProgressBarType::Steps => 500.0,
-            ProgressBarType::Sleep => 0.5,
+            GoalType::Water => 0.25,
+            GoalType::Steps => 500.0,
+            GoalType::Sleep => 0.5,
+            GoalType::WeeklyWorkouts | GoalType::Weight => panic!("There are no progress bars of these types yet!"),
         };
 
         self.current_value += value_to_increment;
     }
 
-    pub(crate) fn decrement(&mut self, progress_bar_type: ProgressBarType) {
+    pub(crate) fn decrement(&mut self, progress_bar_type: GoalType) {
         let value_to_increment = match progress_bar_type {
-            ProgressBarType::Water => -0.25,
-            ProgressBarType::Steps => -500.0,
-            ProgressBarType::Sleep => -0.5,
+            GoalType::Water => -0.25,
+            GoalType::Steps => -500.0,
+            GoalType::Sleep => -0.5,
+            _ => panic!("There are no progress bars of these types yet!"),
         };
 
         self.current_value += value_to_increment;

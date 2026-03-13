@@ -1,8 +1,4 @@
-use crate::client::gui::bb_theme::color::{
-    CONTAINER_COLOR, DARK_SHADOW, DASHED_LINES_COLOR, DESCRIPTION_TEXT_COLOR,
-    HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR, create_canvas_gradient, create_color_stops,
-    create_gradient_stroke_style, create_solid_stroke_style,
-};
+use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, DARK_SHADOW, DASHED_LINES_COLOR, DESCRIPTION_TEXT_COLOR, HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR, create_canvas_gradient, create_color_stops, create_gradient_stroke_style, create_solid_stroke_style, transform_alpha};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use iced::Renderer;
 use iced::advanced::graphics::geometry::Frame;
@@ -18,9 +14,7 @@ use crate::client::gui::bb_theme;
 use crate::client::gui::bb_widget::canvas_utils::{
     draw_line, draw_text, generate_dashed_stroke, generate_stroke, translate_point,
 };
-use crate::client::gui::bb_widget::chart_widget::chart::{
-    CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH, ChartTypes,
-};
+use crate::client::gui::bb_widget::chart_widget::chart::{CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH, ChartTypes, DataPointsType};
 use crate::client::gui::bb_widget::chart_widget::graph_logic::{
     calculate_points, chop_dates, chop_weights, extract_dates, extract_weights, get_f32_max,
     get_f32_min,
@@ -79,22 +73,22 @@ impl GraphMessage {
             GraphMessage::GraphKeyPressed(Key::Character(char)) => match char.as_str() {
                 "d" => app
                     .widget_manager
-                    .graph_widget_state
+                    .exercise_graph_widget_state
                     .invert_visible_points(),
                 "c" => app
                     .widget_manager
-                    .graph_widget_state
+                    .exercise_graph_widget_state
                     .invert_visible_cursor_information(),
                 "v" => app
                     .widget_manager
-                    .graph_widget_state
+                    .exercise_graph_widget_state
                     .invert_visible_vertical_lines(),
-                "b" => app.widget_manager.graph_widget_state.shown_chart_type = ChartTypes::Bar,
+                "b" => app.widget_manager.exercise_graph_widget_state.data_points_type = DataPointsType::Exercise(ChartTypes::Bar),
                 _ => {}
             },
             GraphMessage::IncrementCounter => {
-                if app.widget_manager.graph_widget_state.get_counter() < MAX_AMOUNT_POINTS {
-                    app.widget_manager.graph_widget_state.increment_counter();
+                if app.widget_manager.exercise_graph_widget_state.get_counter() < MAX_AMOUNT_POINTS {
+                    app.widget_manager.exercise_graph_widget_state.increment_counter();
                 } else {
                     app.pop_up_manager.new_pop_up(
                         PopUpType::Minor,
@@ -104,33 +98,34 @@ impl GraphMessage {
                 }
             }
             GraphMessage::DecrementCounter => {
-                if app.widget_manager.graph_widget_state.get_counter() > 1 {
-                    app.widget_manager.graph_widget_state.decrement_counter();
+                if app.widget_manager.exercise_graph_widget_state.get_counter() > 1 {
+                    app.widget_manager.exercise_graph_widget_state.decrement_counter();
                 }
             }
             GraphMessage::UpdateAnimatedSelection(event) => {
                 app.widget_manager
-                    .graph_widget_state
+                    .exercise_graph_widget_state
                     .animation_progress
                     .update(event);
-                app.widget_manager.graph_widget_state.update_graph();
+                app.widget_manager.exercise_graph_widget_state.update_graph();
             }
 
             GraphMessage::ToggleDots => app
                 .widget_manager
-                .graph_widget_state
+                .exercise_graph_widget_state
                 .invert_visible_points(),
 
             GraphMessage::ToggleCursor => app
                 .widget_manager
-                .graph_widget_state
+                .exercise_graph_widget_state
                 .invert_visible_cursor_information(),
 
             GraphMessage::ToggleVerticalLines => app
                 .widget_manager
-                .graph_widget_state
+                .exercise_graph_widget_state
                 .invert_visible_vertical_lines(),
-            _other_key_enums => {}
+
+            GraphMessage::GraphKeyPressed(_) => {} //other key_enums
         };
         Task::none()
     }
@@ -144,7 +139,7 @@ pub struct GraphWidgetState {
     pub(crate) visible_cursor_information: bool,
     pub(crate) visible_vertical_lines: bool,
     pub(crate) points_to_draw: u8,
-    pub shown_chart_type: ChartTypes,
+    pub data_points_type: DataPointsType,
 }
 
 impl GraphWidgetState {
@@ -161,7 +156,7 @@ impl GraphWidgetState {
             visible_cursor_information: true,
             visible_vertical_lines: true,
             points_to_draw: 9,
-            shown_chart_type: ChartTypes::default(),
+            data_points_type: DataPointsType::default(),
         }
     }
     pub fn invert_visible_points(&mut self) {
@@ -200,7 +195,7 @@ impl<'a> GraphWidget<'a> {
         GraphWidget {
             active_mascot: app.mascot_manager.selected_mascot,
             exercise_manager: &app.exercise_manager,
-            graph_state: &app.widget_manager.graph_widget_state,
+            graph_state: &app.widget_manager.exercise_graph_widget_state,
         }
     }
 
@@ -491,10 +486,7 @@ fn draw_connections(
         create_solid_stroke_style(mascot.get_secondary_color()),
     );
 
-    let shadow_color = Color {
-        a: 0.25,
-        ..Color::BLACK
-    };
+    let shadow_color = transform_alpha(0.25,Color::BLACK);
     let shadow_stroke = generate_stroke(
         (stroke_width + 2.0) * graph_widget_state.animation_progress.value(),
         create_solid_stroke_style(shadow_color),
@@ -574,8 +566,8 @@ fn draw_cursor_information(
 
     let mut information_offset_from_cursor_x = -70.0;
     let mut information_offset_from_cursor_y = 50.0;
-    let cursor_adjust_x = 12.5; //the bigger, the more left
-    let cursor_adjust_y = 37.5; //the bigger, the lower
+    let cursor_adjust_x = 15.0; //the bigger, the more left
+    let cursor_adjust_y = 38.5; //the bigger, the lower
 
     if graph_bounds.contains(cursor.position().unwrap_or_default()) {
         let cursor_position_in_graph =
@@ -584,12 +576,9 @@ fn draw_cursor_information(
                 position.y -= x_axis_padding; //shifting everything one block above x-axis,first point starts after first block
 
                 //cursor box position handling
-                if position.x < CURSOR_BOX_WIDTH {
+                if position.x < CURSOR_BOX_WIDTH || position.y + x_axis_padding < CURSOR_BOX_HEIGHT {
                     information_offset_from_cursor_x =
                         -(information_offset_from_cursor_x + cursor_adjust_x);
-                }
-
-                if position.y + x_axis_padding < CURSOR_BOX_HEIGHT {
                     information_offset_from_cursor_y =
                         -(information_offset_from_cursor_y - cursor_adjust_y);
                 }
