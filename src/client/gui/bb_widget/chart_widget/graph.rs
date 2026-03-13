@@ -567,11 +567,27 @@ fn draw_cursor_information(
     let height_graph_from_min_to_max: f32 =
         GRAPH_HEIGHT - height_padding_for_arrow - x_axis_padding;
 
+    let mut information_offset_from_cursor_x = -70.0;
+    let mut information_offset_from_cursor_y = 50.0;
+    let cursor_adjust_x = 10.0;
+    let cursor_adjust_y = 37.5;
+
     if graph_bounds.contains(cursor.position().unwrap_or_default()) {
         let cursor_position_in_graph =
             if let Some(mut position) = cursor.position_from(graph_origin) {
                 position.y = -position.y; //invert y-coordinate since everything above position_from(graph_origin) is negative
                 position.y -= x_axis_padding; //shifting everything one block above x-axis,first point starts after first block
+
+                //cursor box position handling
+                if position.x < CURSOR_BOX_WIDTH {
+                    information_offset_from_cursor_x = - (information_offset_from_cursor_x + cursor_adjust_x);
+                }
+
+                if position.y + x_axis_padding < CURSOR_BOX_HEIGHT {
+                    information_offset_from_cursor_y = - (information_offset_from_cursor_y - cursor_adjust_y);
+                }
+
+                //cursor text value
                 let position_percentage = position.y / height_graph_from_min_to_max; //percentage of the current position divided by the max_position possible
                 let kg_position_y = min_y + position_percentage * min_to_max_distance; //weight_calculation: min_weight + percentage * delta(max_weight,min_weight)
                 Point {
@@ -581,9 +597,6 @@ fn draw_cursor_information(
             } else {
                 Point { x: 0.0, y: 0.0 }
             };
-
-        let information_offset_from_cursor_x = -70.0;
-        let information_offset_from_cursor_y = 50.0;
 
         let cursor_information_position =
             if let Some(mut position) = cursor.position_from(graph_origin) {
