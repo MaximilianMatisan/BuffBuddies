@@ -32,11 +32,19 @@ ___
 ### Run the project
  Clone this repository and execute:
 ```bash
-cargo run
+# run server
+cargo run --bin server
+
+# run client
+cargo run --bin client
 ```
 For optimized build:
 ```bash
-cargo run --release
+# run optimized server
+cargo run --release --bin server
+
+# run optimized client
+cargo run --release --bin client
 ```
 After starting the application choose whether to run it as client or server (localhost)
 
