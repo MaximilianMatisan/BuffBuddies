@@ -58,7 +58,7 @@ pub static GRAPH_HEIGHT: f32 = CHART_WIDGET_HEIGHT - GRAPH_PADDING * 2.0;
 pub static GRAPH_WIDTH: f32 = CHART_WIDGET_WIDTH - GRAPH_PADDING * 2.0;
 pub static GRAPH_START_X: f32 = GRAPH_PADDING;
 pub static GRAPH_END_X: f32 = CHART_WIDGET_WIDTH - GRAPH_PADDING;
-pub static GRAPH_START_Y: f32 =  GRAPH_PADDING; // Y-coordinate where the graph starts (top + padding)
+pub static GRAPH_START_Y: f32 = GRAPH_PADDING; // Y-coordinate where the graph starts (top + padding)
 pub static GRAPH_END_Y: f32 = CHART_WIDGET_HEIGHT - GRAPH_PADDING; // Y-coordinate where the graph ends (bottom - padding)
 #[derive(Clone, Debug)]
 pub enum GraphMessage {
@@ -77,7 +77,7 @@ impl GraphMessage {
             GraphMessage::GraphCursorMoved(_point) => {}
 
             GraphMessage::GraphKeyPressed(Key::Character(char)) => match char.as_str() {
-                "h" => app
+                "d" => app
                     .widget_manager
                     .graph_widget_state
                     .invert_visible_points(),
@@ -85,6 +85,11 @@ impl GraphMessage {
                     .widget_manager
                     .graph_widget_state
                     .invert_visible_cursor_information(),
+                "v" => app
+                    .widget_manager
+                    .graph_widget_state
+                    .invert_visible_vertical_lines(),
+                "b" => app.widget_manager.graph_widget_state.shown_chart_type = ChartTypes::Bar,
                 _ => {}
             },
             GraphMessage::IncrementCounter => {
@@ -346,7 +351,7 @@ fn draw_dashed_lines(graph_widget_state: &GraphWidgetState, frame: &mut Frame<Re
 
         let point_right = Point {
             x: CHART_WIDGET_WIDTH - GRAPH_PADDING,
-            y:  current_y,
+            y: current_y,
         };
 
         draw_line(frame, point_left, point_right, horizontal_dashed_stroke);
@@ -580,11 +585,13 @@ fn draw_cursor_information(
 
                 //cursor box position handling
                 if position.x < CURSOR_BOX_WIDTH {
-                    information_offset_from_cursor_x = - (information_offset_from_cursor_x + cursor_adjust_x);
+                    information_offset_from_cursor_x =
+                        -(information_offset_from_cursor_x + cursor_adjust_x);
                 }
 
                 if position.y + x_axis_padding < CURSOR_BOX_HEIGHT {
-                    information_offset_from_cursor_y = - (information_offset_from_cursor_y - cursor_adjust_y);
+                    information_offset_from_cursor_y =
+                        -(information_offset_from_cursor_y - cursor_adjust_y);
                 }
 
                 //cursor text value
@@ -595,7 +602,7 @@ fn draw_cursor_information(
                     y: kg_position_y,
                 }
             } else {
-               Point::ORIGIN
+                Point::ORIGIN
             };
 
         let cursor_information_position =
