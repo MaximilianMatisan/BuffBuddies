@@ -181,8 +181,8 @@ fn draw_bmi_title(frame: &mut Frame) {
     let padding_x = 42.0;
     let padding_y = 50.0 / 1.5; //BMI 3 letters so less padding needed than x does
     let position = Point {
-        x: Point::ORIGIN.x + padding_x,
-        y: Point::ORIGIN.y + padding_y,
+        x: padding_x,
+        y: padding_y,
     };
     draw_text(frame, "BMI".to_string(), 30.0, position, TEXT_COLOR)
 }
