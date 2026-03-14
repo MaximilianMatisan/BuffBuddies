@@ -1,3 +1,12 @@
+use crate::client::backend::widget_state::widget_state_manager::WidgetMessage::Circle;
+use crate::client::gui::app::App;
+use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, TEXT_COLOR, create_solid_stroke_style};
+use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
+use crate::client::gui::bb_widget::canvas_utils::{create_arc_path, draw_text, generate_stroke};
+use crate::client::gui::user_interface::Message;
+use crate::client::gui::user_interface::Message::Widget;
+use crate::common::mascot_mod::mascot::Mascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::mouse;
 use iced::widget::canvas::{Cache, Frame, Geometry, Path};
 use iced::widget::{Action, canvas};
@@ -5,14 +14,6 @@ use iced::{Element, Rectangle, Renderer, Size, Theme};
 use iced_anim::{Animated, Animation, Event, Motion};
 use iced_core::Point;
 use std::time::Duration;
-
-use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, TEXT_COLOR, create_solid_stroke_style};
-use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
-use crate::client::gui::bb_widget::canvas_utils::{create_arc_path, draw_text, generate_stroke};
-use crate::client::gui::user_interface::Message;
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
 
 const CIRCLE_WIDGET_WIDTH: f32 = 250.0;
 const CIRCLE_WIDGET_HEIGHT: f32 = 250.0;
@@ -58,7 +59,7 @@ impl<'a> CircleWidget<'a> {
             .height(CIRCLE_WIDGET_HEIGHT);
 
         Animation::new(draw_percentage, canvas)
-            .on_update(|event| Message::Circle(CircleMessage::UpdateCircleAnimation(event)))
+            .on_update(|event| Widget(Circle(CircleMessage::UpdateCircleAnimation(event))))
             .into()
     }
 }
@@ -105,9 +106,9 @@ impl canvas::Program<Message> for CircleWidget<'_> {
     ) -> Option<Action<Message>> {
         self.circle_widget_state.update_circle();
 
-        Some(Action::publish(Message::Circle(
+        Some(Action::publish(Widget(Circle(
             CircleMessage::UpdateCircleAnimation(iced_anim::Event::Target(1.0)),
-        )))
+        ))))
     }
 
     fn draw(
@@ -215,16 +216,18 @@ fn draw_arc_not_completed_exercises(
 
 fn draw_circle_text(frame: &mut Frame, circle_widget: &CircleWidget, is_hovered: bool) {
     let circle_center = frame.center();
-    let format_percentage = |v1: f32 ,v2: f32| {
-        match v1 > v2 {
-            true => {100}
-            false => {(v1 / v2 * 100.0) as u8}
-        }
+    let format_percentage = |v1: f32, v2: f32| match v1 > v2 {
+        true => 100,
+        false => (v1 / v2 * 100.0) as u8,
     };
 
     let mut content_text = format!(
         "{}%",
-        format_percentage(circle_widget.completed_exercises as f32, circle_widget.total_exercises as f32));
+        format_percentage(
+            circle_widget.completed_exercises as f32,
+            circle_widget.total_exercises as f32
+        )
+    );
 
     if is_hovered {
         draw_text(
@@ -241,7 +244,6 @@ fn draw_circle_text(frame: &mut Frame, circle_widget: &CircleWidget, is_hovered:
         );
 
         let text_padding = 5.0;
-
 
         draw_text(
             frame,

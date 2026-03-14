@@ -1,3 +1,4 @@
+use crate::client::backend::widget_state::widget_state_manager::WidgetMessage::Activity;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::container::ContainerStyle;
@@ -187,7 +188,7 @@ impl<'a> ActivityWidget {
                 )
                 .width(width_of_button)
                 .height(DEFAULT_NAVIGATION_BUTTON_HEIGHT)
-                .on_press(Message::Activity(ActivityMessage::TimeScope(time))),
+                .on_press(Message::Widget(Activity(ActivityMessage::TimeScope(time)))),
             );
         }
         time_scope_buttons.spacing(INDENT)
@@ -217,7 +218,9 @@ impl<'a> ActivityWidget {
                 )
                 .width(offset_button_width)
                 .height(DEFAULT_NAVIGATION_BUTTON_HEIGHT)
-                .on_press(Message::Activity(ActivityMessage::TimeOffset(offset))),
+                .on_press(Message::Widget(Activity(ActivityMessage::TimeOffset(
+                    offset,
+                )))),
             );
         }
         time_offset_buttons = time_offset_buttons.spacing(INDENT);

@@ -1,3 +1,14 @@
+use crate::client::backend::widget_state::widget_state_manager::WidgetMessage::Bmi;
+use crate::client::gui::app::App;
+use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, TEXT_COLOR, create_solid_stroke_style};
+use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
+use crate::client::gui::bb_widget::canvas_utils::{create_arc_path, draw_text, generate_stroke};
+use crate::client::gui::user_interface::Message;
+use crate::client::gui::user_interface::Message::Widget;
+use crate::common::mascot_mod::epic_mascot::EpicMascot;
+use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::mascot_mod::rare_mascot::RareMascot;
+use crate::common::user_mod::user::UserInformation;
 use iced::widget::canvas::{Cache, Frame, Geometry, Path};
 use iced::widget::{Action, canvas};
 use iced::{Element, Rectangle, Renderer, Size, Theme};
@@ -5,16 +16,6 @@ use iced::{Task, mouse};
 use iced_anim::{Animated, Animation, Event, Motion};
 use iced_core::{Color, Point, color};
 use std::time::Duration;
-
-use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, TEXT_COLOR, create_solid_stroke_style};
-use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
-use crate::client::gui::bb_widget::canvas_utils::{create_arc_path, draw_text, generate_stroke};
-use crate::client::gui::user_interface::Message;
-use crate::common::mascot_mod::epic_mascot::EpicMascot;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use crate::common::mascot_mod::rare_mascot::RareMascot;
-use crate::common::user_mod::user::UserInformation;
 
 const BMI_WIDGET_WIDTH: f32 = 250.0;
 const BMI_WIDGET_HEIGHT: f32 = 250.0;
@@ -78,7 +79,7 @@ impl<'a> BMIWidget<'a> {
             .height(BMI_WIDGET_HEIGHT);
 
         Animation::new(draw_percentage, canvas)
-            .on_update(|event| Message::Bmi(BMIMessage::UpdateBMIAnimation(event)))
+            .on_update(|event| Widget(Bmi(BMIMessage::UpdateBMIAnimation(event))))
             .into()
     }
 }
@@ -126,9 +127,9 @@ impl canvas::Program<Message> for BMIWidget<'_> {
     ) -> Option<Action<Message>> {
         self.bmi_widget_state.update_circle();
 
-        Some(Action::publish(Message::Bmi(
+        Some(Action::publish(Widget(Bmi(
             BMIMessage::UpdateBMIAnimation(iced_anim::Event::Target(1.0)),
-        )))
+        ))))
     }
 
     fn draw(
@@ -143,7 +144,6 @@ impl canvas::Program<Message> for BMIWidget<'_> {
             .bmi_widget_state
             .circle
             .draw(renderer, bounds.size(), |frame| {
-
                 let circle_center = frame.center();
                 let is_hovered = cursor.is_over(bounds);
 
@@ -189,20 +189,27 @@ fn draw_bmi_title(frame: &mut Frame) {
     draw_text(frame, "BMI".to_string(), 30.0, position, TEXT_COLOR)
 }
 
-fn draw_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget: &BMIWidget, is_hovered: bool) {
-
+fn draw_bmi_arcs(
+    frame: &mut Frame,
+    center_of_circle: Point,
+    bmi_widget: &BMIWidget,
+    is_hovered: bool,
+) {
     let not_filled_colors: Vec<Color> = BMIWidget::colors()
         .iter()
         .map(|color| {
-
             let actual_color: Color = if is_hovered {
                 let (index_last_arc, (_, _)) = translate_bmi_to_arc(bmi_widget.bmi_value);
-                BMIWidget::colors().get(index_last_arc).unwrap().clone()
+                *BMIWidget::colors().get(index_last_arc).unwrap()
             } else {
                 *color
             };
-            
-            Color { a: 0.25, ..actual_color }})
+
+            Color {
+                a: 0.25,
+                ..actual_color
+            }
+        })
         .collect();
 
     //Vector with Arc colors,start degrees, end degrees
@@ -233,14 +240,19 @@ fn draw_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget: &BMIWid
     }
 }
 
-fn fill_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget: &BMIWidget, is_hovered: bool) {
+fn fill_bmi_arcs(
+    frame: &mut Frame,
+    center_of_circle: Point,
+    bmi_widget: &BMIWidget,
+    is_hovered: bool,
+) {
     let (index_last_arc, (start_range, end_range)) = translate_bmi_to_arc(bmi_widget.bmi_value);
 
     let mut chopped_colors = BMIWidget::colors()[..=index_last_arc].to_vec();
 
     if is_hovered {
         let last_color = chopped_colors.last().unwrap();
-        chopped_colors = chopped_colors.iter().map(|_|*last_color).collect();
+        chopped_colors = chopped_colors.iter().map(|_| *last_color).collect();
     }
 
     let colors_with_angles: Vec<(Color, f32, f32)> = chopped_colors

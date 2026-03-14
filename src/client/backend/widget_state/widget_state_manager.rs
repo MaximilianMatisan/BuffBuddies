@@ -2,13 +2,16 @@ use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::backend::profile_stat_manager::calculate_activity_data;
 use crate::client::backend::widget_state::progress_bar_manager::ProgressBarStateManager;
 use crate::client::gui::app::App;
-use crate::client::gui::bb_widget::activity_widget::activity::ActivityWidget;
-use crate::client::gui::bb_widget::bmi_calculator::BMIWidgetState;
-use crate::client::gui::bb_widget::chart_widget::chart::DataPointsType;
+use crate::client::gui::bb_widget::activity_widget::activity::{ActivityMessage, ActivityWidget};
+use crate::client::gui::bb_widget::bmi_calculator::{BMIMessage, BMIWidgetState};
+use crate::client::gui::bb_widget::chart_widget::chart::{ChartMessage, DataPointsType};
 use crate::client::gui::bb_widget::chart_widget::graph::GraphWidgetState;
-use crate::client::gui::bb_widget::circle_widget::CircleWidgetState;
+use crate::client::gui::bb_widget::circle_widget::{CircleMessage, CircleWidgetState};
+use crate::client::gui::bb_widget::progress_bar::ProgressBarMessage;
+use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::user_mod::user::UserInformation;
+use iced::Task;
 
 pub struct WidgetManager {
     pub activity_widget: ActivityWidget,
@@ -31,8 +34,13 @@ impl WidgetManager {
 
         WidgetManager {
             activity_widget,
-            exercise_graph_widget_state: GraphWidgetState::new(DataPointsType::Exercise(Default::default())),
-            health_graph_widget_state: GraphWidgetState::new(DataPointsType::Health(Default::default(), Default::default())),
+            exercise_graph_widget_state: GraphWidgetState::new(DataPointsType::Exercise(
+                Default::default(),
+            )),
+            health_graph_widget_state: GraphWidgetState::new(DataPointsType::Health(
+                Default::default(),
+                Default::default(),
+            )),
             circle_widget_state: CircleWidgetState::new(),
             bmi_widget_state: BMIWidgetState::new(),
             progress_bar_state_manager: ProgressBarStateManager::new(user_information),
@@ -49,5 +57,52 @@ pub fn update_progress_bar_goals_after_updated_user_info(app: &mut App) {
     // Update pending state if existent
     if let Some(pending_state) = &mut app.widget_manager.pending_progress_bar_state_manager {
         pending_state.update_goals(&app.user_manager.user_info)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum WidgetMessage {
+    Chart(ChartMessage),
+    Activity(ActivityMessage),
+    Circle(CircleMessage),
+    Bmi(BMIMessage),
+    ProgressBar(ProgressBarMessage),
+    ToggleGeneralExerciseInfo(u32),
+}
+
+impl WidgetMessage {
+    pub fn update(widget_message: WidgetMessage, app: &mut App) -> Task<Message> {
+        match widget_message {
+            WidgetMessage::Chart(chart_message) => ChartMessage::update(chart_message, app),
+
+            WidgetMessage::Activity(activity_message) => {
+                app.widget_manager.activity_widget.update(activity_message)
+            }
+
+            WidgetMessage::Circle(circle_message) => match circle_message {
+                CircleMessage::UpdateCircleAnimation(event) => {
+                    app.widget_manager
+                        .circle_widget_state
+                        .animation_progress
+                        .update(event);
+                    app.widget_manager.circle_widget_state.update_circle();
+                    Task::none()
+                }
+            },
+
+            WidgetMessage::Bmi(bmi_message) => BMIMessage::update_bmi_message(bmi_message, app),
+            WidgetMessage::ProgressBar(progress_bar_message) => {
+                ProgressBarMessage::update_progress_bar_message(progress_bar_message, app)
+            }
+            WidgetMessage::ToggleGeneralExerciseInfo(id) => {
+                let extended_set = &mut app.exercise_manager.extended_general_exercise_infos;
+                if extended_set.contains(&id) {
+                    extended_set.remove(&id);
+                } else {
+                    extended_set.insert(id);
+                }
+                Task::none()
+            }
+        }
     }
 }

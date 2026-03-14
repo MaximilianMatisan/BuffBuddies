@@ -1,4 +1,5 @@
 use crate::client::gui::app::App;
+use crate::client::gui::bb_tab::tab::FRAME_PADDING;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::scrollable::{
     ScrollableExtension, ScrollableStyle, TAB_SCROLLBAR_PADDING, TAB_SCROLLBAR_WIDTH,
@@ -16,7 +17,6 @@ use iced::Element;
 use iced::widget::{Column, Row, Space, container, row, text};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
-use crate::client::gui::bb_tab::tab::FRAME_PADDING;
 
 const WELCOME_BACK_TEXT_SIZE: f32 = 42.0;
 const SECONDARY_TEXT_SIZE: f32 = 31.0;

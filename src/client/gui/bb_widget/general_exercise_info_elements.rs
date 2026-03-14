@@ -1,4 +1,5 @@
 use crate::client::backend::exercise_manager::ExerciseManager;
+use crate::client::backend::widget_state::widget_state_manager::WidgetMessage;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::container::{
     ContainerStyle, DEFAULT_TEXT_CONTAINER_PADDING, create_container_style,
@@ -115,9 +116,9 @@ fn general_exercise_info_element<'a>(
         ButtonStyle::ActiveTab,
         None,
     )
-    .on_press(Message::ToggleGeneralExerciseInfo(
+    .on_press(Message::Widget(WidgetMessage::ToggleGeneralExerciseInfo(
         exercise.general_exercise_info.id,
-    ));
+    )));
 
     let header = Row::new()
         .push(exercise_name)

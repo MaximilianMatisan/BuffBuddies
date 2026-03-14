@@ -1,8 +1,9 @@
 use crate::client::backend::exercise_create::WorkoutCreate;
 use crate::client::backend::login_state::LoginStates;
 use crate::client::backend::pop_up_manager::PopUpType;
+use crate::client::backend::widget_state::widget_state_manager::WidgetMessage;
 pub use crate::client::gui::app::App;
-use crate::client::gui::bb_tab::health::HealthTabMessage;
+use crate::client::gui::bb_tab::health::HealthMessage;
 use crate::client::gui::bb_tab::login::{LoginMessage, view_login};
 use crate::client::gui::bb_tab::mascot::MascotMessage;
 use crate::client::gui::bb_tab::preset_creation::PresetCreationMessage;
@@ -11,13 +12,7 @@ use crate::client::gui::bb_tab::social::SocialMessage;
 use crate::client::gui::bb_tab::tab::{Tab, view_tab_button_bar, view_tab_content};
 use crate::client::gui::bb_tab::workout_creation::WorkoutCreationMessage;
 use crate::client::gui::bb_theme::color;
-use crate::client::gui::bb_widget::activity_widget::activity::ActivityMessage;
-use crate::client::gui::bb_widget::bmi_calculator::BMIMessage;
-use crate::client::gui::bb_widget::chart_widget::chart::{ChartTypes, DataPointsType};
-use crate::client::gui::bb_widget::chart_widget::graph::GraphMessage;
-use crate::client::gui::bb_widget::circle_widget::CircleMessage;
 use crate::client::gui::bb_widget::pop_up::view_pop_up;
-use crate::client::gui::bb_widget::progress_bar::ProgressBarMessage;
 use crate::client::gui::size;
 use crate::client::server_communication::request_data::LoginServerRequestData;
 use crate::client::server_communication::server_communicator::ServerRequestError;
@@ -27,28 +22,16 @@ use iced::{Element, Task};
 use iced_core::window::{Position, Settings};
 use iced_core::{Length, Size, Theme};
 use std::sync::Arc;
-use crate::common::user_mod::user_goals::GoalType;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     Select(Tab),
 
-    // ChartMessage (Combine) maybe include in WidgetMessage?
-    SelectExercise(String),
-    Graph(GraphMessage),
-    ChangeShownChartType(DataPointsType),
-    ChangeShownGoalType(ChartTypes,GoalType),
-
-    // WidgetMessage? (Combine)
-    Activity(ActivityMessage),
-    Circle(CircleMessage),
-    Bmi(BMIMessage),
-    ProgressBar(ProgressBarMessage),
-    HealthTab(HealthTabMessage),
-    ToggleGeneralExerciseInfo(u32),
+    Widget(WidgetMessage),
 
     Social(SocialMessage),
     ResetPopUp,
+    HealthTab(HealthMessage),
     Settings(SettingsMessage),
     UpdateInfoOnServerResult(Result<(), ServerRequestError>, String),
 
@@ -88,46 +71,11 @@ impl App {
                 self.screen = tab;
                 Task::none()
             }
-            Message::Activity(activity_message) => {
-                self.widget_manager.activity_widget.update(activity_message)
-            }
-            Message::SelectExercise(exercise) => {
-                self.exercise_manager.update_selected_exercise(exercise);
-                Task::none()
-            }
-            Message::Graph(graph_message) => GraphMessage::update_graph(graph_message, self),
 
-            Message::ChangeShownChartType(data_points_type) => {
-                match data_points_type {
-                    DataPointsType::Exercise(chart_type) => {self.widget_manager.exercise_graph_widget_state.data_points_type = DataPointsType::Exercise(chart_type);}
-                    DataPointsType::Health(chart_type, goal_type) => {self.widget_manager.health_graph_widget_state.data_points_type = DataPointsType::Health(chart_type,goal_type)}
-                }
-                
-                Task::none()
-            }
+            Message::Widget(widget_message) => WidgetMessage::update(widget_message, self),
 
-            Message::ChangeShownGoalType(chart_type,goal_type) => {
-                self.widget_manager.health_graph_widget_state.data_points_type = DataPointsType::Health(chart_type,goal_type);
-                Task::none()
-            }
-
-            Message::Circle(circle_message) => match circle_message {
-                CircleMessage::UpdateCircleAnimation(event) => {
-                    self.widget_manager
-                        .circle_widget_state
-                        .animation_progress
-                        .update(event);
-                    self.widget_manager.circle_widget_state.update_circle();
-                    Task::none()
-                }
-            },
-
-            Message::Bmi(bmi_message) => BMIMessage::update_bmi_message(bmi_message, self),
-            Message::ProgressBar(progress_bar_message) => {
-                ProgressBarMessage::update_progress_bar_message(progress_bar_message, self)
-            }
             Message::HealthTab(health_message) => {
-                HealthTabMessage::update_health_tab(health_message, self)
+                HealthMessage::update_health_tab(health_message, self)
             }
 
             Message::ResetPopUp => {
@@ -142,15 +90,6 @@ impl App {
                         println!("Updated {info_type} info was successfully sent to the server!")
                     }
                     Err(err) => println!("{}", err.to_error_message()),
-                }
-                Task::none()
-            }
-            Message::ToggleGeneralExerciseInfo(id) => {
-                let extended_set = &mut self.exercise_manager.extended_general_exercise_infos;
-                if extended_set.contains(&id) {
-                    extended_set.remove(&id);
-                } else {
-                    extended_set.insert(id);
                 }
                 Task::none()
             }
