@@ -61,8 +61,11 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
 
     let chart: Element<'a, Message> = match app.widget_manager.graph_widget_state.shown_chart_type {
         ChartTypes::Bar => {
-            let bar_chart: Element<Message> =
-                BarChart::new(app.mascot_manager.selected_mascot, &app.exercise_manager).into();
+            let bar_chart: Element<Message> = BarChart::new(
+                app.mascot_manager.selected_mascot,
+                &app.exercise_manager.data_points,
+            )
+            .into();
             let column = Column::new()
                 .push(Space::new().height(INDENT))
                 .push(bar_chart);

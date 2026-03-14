@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
 
-pub type ExerciseDataPoints = Vec<(NaiveDate, Kg)>;
+pub type DateWeightPoints = Vec<(NaiveDate, Kg)>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Exercise {
@@ -38,8 +38,8 @@ impl Exercise {
     }
 
     /// This function calculates the maximum weight of a set for each tracked day.
-    pub fn calculate_max_weight_per_day(&self) -> ExerciseDataPoints {
-        let mut results: ExerciseDataPoints = vec![];
+    pub fn calculate_max_weight_per_day(&self) -> DateWeightPoints {
+        let mut results: DateWeightPoints = vec![];
         for (date, sets) in &self.sets {
             let mut current_best_weight = 0.0;
             for set in sets {
@@ -195,12 +195,12 @@ pub fn generate_example_exercise(
     }
     exercise
 }
-pub fn get_minimum_weight(data_points: &ExerciseDataPoints) -> Option<f32> {
+pub fn get_minimum_weight(data_points: &DateWeightPoints) -> Option<f32> {
     let temp_min = data_points.iter().map(|(_, kg)| (*kg * 10.0) as u32).min();
 
     temp_min.map(|value| value as f32 / 10.0)
 }
-pub fn get_maximum_weight(data_points: &ExerciseDataPoints) -> Option<f32> {
+pub fn get_maximum_weight(data_points: &DateWeightPoints) -> Option<f32> {
     let temp_min = data_points.iter().map(|(_, kg)| (*kg * 10.0) as u32).max();
     temp_min.map(|value| value as f32 / 10.0)
 }
