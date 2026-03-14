@@ -16,6 +16,7 @@ use iced::Element;
 use iced::widget::{Column, Row, Space, container, row, text};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
+use crate::client::gui::bb_tab::tab::FRAME_PADDING;
 
 const WELCOME_BACK_TEXT_SIZE: f32 = 42.0;
 const SECONDARY_TEXT_SIZE: f32 = 31.0;
@@ -105,6 +106,7 @@ impl App {
             .push(chart_widget_with_circle_widget)
             .padding(Padding {
                 top: SPACING,
+                bottom: FRAME_PADDING,
                 ..0.0.into()
             });
 

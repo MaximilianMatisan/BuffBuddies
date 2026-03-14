@@ -30,6 +30,7 @@ use iced::{Element, Task};
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
+use crate::client::gui::bb_tab::tab::FRAME_PADDING;
 use crate::client::gui::bb_widget::chart_widget::chart::health_chart_environment_widget;
 use crate::client::gui::bb_widget::chart_widget::graph::GraphWidget;
 use crate::common::user_mod::user_goals::GoalType;
@@ -195,6 +196,7 @@ impl App {
             ))
             .padding(Padding {
                 top: LARGE_INDENT,
+                bottom: FRAME_PADDING,
                 ..0.0.into()
             })
             .spacing(LARGE_INDENT)
