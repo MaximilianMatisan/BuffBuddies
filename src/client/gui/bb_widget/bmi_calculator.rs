@@ -137,13 +137,15 @@ impl canvas::Program<Message> for BMIWidget<'_> {
         renderer: &Renderer,
         _theme: &Theme,
         bounds: Rectangle,
-        _cursor: mouse::Cursor,
+        cursor: mouse::Cursor,
     ) -> Vec<Geometry> {
         let circle_widget = self
             .bmi_widget_state
             .circle
             .draw(renderer, bounds.size(), |frame| {
+
                 let circle_center = frame.center();
+                let is_hovered = cursor.is_over(bounds);
 
                 //DRAW BACKGORUND
                 draw_background(frame);
@@ -152,10 +154,10 @@ impl canvas::Program<Message> for BMIWidget<'_> {
                 draw_bmi_title(frame);
 
                 //DRAW BMI ARCS
-                draw_bmi_arcs(frame, circle_center, self.bmi_widget_state);
+                draw_bmi_arcs(frame, circle_center, self, is_hovered);
 
                 //FILL BMI ARCS
-                fill_bmi_arcs(frame, circle_center, self);
+                fill_bmi_arcs(frame, circle_center, self, is_hovered);
 
                 //DRAW TEXT BMI VALUE
                 draw_bmi_text(frame, self)
@@ -187,10 +189,20 @@ fn draw_bmi_title(frame: &mut Frame) {
     draw_text(frame, "BMI".to_string(), 30.0, position, TEXT_COLOR)
 }
 
-fn draw_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget_state: &BMIWidgetState) {
+fn draw_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget: &BMIWidget, is_hovered: bool) {
+
     let not_filled_colors: Vec<Color> = BMIWidget::colors()
         .iter()
-        .map(|color| Color { a: 0.25, ..*color })
+        .map(|color| {
+
+            let actual_color: Color = if is_hovered {
+                let (index_last_arc, (_, _)) = translate_bmi_to_arc(bmi_widget.bmi_value);
+                BMIWidget::colors().get(index_last_arc).unwrap().clone()
+            } else {
+                *color
+            };
+            
+            Color { a: 0.25, ..actual_color }})
         .collect();
 
     //Vector with Arc colors,start degrees, end degrees
@@ -205,8 +217,8 @@ fn draw_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget_state: &
 
             (
                 *color,
-                start_angle * bmi_widget_state.animation_progress.value(),
-                end_angle * bmi_widget_state.animation_progress.value(),
+                start_angle * bmi_widget.bmi_widget_state.animation_progress.value(),
+                end_angle * bmi_widget.bmi_widget_state.animation_progress.value(),
             )
         })
         .collect();
@@ -221,10 +233,15 @@ fn draw_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget_state: &
     }
 }
 
-fn fill_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget: &BMIWidget) {
+fn fill_bmi_arcs(frame: &mut Frame, center_of_circle: Point, bmi_widget: &BMIWidget, is_hovered: bool) {
     let (index_last_arc, (start_range, end_range)) = translate_bmi_to_arc(bmi_widget.bmi_value);
 
-    let chopped_colors = &BMIWidget::colors()[..=index_last_arc];
+    let mut chopped_colors = BMIWidget::colors()[..=index_last_arc].to_vec();
+
+    if is_hovered {
+        let last_color = chopped_colors.last().unwrap();
+        chopped_colors = chopped_colors.iter().map(|_|*last_color).collect();
+    }
 
     let colors_with_angles: Vec<(Color, f32, f32)> = chopped_colors
         .iter()
