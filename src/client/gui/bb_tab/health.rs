@@ -203,7 +203,7 @@ impl App {
         create_scrollable(
             content,
             self.mascot_manager.selected_mascot,
-            ScrollableStyle::Transparent,
+            ScrollableStyle::Default,
         )
         .add_vertical_scrollbar(TAB_SCROLLBAR_WIDTH, TAB_SCROLLBAR_PADDING)
         .into()
