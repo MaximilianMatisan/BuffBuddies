@@ -1,13 +1,7 @@
-use crate::client::backend::profile_stat_manager::ProfileStatManager;
-use crate::common::exercise_mod::exercise::{Exercise, generate_example_exercise};
-use crate::common::exercise_mod::general_exercise::GeneralExerciseInfo;
-use crate::common::mascot_mod::epic_mascot::EpicMascot;
-use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::rare_mascot::RareMascot;
+use crate::common::exercise_mod::exercise::Exercise;
 use crate::common::user_mod::user::{
     ForeignUser, Gender, UserInformation, UserInformationStrings, UserType,
 };
-use crate::common::user_mod::user_goals::UserGoals;
 use iced::widget::combo_box;
 use strum::IntoEnumIterator;
 
@@ -26,117 +20,10 @@ pub struct UserManager {
 }
 impl UserManager {
     pub fn new(exercise_data: &Vec<Exercise>) -> Self {
-        //TODO delete examples
-        let default_weekly_workout_goal = UserGoals::default().weekly_workouts as u32;
-        let user1_exercises = vec![generate_example_exercise(
-            GeneralExerciseInfo::test_obj(),
-            49,
-            80.0,
-        )];
-        let user1_mascots = vec![Mascot::Rare(RareMascot::Chameleon)];
-        let test_user1 = ForeignUser {
-            user_information: UserInformation {
-                username: "Felix".to_string(),
-                description: "The boss".to_string(),
-                profile_picture_path: "assets/images/profile_picture.png".to_string(),
-                weight: 75.0,
-                height: 187,
-                gender: Gender::Male,
-                coin_balance: 12381,
-                favorite_mascot: Mascot::Rare(RareMascot::Chameleon),
-                user_goals: UserGoals::default(),
-                profile_stat_manager: ProfileStatManager::new(
-                    &user1_exercises,
-                    default_weekly_workout_goal,
-                ),
-            },
-            selected_mascot: Mascot::Rare(RareMascot::Chameleon),
-            owned_mascots: user1_mascots,
-            friends_with_active_user: false,
-        };
-        let user2_exercises = vec![generate_example_exercise(
-            GeneralExerciseInfo::test_obj(),
-            180,
-            40.0,
-        )];
-        let user2_mascots = vec![
-            Mascot::Rare(RareMascot::Whale),
-            Mascot::Rare(RareMascot::Duck),
-        ];
-        let test_user2 = ForeignUser {
-            user_information: UserInformation {
-                username: "Stefano".to_string(),
-                description: "The beast".to_string(),
-                profile_picture_path: "assets/images/profile_picture.png".to_string(),
-                weight: 70.0,
-                height: 178,
-                gender: Gender::Male,
-                coin_balance: 2972,
-                favorite_mascot: Mascot::Rare(RareMascot::Whale),
-                user_goals: UserGoals::default(),
-                profile_stat_manager: ProfileStatManager::new(
-                    &user2_exercises,
-                    default_weekly_workout_goal,
-                ),
-            },
-            selected_mascot: Mascot::Rare(RareMascot::Duck),
-            owned_mascots: user2_mascots,
-            friends_with_active_user: false,
-        };
-        let user3_exercises = vec![];
-        let user3_mascots = vec![
-            Mascot::Epic(EpicMascot::Capybara),
-            Mascot::Rare(RareMascot::Dog),
-        ];
-        let test_user3 = ForeignUser {
-            user_information: UserInformation {
-                username: "Robert".to_string(),
-                description: "The titan".to_string(),
-                profile_picture_path: "assets/images/profile_picture.png".to_string(),
-                weight: 68.0,
-                height: 188,
-                gender: Gender::Male,
-                coin_balance: 90,
-                favorite_mascot: Mascot::Epic(EpicMascot::Capybara),
-                user_goals: UserGoals::default(),
-                profile_stat_manager: ProfileStatManager::new(
-                    &user3_exercises,
-                    default_weekly_workout_goal,
-                ),
-            },
-            selected_mascot: Mascot::Rare(RareMascot::Dog),
-            owned_mascots: user3_mascots,
-            friends_with_active_user: false,
-        };
-        let user4_exercises = vec![];
-        let user4_mascots = vec![
-            Mascot::Epic(EpicMascot::Shark),
-            Mascot::Rare(RareMascot::Duck),
-        ];
-        let test_user4 = ForeignUser {
-            user_information: UserInformation {
-                username: "JohnP".to_string(),
-                description: "always on my phone".to_string(),
-                profile_picture_path: "assets/images/profile_picture.png".to_string(),
-                weight: 100.0,
-                height: 150,
-                gender: Gender::Male,
-                coin_balance: 200,
-                favorite_mascot: Mascot::Epic(EpicMascot::Shark),
-                user_goals: UserGoals::default(),
-                profile_stat_manager: ProfileStatManager::new(
-                    &user4_exercises,
-                    default_weekly_workout_goal,
-                ),
-            },
-            selected_mascot: Mascot::Rare(RareMascot::Duck),
-            owned_mascots: user4_mascots,
-            friends_with_active_user: false,
-        };
         UserManager {
             user_info: UserInformation::default(exercise_data),
             pending_user_info_changes: None,
-            loaded_users: vec![test_user1, test_user2, test_user3, test_user4],
+            loaded_users: vec![],
             most_recently_viewed_user: UserType::Own,
             gender_combo_box_state: combo_box::State::new(Gender::iter().collect()),
         }
