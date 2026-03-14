@@ -1,5 +1,5 @@
 use crate::client::gui::app::App;
-use crate::client::gui::bb_tab::tab::Tab;
+use crate::client::gui::bb_tab::tab::{Tab, FRAME_PADDING};
 use crate::client::gui::bb_theme::color::{BACKGROUND_COLOR, CONTAINER_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::custom_button::{ButtonType, create_button_style};
 use crate::client::gui::bb_theme::scrollable::{
@@ -126,7 +126,7 @@ impl App {
             .spacing(SPACING)
             .padding(Padding {
                 top: SPACING,
-                bottom: SPACING,
+                bottom: FRAME_PADDING,
                 ..0.0.into()
             });
 

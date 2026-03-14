@@ -28,6 +28,7 @@ use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::{Handle, Image};
 use iced_core::{Length, Padding};
 use strum::IntoEnumIterator;
+use crate::client::gui::bb_tab::tab::FRAME_PADDING;
 
 const SCROLLABLE_MASCOTS_HEIGHT: f32 = 540.0;
 const MASCOT_IMAGE_HEIGHT: f32 = 360.0;
@@ -279,7 +280,11 @@ impl App {
 
         let bottom_half = container(bottom_column);
 
-        let mascot_interface = Column::new().push(top_half).push(bottom_half).spacing(20.0);
+        let mascot_interface = Column::new().push(top_half).push(bottom_half).spacing(20.0)
+            .padding(Padding {
+                bottom: FRAME_PADDING,
+                ..0.into()
+            });
 
         create_scrollable(
             mascot_interface,

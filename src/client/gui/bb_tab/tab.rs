@@ -18,6 +18,8 @@ use iced_core::image::Handle;
 use iced_core::{Length, Padding, Theme};
 use strum_macros::Display;
 
+pub const FRAME_PADDING: f32 = 15.0;
+
 #[derive(Default, Debug, Clone, PartialEq, Display)]
 pub enum Tab {
     //TAB-BUTTONS
@@ -75,7 +77,7 @@ pub fn view_tab_button_bar<'a>(
 
     tab_container = container(tab_container).padding(Padding {
         right: 0.0,
-        ..15.into()
+        ..FRAME_PADDING.into()
     });
 
     tab_container
