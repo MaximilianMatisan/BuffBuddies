@@ -116,13 +116,15 @@ impl canvas::Program<Message> for CircleWidget<'_> {
         renderer: &Renderer,
         _theme: &Theme,
         bounds: Rectangle,
-        _cursor: mouse::Cursor,
+        cursor: mouse::Cursor,
     ) -> Vec<Geometry> {
         let circle_widget =
             self.circle_widget_state
                 .circle
                 .draw(renderer, bounds.size(), |frame| {
                     let circle_center = frame.center();
+
+                    let is_hovered = cursor.is_over(bounds);
 
                     //DRAW BACKGORUND
                     draw_background(frame);
@@ -134,7 +136,7 @@ impl canvas::Program<Message> for CircleWidget<'_> {
                     draw_arc_not_completed_exercises(frame, circle_center, self);
 
                     //DRAW TEXT COMPLETED/TOTAL EXERCISES
-                    draw_circle_text(frame, self)
+                    draw_circle_text(frame, self, is_hovered)
                 });
 
         vec![circle_widget]
@@ -211,43 +213,66 @@ fn draw_arc_not_completed_exercises(
     }
 }
 
-fn draw_circle_text(frame: &mut Frame, circle_widget: &CircleWidget) {
+fn draw_circle_text(frame: &mut Frame, circle_widget: &CircleWidget, is_hovered: bool) {
     let circle_center = frame.center();
-    let text_padding = 5.0;
-    let content_text = format!(
-        "{} / {}",
-        circle_widget.completed_exercises, circle_widget.total_exercises
-    );
+    let format_percentage = |v1: f32 ,v2: f32| {
+        match v1 > v2 {
+            true => {100}
+            false => {(v1 / v2 * 100.0) as u8}
+        }
+    };
 
-    draw_text(
-        frame,
-        content_text,
-        FONT_SIZE_RATIO,
-        Point {
-            x: circle_center.x,
-            y: circle_center.y - FONT_SIZE_RATIO - text_padding,
-        },
-        TEXT_COLOR,
-    );
+    let mut content_text = format!(
+        "{}%",
+        format_percentage(circle_widget.completed_exercises as f32, circle_widget.total_exercises as f32));
 
-    draw_text(
-        frame,
-        String::from("workouts"),
-        FONT_SIZE_DESCRIPTION + 4.0, //MIDDLE TEXT SHOULD BE A LITTLE BIT BIGGER THAN THE LOWER TEXT
-        circle_center,
-        TEXT_COLOR,
-    );
+    if is_hovered {
+        draw_text(
+            frame,
+            content_text,
+            FONT_SIZE_DESCRIPTION + 15.0,
+            circle_center,
+            TEXT_COLOR,
+        );
+    } else {
+        content_text = format!(
+            "{} / {}",
+            circle_widget.completed_exercises, circle_widget.total_exercises
+        );
 
-    draw_text(
-        frame,
-        String::from("this week"),
-        FONT_SIZE_DESCRIPTION,
-        Point {
-            x: circle_center.x,
-            y: circle_center.y + FONT_SIZE_RATIO + text_padding,
-        },
-        TEXT_COLOR,
-    );
+        let text_padding = 5.0;
+
+
+        draw_text(
+            frame,
+            content_text,
+            FONT_SIZE_RATIO,
+            Point {
+                x: circle_center.x,
+                y: circle_center.y - FONT_SIZE_RATIO - text_padding,
+            },
+            TEXT_COLOR,
+        );
+
+        draw_text(
+            frame,
+            String::from("workouts"),
+            FONT_SIZE_DESCRIPTION + 4.0, //MIDDLE TEXT SHOULD BE A LITTLE BIT BIGGER THAN THE LOWER TEXT
+            circle_center,
+            TEXT_COLOR,
+        );
+
+        draw_text(
+            frame,
+            String::from("this week"),
+            FONT_SIZE_DESCRIPTION,
+            Point {
+                x: circle_center.x,
+                y: circle_center.y + FONT_SIZE_RATIO + text_padding,
+            },
+            TEXT_COLOR,
+        );
+    }
 }
 
 //LOGIC
