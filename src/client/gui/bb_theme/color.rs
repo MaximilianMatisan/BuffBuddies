@@ -14,10 +14,7 @@ pub const DARK_SHADOW: iced::Color = color!(0, 0, 0);
 pub const DASHED_LINES_COLOR: iced::Color = color!(120, 120, 122);
 
 pub fn transform_alpha(alpha: f32, color: Color) -> Color {
-    Color {
-        a: alpha,
-        ..color
-    }
+    Color { a: alpha, ..color }
 }
 
 /// Converts a list of `(Color, offset)` tuples into a `Vec<ColorStop>`.

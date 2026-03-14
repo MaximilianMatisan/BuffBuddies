@@ -1,11 +1,11 @@
-use iced_core::Color;
 use crate::client::gui::bb_theme::text_format::{hours_to_string, kg_to_string, liter_to_string};
 use crate::common::exercise_mod::weight::Kg;
-use serde::{Deserialize, Serialize};
-use strum_macros::{Display, EnumIter};
 use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
+use iced_core::Color;
+use serde::{Deserialize, Serialize};
+use strum_macros::{Display, EnumIter};
 
 /// GoalsTypes of a user also see UserGoals
 #[derive(Default, Debug, Clone, Display, EnumIter, PartialEq, Eq)]
@@ -55,7 +55,7 @@ impl GoalType {
             GoalType::Steps => "".to_string(),
             GoalType::Sleep => "h".to_string(),
             GoalType::Weight => "kg".to_string(),
-            GoalType::WeeklyWorkouts => "".to_string()
+            GoalType::WeeklyWorkouts => "".to_string(),
         }
     }
 
@@ -65,7 +65,7 @@ impl GoalType {
             GoalType::Steps => RareMascot::Chameleon.get_primary_color(),
             GoalType::Sleep => EpicMascot::Capybara.get_primary_color(),
             GoalType::Weight => RareMascot::Duck.get_primary_color(),
-            GoalType::WeeklyWorkouts => EpicMascot::Reindeer.get_primary_color()
+            GoalType::WeeklyWorkouts => EpicMascot::Reindeer.get_primary_color(),
         }
     }
 
@@ -75,7 +75,7 @@ impl GoalType {
             GoalType::Steps => RareMascot::Chameleon.get_secondary_color(),
             GoalType::Sleep => EpicMascot::Capybara.get_secondary_color(),
             GoalType::Weight => RareMascot::Duck.get_secondary_color(),
-            GoalType::WeeklyWorkouts => EpicMascot::Reindeer.get_secondary_color()
+            GoalType::WeeklyWorkouts => EpicMascot::Reindeer.get_secondary_color(),
         }
     }
 }

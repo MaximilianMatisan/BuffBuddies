@@ -1,8 +1,12 @@
+use crate::client::backend::widget_state::widget_state_manager::WidgetMessage;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color::BACKGROUND_COLOR;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
-use crate::client::gui::bb_theme::custom_button::{BUTTON_RADIUS_LEFT_ZERO, BUTTON_RADIUS_RIGHT_ZERO, ButtonStyle, create_text_button, BUTTON_RADIUS_BOTH_ZERO};
+use crate::client::gui::bb_theme::custom_button::{
+    BUTTON_RADIUS_BOTH_ZERO, BUTTON_RADIUS_LEFT_ZERO, BUTTON_RADIUS_RIGHT_ZERO, ButtonStyle,
+    create_text_button,
+};
 use crate::client::gui::bb_theme::text_format;
 use crate::client::gui::bb_theme::text_format::format_button_text;
 use crate::client::gui::bb_widget::chart_widget::bar_chart::BarChart;
@@ -10,22 +14,24 @@ use crate::client::gui::bb_widget::chart_widget::graph::{GraphMessage, GraphWidg
 use crate::client::gui::bb_widget::stats::exercise_stat_column;
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;
-use crate::client::gui::user_interface::Message::{ChangeShownChartType, ChangeShownGoalType};
-use iced::Element;
+use crate::common::user_mod::user_goals::GoalType;
+use ChartMessage::Graph;
+use GraphMessage::DecrementCounter;
+use Message::Widget;
+use WidgetMessage::Chart;
 use iced::widget::{Column, Row, Space, combo_box, container, row, text};
+use iced::{Element, Task};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::{Length, Padding};
 use std::cmp::PartialEq;
-use std::fmt::Pointer;
-use crate::common::user_mod::user_goals::GoalType;
 
 pub const CHART_WIDGET_WIDTH: f32 = 700.0;
 pub const CHART_WIDGET_HEIGHT: f32 = 500.0;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub enum DataPointsType {
-    Exercise (ChartTypes),
-    Health (ChartTypes,GoalType),
+    Exercise(ChartTypes),
+    Health(ChartTypes, GoalType),
 }
 
 impl Default for DataPointsType {
@@ -50,6 +56,51 @@ impl ChartTypes {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum ChartMessage {
+    SelectExercise(String),
+    Graph(GraphMessage),
+    ChangeShownChartType(DataPointsType),
+    ChangeShownGoalType(ChartTypes, GoalType),
+}
+
+impl ChartMessage {
+    pub fn update(self, app: &mut App) -> Task<Message> {
+        match self {
+            ChartMessage::SelectExercise(exercise) => {
+                app.exercise_manager.update_selected_exercise(exercise);
+                Task::none()
+            }
+
+            ChartMessage::Graph(graph_message) => GraphMessage::update_graph(graph_message, app),
+
+            ChartMessage::ChangeShownChartType(data_points_type) => {
+                match data_points_type {
+                    DataPointsType::Exercise(chart_type) => {
+                        app.widget_manager
+                            .exercise_graph_widget_state
+                            .data_points_type = DataPointsType::Exercise(chart_type);
+                    }
+                    DataPointsType::Health(chart_type, goal_type) => {
+                        app.widget_manager
+                            .health_graph_widget_state
+                            .data_points_type = DataPointsType::Health(chart_type, goal_type)
+                    }
+                }
+
+                Task::none()
+            }
+
+            ChartMessage::ChangeShownGoalType(chart_type, goal_type) => {
+                app.widget_manager
+                    .health_graph_widget_state
+                    .data_points_type = DataPointsType::Health(chart_type, goal_type);
+                Task::none()
+            }
+        }
+    }
+}
+
 pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
     let title: Element<'a, Message> =
         format_button_text(iced::widget::text("Progress").size(40)).into();
@@ -57,7 +108,7 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         &app.exercise_manager.tracked_exercise_state,
         "Search Exercise...",
         Some(&app.exercise_manager.selected_exercise_name),
-        Message::SelectExercise,
+        |name| Message::Widget(WidgetMessage::Chart(ChartMessage::SelectExercise(name))),
     )
     .menu_style(bb_theme::combo_box::create_menu_style(
         &app.mascot_manager.selected_mascot,
@@ -71,7 +122,13 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
     .padding([8, 16])
     .into();
 
-    let DataPointsType::Exercise(chart_type) = &app.widget_manager.exercise_graph_widget_state.data_points_type else { panic!("Wrong chart type!") };
+    let DataPointsType::Exercise(chart_type) = &app
+        .widget_manager
+        .exercise_graph_widget_state
+        .data_points_type
+    else {
+        panic!("Wrong chart type!")
+    };
     let chart: Element<'a, Message> = match chart_type {
         ChartTypes::Bar => {
             let bar_chart: Element<Message> = BarChart::new(
@@ -108,9 +165,11 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .push(Space::new().width(Length::FillPortion(1)))
         .push(title)
         .push(Space::new().width(Length::FillPortion(2)))
-        .push(chart_type_buttons(app,DataPointsType::Exercise(chart_type.clone())))
+        .push(chart_type_buttons(
+            app,
+            DataPointsType::Exercise(chart_type.clone()),
+        ))
         .push(Space::new().width(Length::FillPortion(2)))
-
         .push(search_bar)
         .push(Space::new().width(Length::FillPortion(1)))
         .align_y(Vertical::Center);
@@ -136,8 +195,7 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .into()
 }
 
-
-fn chart_type_buttons(app: &App, data_points_type: DataPointsType) -> Row<Message> {
+fn chart_type_buttons(app: &App, data_points_type: DataPointsType) -> Row<'_, Message> {
     let current_chart = match &data_points_type {
         DataPointsType::Exercise(chart) => chart,
         DataPointsType::Health(chart, _) => chart,
@@ -149,12 +207,14 @@ fn chart_type_buttons(app: &App, data_points_type: DataPointsType) -> Row<Messag
     };
 
     let make_message = |chart_type| {
-        ChangeShownChartType(match &data_points_type {
-            DataPointsType::Exercise(_) => DataPointsType::Exercise(chart_type),
-            DataPointsType::Health(_, goal_type) => {
-                DataPointsType::Health(chart_type, goal_type.clone())
-            }
-        })
+        Message::Widget(WidgetMessage::Chart(ChartMessage::ChangeShownChartType(
+            match &data_points_type {
+                DataPointsType::Exercise(_) => DataPointsType::Exercise(chart_type),
+                DataPointsType::Health(_, goal_type) => {
+                    DataPointsType::Health(chart_type, goal_type.clone())
+                }
+            },
+        )))
     };
 
     let line_button = create_text_button(
@@ -163,7 +223,7 @@ fn chart_type_buttons(app: &App, data_points_type: DataPointsType) -> Row<Messag
         line_button_style,
         Some(BUTTON_RADIUS_RIGHT_ZERO),
     )
-        .on_press(make_message(ChartTypes::Graph));
+    .on_press(make_message(ChartTypes::Graph));
 
     let bar_button = create_text_button(
         &app.mascot_manager.selected_mascot,
@@ -171,21 +231,37 @@ fn chart_type_buttons(app: &App, data_points_type: DataPointsType) -> Row<Messag
         bar_button_style,
         Some(BUTTON_RADIUS_LEFT_ZERO),
     )
-        .on_press(make_message(ChartTypes::Bar));
+    .on_press(make_message(ChartTypes::Bar));
 
     Row::new().push(line_button).push(bar_button)
 }
 
-fn goal_type_buttons (app: &App) -> Row<Message> {
-
-    let DataPointsType::Health(chart_type,goal_type) = &app.widget_manager.health_graph_widget_state.data_points_type else { panic!("Wrong chart type!") };
-    let (sleep_button_style, water_button_style,weight_button_style) =
-        match goal_type {
-            GoalType::Sleep => (ButtonStyle::Active, ButtonStyle::InactiveTab, ButtonStyle::InactiveTab),
-            GoalType::Water => (ButtonStyle::InactiveTab, ButtonStyle::Active, ButtonStyle::InactiveTab),
-            GoalType::Weight => (ButtonStyle::InactiveTab, ButtonStyle::InactiveTab, ButtonStyle::Active),
-            _ => panic!("There is no graph option for the other goal types")
-        };
+fn goal_type_buttons(app: &App) -> Row<'_, Message> {
+    let DataPointsType::Health(chart_type, goal_type) = &app
+        .widget_manager
+        .health_graph_widget_state
+        .data_points_type
+    else {
+        panic!("Wrong chart type!")
+    };
+    let (sleep_button_style, water_button_style, weight_button_style) = match goal_type {
+        GoalType::Sleep => (
+            ButtonStyle::Active,
+            ButtonStyle::InactiveTab,
+            ButtonStyle::InactiveTab,
+        ),
+        GoalType::Water => (
+            ButtonStyle::InactiveTab,
+            ButtonStyle::Active,
+            ButtonStyle::InactiveTab,
+        ),
+        GoalType::Weight => (
+            ButtonStyle::InactiveTab,
+            ButtonStyle::InactiveTab,
+            ButtonStyle::Active,
+        ),
+        _ => panic!("There is no graph option for the other goal types"),
+    };
 
     let sleep_button = create_text_button(
         &app.mascot_manager.selected_mascot,
@@ -193,7 +269,10 @@ fn goal_type_buttons (app: &App) -> Row<Message> {
         sleep_button_style,
         Some(BUTTON_RADIUS_RIGHT_ZERO),
     )
-        .on_press(ChangeShownGoalType(chart_type.clone(),GoalType::Sleep));
+    .on_press(Widget(Chart(ChartMessage::ChangeShownGoalType(
+        chart_type.clone(),
+        GoalType::Sleep,
+    ))));
 
     let water_button = create_text_button(
         &app.mascot_manager.selected_mascot,
@@ -201,7 +280,10 @@ fn goal_type_buttons (app: &App) -> Row<Message> {
         water_button_style,
         Some(BUTTON_RADIUS_BOTH_ZERO),
     )
-        .on_press(ChangeShownGoalType(chart_type.clone(),GoalType::Water));
+    .on_press(Widget(Chart(ChartMessage::ChangeShownGoalType(
+        chart_type.clone(),
+        GoalType::Water,
+    ))));
 
     let weight_button = create_text_button(
         &app.mascot_manager.selected_mascot,
@@ -209,15 +291,23 @@ fn goal_type_buttons (app: &App) -> Row<Message> {
         weight_button_style,
         Some(BUTTON_RADIUS_LEFT_ZERO),
     )
-        .on_press(ChangeShownGoalType(chart_type.clone(),GoalType::Weight));
+    .on_press(Widget(Chart(ChartMessage::ChangeShownGoalType(
+        chart_type.clone(),
+        GoalType::Weight,
+    ))));
 
-    Row::new().push(sleep_button).push(water_button).push(weight_button)
+    Row::new()
+        .push(sleep_button)
+        .push(water_button)
+        .push(weight_button)
 }
 
 pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
     let counter = format_button_text(text!(
         "{}",
-        app.widget_manager.exercise_graph_widget_state.points_to_draw
+        app.widget_manager
+            .exercise_graph_widget_state
+            .points_to_draw
     ))
     .size(19);
 
@@ -227,7 +317,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         ButtonStyle::Active,
         Some(BUTTON_RADIUS_LEFT_ZERO),
     )
-    .on_press(Message::Graph(GraphMessage::IncrementCounter));
+    .on_press(Widget(Chart(Graph(GraphMessage::IncrementCounter))));
 
     let decrement_button = create_text_button(
         &app.mascot_manager.selected_mascot,
@@ -235,7 +325,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         ButtonStyle::Active,
         Some(BUTTON_RADIUS_RIGHT_ZERO),
     )
-    .on_press(Message::Graph(GraphMessage::DecrementCounter));
+    .on_press(Widget(Chart(Graph(DecrementCounter))));
 
     let row_counter_with_buttons = row![
         decrement_button,
@@ -254,7 +344,11 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         ))
         .width(Length::Fixed(100.0));
 
-    let button_style_dots_button = match app.widget_manager.exercise_graph_widget_state.visible_points {
+    let button_style_dots_button = match app
+        .widget_manager
+        .exercise_graph_widget_state
+        .visible_points
+    {
         true => ButtonStyle::Active,
         _ => ButtonStyle::InactiveTab,
     };
@@ -265,7 +359,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         button_style_dots_button,
         Some(10.0.into()),
     )
-    .on_press(Message::Graph(GraphMessage::ToggleDots));
+    .on_press(Widget(Chart(Graph(GraphMessage::ToggleDots))));
 
     let button_style_cursor_button = match app
         .widget_manager
@@ -282,13 +376,16 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         button_style_cursor_button,
         Some(10.0.into()),
     )
-    .on_press(Message::Graph(GraphMessage::ToggleCursor));
+    .on_press(Widget(Chart(Graph(GraphMessage::ToggleCursor))));
 
-    let button_style_vertical_lines_button =
-        match app.widget_manager.exercise_graph_widget_state.visible_vertical_lines {
-            true => ButtonStyle::Active,
-            _ => ButtonStyle::InactiveTab,
-        };
+    let button_style_vertical_lines_button = match app
+        .widget_manager
+        .exercise_graph_widget_state
+        .visible_vertical_lines
+    {
+        true => ButtonStyle::Active,
+        _ => ButtonStyle::InactiveTab,
+    };
 
     let toggle_vertical_lines = create_text_button(
         &app.mascot_manager.selected_mascot,
@@ -296,7 +393,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         button_style_vertical_lines_button,
         Some(10.0.into()),
     )
-    .on_press(Message::Graph(GraphMessage::ToggleVerticalLines));
+    .on_press(Widget(Chart(Graph(GraphMessage::ToggleVerticalLines))));
 
     let settings_row = Row::new()
         .width(Length::Fixed(CHART_WIDGET_WIDTH))
@@ -319,14 +416,22 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
 }
 
 pub fn health_chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
-
-    let DataPointsType::Health(chart_type,goal_type) = &app.widget_manager.health_graph_widget_state.data_points_type else { panic!("Wrong chart type!") };
+    let DataPointsType::Health(chart_type, goal_type) = &app
+        .widget_manager
+        .health_graph_widget_state
+        .data_points_type
+    else {
+        panic!("Wrong chart type!")
+    };
     let title_content: String = goal_type.to_string();
 
     let chart: Element<'a, Message> = match chart_type {
         ChartTypes::Bar => {
-            let bar_chart: Element<Message> =
-                BarChart::new(app.mascot_manager.selected_mascot, &app.exercise_manager.data_points).into();
+            let bar_chart: Element<Message> = BarChart::new(
+                app.mascot_manager.selected_mascot,
+                &app.exercise_manager.data_points,
+            )
+            .into();
             let column = Column::new()
                 .push(Space::new().height(INDENT))
                 .push(bar_chart);
@@ -350,7 +455,10 @@ pub fn health_chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message>
         .push(Space::new().width(Length::Fixed(LARGE_INDENT)))
         .push(title)
         .push(Space::new().width(Length::FillPortion(1)))
-        .push(chart_type_buttons(app,DataPointsType::Health(chart_type.clone(), goal_type.clone())))
+        .push(chart_type_buttons(
+            app,
+            DataPointsType::Health(chart_type.clone(), goal_type.clone()),
+        ))
         .push(Space::new().width(Length::FillPortion(5)))
         .push(goal_type_buttons(app))
         .push(Space::new().width(Length::FillPortion(2)))

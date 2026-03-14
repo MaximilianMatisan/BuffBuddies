@@ -1,12 +1,10 @@
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::color;
-use crate::client::gui::bb_theme::color::DESCRIPTION_TEXT_COLOR;
 use crate::client::gui::bb_theme::container::{
     ContainerStyle, DEFAULT_CONTAINER_RADIUS, create_container_style,
 };
 use crate::client::gui::bb_theme::custom_button::DEFAULT_BUTTON_RADIUS;
 use crate::client::gui::bb_theme::text_format::{
-    FIRA_SANS_EXTRABOLD, format_button_text, format_description_text, kg_to_string,
+    format_button_text, format_description_text, kg_to_string,
 };
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;

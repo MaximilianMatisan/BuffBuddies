@@ -1,6 +1,6 @@
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
-use crate::client::gui::bb_tab::tab::{Tab, FRAME_PADDING};
+use crate::client::gui::bb_tab::tab::{FRAME_PADDING, Tab};
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::scrollable::{
@@ -18,8 +18,8 @@ use crate::common::user_mod::friend_request::FriendRequest;
 use crate::common::user_mod::user::UserType;
 use iced::widget::{Column, Row, Space, container, text};
 use iced::{Element, Task};
-use iced_core::{Length, Padding};
 use iced_core::alignment::Horizontal;
+use iced_core::{Length, Padding};
 
 impl App {
     pub fn social_screen(&self) -> Element<'_, Message> {
@@ -79,11 +79,10 @@ impl App {
         let mut content = Column::new()
             .align_x(Horizontal::Center)
             .spacing(INDENT)
-            .padding(
-                Padding{
-                    bottom: FRAME_PADDING,
-                    ..20.into()
-                });
+            .padding(Padding {
+                bottom: FRAME_PADDING,
+                ..20.into()
+            });
         if !friends.is_empty() {
             content = content.push(friend_container)
         }

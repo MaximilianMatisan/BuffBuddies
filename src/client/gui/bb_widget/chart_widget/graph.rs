@@ -1,4 +1,8 @@
-use crate::client::gui::bb_theme::color::{CONTAINER_COLOR, DARK_SHADOW, DASHED_LINES_COLOR, DESCRIPTION_TEXT_COLOR, HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR, create_canvas_gradient, create_color_stops, create_gradient_stroke_style, create_solid_stroke_style, transform_alpha};
+use crate::client::gui::bb_theme::color::{
+    CONTAINER_COLOR, DARK_SHADOW, DASHED_LINES_COLOR, DESCRIPTION_TEXT_COLOR,
+    HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR, create_canvas_gradient, create_color_stops,
+    create_gradient_stroke_style, create_solid_stroke_style, transform_alpha,
+};
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use iced::Renderer;
 use iced::advanced::graphics::geometry::Frame;
@@ -9,18 +13,22 @@ use std::time::Duration;
 
 use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::backend::pop_up_manager::PopUpType;
+use crate::client::backend::widget_state::widget_state_manager::WidgetMessage::Chart;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme;
 use crate::client::gui::bb_widget::canvas_utils::{
     draw_line, draw_text, generate_dashed_stroke, generate_stroke, translate_point,
 };
-use crate::client::gui::bb_widget::chart_widget::chart::{CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH, ChartTypes, DataPointsType};
+use crate::client::gui::bb_widget::chart_widget::chart::{
+    CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH, ChartMessage, ChartTypes, DataPointsType,
+};
 use crate::client::gui::bb_widget::chart_widget::graph_logic::{
     calculate_points, chop_dates, chop_weights, extract_dates, extract_weights, get_f32_max,
     get_f32_min,
 };
 use crate::client::gui::size::FRAME_WIDTH;
 use crate::client::gui::user_interface::Message;
+use crate::client::gui::user_interface::Message::Widget;
 use crate::common::exercise_mod::exercise::DateWeightPoints;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
@@ -83,12 +91,19 @@ impl GraphMessage {
                     .widget_manager
                     .exercise_graph_widget_state
                     .invert_visible_vertical_lines(),
-                "b" => app.widget_manager.exercise_graph_widget_state.data_points_type = DataPointsType::Exercise(ChartTypes::Bar),
+                "b" => {
+                    app.widget_manager
+                        .exercise_graph_widget_state
+                        .data_points_type = DataPointsType::Exercise(ChartTypes::Bar)
+                }
                 _ => {}
             },
             GraphMessage::IncrementCounter => {
-                if app.widget_manager.exercise_graph_widget_state.get_counter() < MAX_AMOUNT_POINTS {
-                    app.widget_manager.exercise_graph_widget_state.increment_counter();
+                if app.widget_manager.exercise_graph_widget_state.get_counter() < MAX_AMOUNT_POINTS
+                {
+                    app.widget_manager
+                        .exercise_graph_widget_state
+                        .increment_counter();
                 } else {
                     app.pop_up_manager.new_pop_up(
                         PopUpType::Minor,
@@ -99,7 +114,9 @@ impl GraphMessage {
             }
             GraphMessage::DecrementCounter => {
                 if app.widget_manager.exercise_graph_widget_state.get_counter() > 1 {
-                    app.widget_manager.exercise_graph_widget_state.decrement_counter();
+                    app.widget_manager
+                        .exercise_graph_widget_state
+                        .decrement_counter();
                 }
             }
             GraphMessage::UpdateAnimatedSelection(event) => {
@@ -107,7 +124,9 @@ impl GraphMessage {
                     .exercise_graph_widget_state
                     .animation_progress
                     .update(event);
-                app.widget_manager.exercise_graph_widget_state.update_graph();
+                app.widget_manager
+                    .exercise_graph_widget_state
+                    .update_graph();
             }
 
             GraphMessage::ToggleDots => app
@@ -207,7 +226,11 @@ impl<'a> GraphWidget<'a> {
             .height(CHART_WIDGET_HEIGHT);
 
         Animation::new(draw_percentage, canvas)
-            .on_update(|event| Message::Graph(GraphMessage::UpdateAnimatedSelection(event)))
+            .on_update(|event| {
+                Widget(Chart(ChartMessage::Graph(
+                    GraphMessage::UpdateAnimatedSelection(event),
+                )))
+            })
             .into()
     }
 }
@@ -486,7 +509,7 @@ fn draw_connections(
         create_solid_stroke_style(mascot.get_secondary_color()),
     );
 
-    let shadow_color = transform_alpha(0.25,Color::BLACK);
+    let shadow_color = transform_alpha(0.25, Color::BLACK);
     let shadow_stroke = generate_stroke(
         (stroke_width + 2.0) * graph_widget_state.animation_progress.value(),
         create_solid_stroke_style(shadow_color),
@@ -570,29 +593,30 @@ fn draw_cursor_information(
     let cursor_adjust_y = 38.5; //the bigger, the lower
 
     if graph_bounds.contains(cursor.position().unwrap_or_default()) {
-        let cursor_position_in_graph =
-            if let Some(mut position) = cursor.position_from(graph_origin) {
-                position.y = -position.y; //invert y-coordinate since everything above position_from(graph_origin) is negative
-                position.y -= x_axis_padding; //shifting everything one block above x-axis,first point starts after first block
+        let cursor_position_in_graph = if let Some(mut position) =
+            cursor.position_from(graph_origin)
+        {
+            position.y = -position.y; //invert y-coordinate since everything above position_from(graph_origin) is negative
+            position.y -= x_axis_padding; //shifting everything one block above x-axis,first point starts after first block
 
-                //cursor box position handling
-                if position.x < CURSOR_BOX_WIDTH || position.y + x_axis_padding < CURSOR_BOX_HEIGHT {
-                    information_offset_from_cursor_x =
-                        -(information_offset_from_cursor_x + cursor_adjust_x);
-                    information_offset_from_cursor_y =
-                        -(information_offset_from_cursor_y - cursor_adjust_y);
-                }
+            //cursor box position handling
+            if position.x < CURSOR_BOX_WIDTH || position.y + x_axis_padding < CURSOR_BOX_HEIGHT {
+                information_offset_from_cursor_x =
+                    -(information_offset_from_cursor_x + cursor_adjust_x);
+                information_offset_from_cursor_y =
+                    -(information_offset_from_cursor_y - cursor_adjust_y);
+            }
 
-                //cursor text value
-                let position_percentage = position.y / height_graph_from_min_to_max; //percentage of the current position divided by the max_position possible
-                let kg_position_y = min_y + position_percentage * min_to_max_distance; //weight_calculation: min_weight + percentage * delta(max_weight,min_weight)
-                Point {
-                    x: position.x,
-                    y: kg_position_y,
-                }
-            } else {
-                Point::ORIGIN
-            };
+            //cursor text value
+            let position_percentage = position.y / height_graph_from_min_to_max; //percentage of the current position divided by the max_position possible
+            let kg_position_y = min_y + position_percentage * min_to_max_distance; //weight_calculation: min_weight + percentage * delta(max_weight,min_weight)
+            Point {
+                x: position.x,
+                y: kg_position_y,
+            }
+        } else {
+            Point::ORIGIN
+        };
 
         let cursor_information_position =
             if let Some(mut position) = cursor.position_from(graph_origin) {
@@ -780,17 +804,21 @@ impl canvas::Program<Message> for GraphWidget<'_> {
         self.graph_state.update_graph();
 
         match event {
-            canvas::Event::Mouse(mouse::Event::CursorMoved { position }) => Some(Action::publish(
-                Message::Graph(GraphMessage::GraphCursorMoved(*position)),
-            )),
+            canvas::Event::Mouse(mouse::Event::CursorMoved { position }) => {
+                Some(Action::publish(Widget(Chart(ChartMessage::Graph(
+                    GraphMessage::GraphCursorMoved(*position),
+                )))))
+            }
 
-            canvas::Event::Keyboard(iced::keyboard::Event::KeyPressed { key, .. }) => Some(
-                Action::publish(Message::Graph(GraphMessage::GraphKeyPressed(key.clone()))),
-            ),
+            canvas::Event::Keyboard(iced::keyboard::Event::KeyPressed { key, .. }) => {
+                Some(Action::publish(Widget(Chart(ChartMessage::Graph(
+                    GraphMessage::GraphKeyPressed(key.clone()),
+                )))))
+            }
 
-            _ => Some(Action::publish(Message::Graph(
+            _ => Some(Action::publish(Widget(Chart(ChartMessage::Graph(
                 GraphMessage::UpdateAnimatedSelection(iced_anim::Event::Target(1.0)),
-            ))),
+            ))))),
         }
     }
 

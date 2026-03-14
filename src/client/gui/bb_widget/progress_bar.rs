@@ -3,9 +3,10 @@ use iced::widget::{Action, Column, Row, Space, canvas, container, text};
 use iced::{Element, Rectangle, Renderer, Theme};
 use iced::{Task, mouse};
 use iced_anim::{Animated, Animation, Event, Motion};
-use iced_core::{Color, Length, Point};
+use iced_core::{Length, Point};
 use std::time::Duration;
 
+use crate::client::backend::widget_state::widget_state_manager::WidgetMessage::ProgressBar;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_theme::color::{TEXT_COLOR, create_solid_stroke_style};
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
@@ -15,15 +16,11 @@ use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use crate::client::gui::bb_widget::canvas_utils::generate_stroke;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
-use crate::client::gui::user_interface::Message::ProgressBar;
-use crate::common::mascot_mod::epic_mascot::EpicMascot;
+use crate::client::gui::user_interface::Message::Widget;
 use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use crate::common::mascot_mod::rare_mascot::RareMascot;
+use crate::common::user_mod::user_goals::GoalType;
 use iced_core::alignment::Horizontal;
 use iced_core::border::Radius;
-use strum_macros::Display;
-use crate::common::user_mod::user_goals::GoalType;
 
 //LENGTH OF THE BAR ITSELF
 const PROGRESS_BAR_WIDTH: f32 = 700.0;
@@ -81,7 +78,9 @@ impl ProgressBarMessage {
                     GoalType::Sleep => progress_bars
                         .sleep_progress_bar_state
                         .increment(progress_bar_type),
-                    GoalType::WeeklyWorkouts | GoalType::Weight => panic!("There are no progress bars of these types yet!"),
+                    GoalType::WeeklyWorkouts | GoalType::Weight => {
+                        panic!("There are no progress bars of these types yet!")
+                    }
                 };
                 Task::none()
             }
@@ -114,8 +113,10 @@ impl ProgressBarMessage {
                                 .sleep_progress_bar_state
                                 .decrement(progress_bar_type)
                         }
-                    },
-                    GoalType::WeeklyWorkouts | GoalType::Weight => panic!("There are no progress bars of these types yet!"),
+                    }
+                    GoalType::WeeklyWorkouts | GoalType::Weight => {
+                        panic!("There are no progress bars of these types yet!")
+                    }
                 };
                 Task::none()
             }
@@ -147,7 +148,9 @@ impl<'a> ProgressBarWidget<'a> {
 
         Animation::new(draw_percentage, canvas)
             .on_update(|event| {
-                Message::ProgressBar(ProgressBarMessage::UpdateProgressBarAnimation(event))
+                Widget(ProgressBar(ProgressBarMessage::UpdateProgressBarAnimation(
+                    event,
+                )))
             })
             .into()
     }
@@ -185,7 +188,9 @@ impl ProgressBarState {
             GoalType::Water => 0.25,
             GoalType::Steps => 500.0,
             GoalType::Sleep => 0.5,
-            GoalType::WeeklyWorkouts | GoalType::Weight => panic!("There are no progress bars of these types yet!"),
+            GoalType::WeeklyWorkouts | GoalType::Weight => {
+                panic!("There are no progress bars of these types yet!")
+            }
         };
 
         self.current_value += value_to_increment;
@@ -224,9 +229,9 @@ impl canvas::Program<Message> for ProgressBarWidget<'_> {
     ) -> Option<Action<Message>> {
         self.progress_bar_state.update_progress_bar();
 
-        Some(Action::publish(ProgressBar(
+        Some(Action::publish(Widget(ProgressBar(
             ProgressBarMessage::UpdateProgressBarAnimation(iced_anim::Event::Target(1.0)),
-        )))
+        ))))
     }
 
     fn draw(
@@ -366,8 +371,10 @@ pub fn create_progress_bar_environment<'a>(
         )
         .width(BUTTON_WIDTH)
         .height(BUTTON_HEIGHT)
-        .on_press(ProgressBar(ProgressBarMessage::IncrementCurrentValue(
-            progress_bar_widget.progress_bar_type.clone(),
+        .on_press(Widget(ProgressBar(
+            ProgressBarMessage::IncrementCurrentValue(
+                progress_bar_widget.progress_bar_type.clone(),
+            ),
         )));
 
         let decrement_button = create_text_button(
@@ -383,8 +390,10 @@ pub fn create_progress_bar_environment<'a>(
         )
         .width(BUTTON_WIDTH)
         .height(BUTTON_HEIGHT)
-        .on_press(ProgressBar(ProgressBarMessage::DecrementCurrentValue(
-            progress_bar_widget.progress_bar_type.clone(),
+        .on_press(Widget(ProgressBar(
+            ProgressBarMessage::DecrementCurrentValue(
+                progress_bar_widget.progress_bar_type.clone(),
+            ),
         )));
 
         header = header

@@ -1,8 +1,7 @@
 use crate::client::backend::widget_state::progress_bar_manager::ProgressBarStateManager;
 use crate::client::gui::app::App;
-use crate::client::gui::bb_tab::health::HealthTabMessage::{
-    SaveProgressBarChanges, SwitchEditMode,
-};
+use crate::client::gui::bb_tab::health::HealthMessage::{SaveProgressBarChanges, SwitchEditMode};
+use crate::client::gui::bb_tab::tab::FRAME_PADDING;
 use crate::client::gui::bb_theme::color;
 use crate::client::gui::bb_theme::color::TEXT_COLOR;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
@@ -16,7 +15,9 @@ use crate::client::gui::bb_theme::scrollable::{
 };
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use crate::client::gui::bb_widget::bmi_calculator;
-use crate::client::gui::bb_widget::progress_bar::{ ProgressBarWidget, create_progress_bar_environment,
+use crate::client::gui::bb_widget::chart_widget::chart::health_chart_environment_widget;
+use crate::client::gui::bb_widget::progress_bar::{
+    ProgressBarWidget, create_progress_bar_environment,
 };
 use crate::client::gui::bb_widget::stats::health_stat_container;
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
@@ -25,24 +26,21 @@ use crate::client::gui::user_interface::Message::HealthTab;
 use crate::common::mascot_mod::epic_mascot::EpicMascot::Capybara;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::rare_mascot::RareMascot::{Chameleon, Whale};
+use crate::common::user_mod::user_goals::GoalType;
 use iced::widget::{Column, Row, row, text};
 use iced::{Element, Task};
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
-use crate::client::gui::bb_tab::tab::FRAME_PADDING;
-use crate::client::gui::bb_widget::chart_widget::chart::health_chart_environment_widget;
-use crate::client::gui::bb_widget::chart_widget::graph::GraphWidget;
-use crate::common::user_mod::user_goals::GoalType;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum HealthTabMessage {
+pub enum HealthMessage {
     SwitchEditMode,
     SaveProgressBarChanges,
 }
 
-impl HealthTabMessage {
-    pub fn update_health_tab(health_tab_message: HealthTabMessage, app: &mut App) -> Task<Message> {
+impl HealthMessage {
+    pub fn update_health_tab(health_tab_message: HealthMessage, app: &mut App) -> Task<Message> {
         match health_tab_message {
             SaveProgressBarChanges => {
                 app.widget_manager.progress_bar_state_manager = app
@@ -110,14 +108,11 @@ impl App {
             .color(color::TEXT_COLOR)
             .size(42);
         let bmi_widget = bmi_calculator::BMIWidget::new(self).view();
-        let water_progress_bar =
-            ProgressBarWidget::new(water_progress_bar_state, GoalType::Water);
+        let water_progress_bar = ProgressBarWidget::new(water_progress_bar_state, GoalType::Water);
 
-        let steps_progress_bar =
-            ProgressBarWidget::new(steps_progress_bar_state, GoalType::Steps);
+        let steps_progress_bar = ProgressBarWidget::new(steps_progress_bar_state, GoalType::Steps);
 
-        let sleep_progress_bar =
-            ProgressBarWidget::new(sleep_progress_bar_state, GoalType::Sleep);
+        let sleep_progress_bar = ProgressBarWidget::new(sleep_progress_bar_state, GoalType::Sleep);
 
         let mut content = Column::new().push(health_header);
 
@@ -166,7 +161,7 @@ impl App {
                 Some(100.into()),
             )
             .height(50.0)
-            .on_press(HealthTab(HealthTabMessage::SwitchEditMode));
+            .on_press(HealthTab(HealthMessage::SwitchEditMode));
 
             content = content.push(edit_mode_button)
         }
@@ -199,8 +194,7 @@ impl App {
                 bottom: FRAME_PADDING,
                 ..0.0.into()
             })
-            .spacing(LARGE_INDENT)
-            .into();
+            .spacing(LARGE_INDENT);
 
         create_scrollable(
             content,
