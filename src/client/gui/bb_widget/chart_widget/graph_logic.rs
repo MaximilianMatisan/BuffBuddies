@@ -1,6 +1,6 @@
 use crate::client::gui::bb_widget::chart_widget::chart::{CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH};
 use crate::client::gui::bb_widget::chart_widget::graph::GraphWidgetState;
-use crate::common::exercise_mod::exercise::ExerciseDataPoints;
+use crate::common::exercise_mod::exercise::DateWeightPoints;
 use crate::common::exercise_mod::weight::Kg;
 use chrono::NaiveDate;
 use iced_core::Point;
@@ -102,7 +102,7 @@ pub fn calculate_points(graph_widget_state: &GraphWidgetState, y_values: Vec<Kg>
     points
 }
 
-pub fn extract_weights(exercise_data_points: &ExerciseDataPoints) -> Vec<Kg> {
+pub fn extract_weights(exercise_data_points: &DateWeightPoints) -> Vec<Kg> {
     let mut weights: Vec<Kg> = vec![];
     for (_date, weight) in exercise_data_points {
         weights.push(*weight)
@@ -110,7 +110,7 @@ pub fn extract_weights(exercise_data_points: &ExerciseDataPoints) -> Vec<Kg> {
     weights
 }
 
-pub fn extract_dates(exercise_data_points: &ExerciseDataPoints) -> Vec<NaiveDate> {
+pub fn extract_dates(exercise_data_points: &DateWeightPoints) -> Vec<NaiveDate> {
     let mut dates: Vec<NaiveDate> = vec![];
     for (date, _weight) in exercise_data_points {
         dates.push(*date)

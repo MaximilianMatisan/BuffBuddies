@@ -27,7 +27,7 @@ use crate::client::gui::bb_widget::chart_widget::graph_logic::{
 };
 use crate::client::gui::size::FRAME_WIDTH;
 use crate::client::gui::user_interface::Message;
-use crate::common::exercise_mod::exercise::ExerciseDataPoints;
+use crate::common::exercise_mod::exercise::DateWeightPoints;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
@@ -654,7 +654,7 @@ fn draw_cursor_information(
 fn draw_axis_labels(
     frame: &mut Frame<Renderer>,
     graph_widget_state: &GraphWidgetState,
-    exercise_data_points: &ExerciseDataPoints,
+    exercise_data_points: &DateWeightPoints,
     mascot: &Mascot,
 ) {
     //X-AXIS

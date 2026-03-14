@@ -9,7 +9,7 @@ use crate::client::gui::bb_tab::workout_creation::ExerciseNumber;
 use crate::client::gui::bb_theme::combo_box::{
     get_combo_box_all_exercises_state, get_combo_box_tracked_exercise_state,
 };
-use crate::common::exercise_mod::exercise::{Exercise, ExerciseDataPoints};
+use crate::common::exercise_mod::exercise::{DateWeightPoints, Exercise};
 use crate::common::exercise_mod::general_exercise::Id;
 use crate::common::exercise_mod::set::{Reps, StrengthSet};
 use crate::common::exercise_mod::weight::Kg;
@@ -43,7 +43,7 @@ pub struct ExerciseManager {
 
     //STATS OF SELECTED EXERCISE
     ///representing the heaviest weight used in a set per tracked day
-    pub data_points: ExerciseDataPoints,
+    pub data_points: DateWeightPoints,
     pub all_time_lifted_weight: Kg,
     pub all_time_reps: Reps,
     pub all_time_sets: u64,

@@ -1,9 +1,9 @@
-use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::gui::bb_theme::container::DEFAULT_CONTAINER_RADIUS;
 use crate::client::gui::bb_theme::{color, text_format};
 use crate::client::gui::bb_widget::chart_widget::chart::{CHART_WIDGET_HEIGHT, CHART_WIDGET_WIDTH};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::common::exercise_mod::exercise;
+use crate::common::exercise_mod::exercise::DateWeightPoints;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use iced::Element;
@@ -34,19 +34,19 @@ where
     width: f32,
     height: f32,
     active_mascot: Mascot,
-    exercise_manager: &'a ExerciseManager,
+    data_points: &'a DateWeightPoints,
     font: <Renderer>::Font,
 }
 impl<'a, Renderer> BarChart<'a, Renderer>
 where
     Renderer: text::Renderer<Font = iced::Font>,
 {
-    pub fn new(active_mascot: Mascot, exercise_manager: &'a ExerciseManager) -> Self {
+    pub fn new(active_mascot: Mascot, data_points: &'a DateWeightPoints) -> Self {
         BarChart {
             width: CHART_WIDGET_WIDTH,
             height: CHART_WIDGET_HEIGHT,
             active_mascot,
-            exercise_manager,
+            data_points,
             font: text_format::FIRA_SANS_EXTRABOLD,
         }
     }
@@ -96,7 +96,7 @@ where
             height: y_axis_length,
         };
 
-        match &self.exercise_manager.data_points.len() {
+        match &self.data_points.len() {
             0 => renderer.fill_text(
                 Text {
                     content: "NO DATA".to_string(),
@@ -137,11 +137,9 @@ where
                 );
 
                 let heaviest_weight =
-                    exercise::get_maximum_weight(&self.exercise_manager.data_points).unwrap()
-                        as u32; //100% transform to f32 in the future
+                    exercise::get_maximum_weight(self.data_points).unwrap() as u32; //100% transform to f32 in the future
                 let lightest_weight =
-                    exercise::get_minimum_weight(&self.exercise_manager.data_points).unwrap()
-                        as u32; // 0% transform to f32 in the future
+                    exercise::get_minimum_weight(self.data_points).unwrap() as u32; // 0% transform to f32 in the future
                 let range = heaviest_weight - lightest_weight;
 
                 let column_spacing = BASE_SPACING_BETWEEN_COLUMNS / *amount_of_data_points as f32;
@@ -158,7 +156,7 @@ where
 
                 let modulo_number = (*amount_of_data_points / FREQUENCY_OF_X_AXIS_LABELS).max(1);
 
-                for (i, (date, kg)) in self.exercise_manager.data_points.iter().enumerate() {
+                for (i, (date, kg)) in self.data_points.iter().enumerate() {
                     let integer_kg = *kg as u32;
                     let share = if range == 0 {
                         0.0
