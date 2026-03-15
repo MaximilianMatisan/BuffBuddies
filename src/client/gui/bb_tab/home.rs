@@ -17,6 +17,7 @@ use iced::Element;
 use iced::widget::{Column, Row, Space, container, row, text};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
+use crate::client::gui::bb_widget::circle_widget::CircleStart;
 
 const WELCOME_BACK_TEXT_SIZE: f32 = 42.0;
 const SECONDARY_TEXT_SIZE: f32 = 31.0;
@@ -85,7 +86,7 @@ impl App {
         let stats_text = format_button_text(text("Stats")).size(SECONDARY_TEXT_SIZE);
 
         let chart_widget = chart_environment_widget(self);
-        let circle_widget = circle_widget::CircleWidget::new(self).view();
+        let circle_widget = circle_widget::CircleWidget::new(self, CircleStart::Top).view();
         let bmi_widget = BMIWidget::new(self).view();
         let circle_widgets_column = Column::new()
             .push(circle_widget)

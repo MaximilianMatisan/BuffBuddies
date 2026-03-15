@@ -27,11 +27,12 @@ use crate::common::mascot_mod::epic_mascot::EpicMascot::Capybara;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::rare_mascot::RareMascot::{Chameleon, Whale};
 use crate::common::user_mod::user_goals::GoalType;
-use iced::widget::{Column, Row, row, text};
+use iced::widget::{Column, Row, row, text, Space};
 use iced::{Element, Task};
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
+use crate::client::gui::bb_widget::circle_widget::{CircleStart, CircleWidget};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum HealthMessage {
@@ -166,14 +167,20 @@ impl App {
             content = content.push(edit_mode_button)
         }
 
-        let bmi_widget_with_graph = Row::new()
+        let circle_widget = CircleWidget::new(self,CircleStart::Bottom).view();
+        let circle_widgets_column = Column::new()
             .push(bmi_widget)
+            .push(circle_widget)
+            .spacing(INDENT);;
+
+        let circle_widgets_with_graph = Row::new()
+            .push(circle_widgets_column)
             .push(health_chart_environment_widget(self))
             .spacing(INDENT);
 
         content = content
             .push(health_stat_container())
-            .push(bmi_widget_with_graph)
+            .push(circle_widgets_with_graph)
             .push(create_progress_bar_environment(
                 water_progress_bar,
                 &Mascot::Rare(Whale),
@@ -197,7 +204,7 @@ impl App {
             .spacing(LARGE_INDENT);
 
         create_scrollable(
-            content,
+            row![content, Space::new().width(Length::Fill)], //the row is needed for the scrollbar to go to the end of the frame,,
             self.mascot_manager.selected_mascot,
             ScrollableStyle::Default,
         )
