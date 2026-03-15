@@ -19,18 +19,25 @@ const CIRCLE_WIDGET_WIDTH: f32 = 250.0;
 const CIRCLE_WIDGET_HEIGHT: f32 = 250.0;
 const CIRCLE_RADIUS: f32 = 90.0;
 const PADDING_BETWEEN_ARCS: f32 = 25.0;
+const BOTTOM_PADDING_BETWEEN_ARCS: f32 = 75.0;
 const FONT_SIZE_RATIO: f32 = 24.0;
 const FONT_SIZE_DESCRIPTION: f32 = 17.0;
 // Arc angles are defined as clockwise rotations starting from the positive X-axis.
 // For our use case, it is more intuitive to measure angles clockwise from the positive Y-axis
 // This offset converts between the two coordinate systems.
-const DEGREE_START_TRANSLATION: f32 = -90.0;
+const TOP_DEGREE_START_TRANSLATION: f32 = -90.0;
+const BOTTOM_DEGREE_START_TRANSLATION: f32 = 90.0;
 
+pub enum CircleStart {
+    Top,
+    Bottom
+}
 pub struct CircleWidget<'a> {
     active_mascot: Mascot,
     circle_widget_state: &'a CircleWidgetState,
     completed_exercises: u32,
     total_exercises: u32,
+    circle_start: CircleStart
 }
 
 #[derive(Clone, Debug)]
@@ -39,7 +46,7 @@ pub enum CircleMessage {
 }
 
 impl<'a> CircleWidget<'a> {
-    pub(crate) fn new(app: &'a App) -> Self {
+    pub(crate) fn new(app: &'a App, circle_start: CircleStart) -> Self {
         CircleWidget {
             active_mascot: app.mascot_manager.selected_mascot,
             circle_widget_state: &app.widget_manager.circle_widget_state,
@@ -49,6 +56,7 @@ impl<'a> CircleWidget<'a> {
                 .profile_stat_manager
                 .workouts_this_week,
             total_exercises: app.user_manager.user_info.user_goals.weekly_workouts as u32, //CANNOT BE ZERO OR ELSE APP CRASHES
+            circle_start
         }
     }
     pub(crate) fn view(self) -> Element<'a, Message> {
@@ -161,16 +169,32 @@ fn draw_arc_completed_exercises(
     center_of_circle: Point,
     circle_widget: &CircleWidget,
 ) {
+
+    let translation_start = match circle_widget.circle_start {
+        CircleStart::Top => {TOP_DEGREE_START_TRANSLATION}
+        CircleStart::Bottom => {BOTTOM_DEGREE_START_TRANSLATION}
+    };
+
+    let start_padding_between_arcs = match circle_widget.circle_start  {
+        CircleStart::Top => { PADDING_BETWEEN_ARCS }
+        CircleStart::Bottom => {BOTTOM_PADDING_BETWEEN_ARCS}
+    };
+
+    let end_padding_between_arcs = match circle_widget.completed_exercises >= circle_widget.total_exercises {
+        true => {BOTTOM_PADDING_BETWEEN_ARCS}
+        false => {PADDING_BETWEEN_ARCS}
+    };
+
     if circle_widget.completed_exercises > 0 {
-        let start_angle = DEGREE_START_TRANSLATION
-            + PADDING_BETWEEN_ARCS / 2.0
+        let start_angle = translation_start
+            + start_padding_between_arcs / 2.0
                 * circle_widget.circle_widget_state.animation_progress.value();
 
-        let end_angle = DEGREE_START_TRANSLATION
+        let end_angle = translation_start
             + (convert_done_exercises_in_degrees(
                 circle_widget.completed_exercises,
                 circle_widget.total_exercises,
-            ) - PADDING_BETWEEN_ARCS / 2.0)
+            ) - end_padding_between_arcs / 2.0)
                 * circle_widget.circle_widget_state.animation_progress.value();
 
         let arc_path = &create_arc_path(center_of_circle, CIRCLE_RADIUS, start_angle, end_angle);
@@ -190,16 +214,32 @@ fn draw_arc_not_completed_exercises(
     center_of_circle: Point,
     circle_widget: &CircleWidget,
 ) {
+
+    let translation_start = match circle_widget.circle_start {
+        CircleStart::Top => {TOP_DEGREE_START_TRANSLATION}
+        CircleStart::Bottom => {BOTTOM_DEGREE_START_TRANSLATION}
+    };
+
+    let start_padding_between_arcs = match circle_widget.completed_exercises > 0 {
+        true => PADDING_BETWEEN_ARCS,
+        false => BOTTOM_PADDING_BETWEEN_ARCS
+    };
+
+    let end_padding_between_arcs = match circle_widget.circle_start  {
+        CircleStart::Top => { PADDING_BETWEEN_ARCS }
+        CircleStart::Bottom => {BOTTOM_PADDING_BETWEEN_ARCS}
+    };
+
     if circle_widget.total_exercises > circle_widget.completed_exercises {
-        let start_angle = DEGREE_START_TRANSLATION
+        let start_angle = translation_start
             + (convert_done_exercises_in_degrees(
                 circle_widget.completed_exercises,
                 circle_widget.total_exercises,
-            ) + PADDING_BETWEEN_ARCS / 2.0)
+            ) + start_padding_between_arcs / 2.0)
                 * circle_widget.circle_widget_state.animation_progress.value();
 
-        let end_angle = DEGREE_START_TRANSLATION
-            + (360.0 - PADDING_BETWEEN_ARCS / 2.0)
+        let end_angle = translation_start
+            + (360.0 - end_padding_between_arcs / 2.0)
                 * circle_widget.circle_widget_state.animation_progress.value();
 
         let arc_path = &create_arc_path(center_of_circle, CIRCLE_RADIUS, start_angle, end_angle);
