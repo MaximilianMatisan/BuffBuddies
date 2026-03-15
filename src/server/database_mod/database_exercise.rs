@@ -5,12 +5,12 @@ use crate::common::exercise_mod::general_exercise::{
 };
 use crate::common::exercise_mod::set::StrengthSet;
 use crate::common::exercise_mod::weight::Kg;
+use crate::server::database_mod::database_utils;
 use crate::server::routes::workout::ExerciseJson;
 use chrono::NaiveDate;
 use sqlx::{Row, SqlitePool};
 use std::collections::BTreeMap;
 use std::str::FromStr;
-use crate::server::database_mod::database_utils;
 
 pub async fn get_general_exercise_info(
     pool: &SqlitePool,

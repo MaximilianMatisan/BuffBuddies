@@ -1,13 +1,13 @@
 use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::user_mod::user::{ForeignUser, Gender, UserInformation};
+use crate::common::user_mod::user_goals::GoalType;
+use crate::common::user_mod::user_log::UserLog;
 use crate::server::database_mod::database::get_exercises_stats;
 use crate::server::database_mod::database_mascot::mascot_from_string;
 use crate::server::database_mod::database_user_goals::get_user_goals;
-use sqlx::{Row, SqlitePool};
-use crate::common::user_mod::user_goals::GoalType;
-use crate::common::user_mod::user_log::UserLog;
 use crate::server::database_mod::database_user_logs::get_user_log;
+use sqlx::{Row, SqlitePool};
 
 #[allow(dead_code)]
 pub async fn add_friend(
@@ -70,12 +70,12 @@ pub async fn get_single_foreign_user(
     }
 
     let user_goals = get_user_goals(pool, target_username).await?;
-    
+
     let user_logs = UserLog {
         weight_log: get_user_log(pool, target_username, GoalType::Weight).await?,
-        water_log: vec![],
-        step_log: vec![],
-        sleep_log: vec![],
+        water_log: get_user_log(pool, target_username, GoalType::Water).await?,
+        step_log: get_user_log(pool, target_username, GoalType::Steps).await?,
+        sleep_log: get_user_log(pool, target_username, GoalType::Sleep).await?,
     };
 
     Ok(ForeignUser {
