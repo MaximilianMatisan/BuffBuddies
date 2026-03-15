@@ -10,6 +10,7 @@ use chrono::NaiveDate;
 use sqlx::{Row, SqlitePool};
 use std::collections::BTreeMap;
 use std::str::FromStr;
+use crate::server::database_mod::database_utils;
 
 pub async fn get_general_exercise_info(
     pool: &SqlitePool,
@@ -174,7 +175,7 @@ pub async fn get_exercises_stats(
         let weight: Kg = exercise_log_counter.get("weight_in_kg");
         let date: &str = exercise_log_counter.get("date");
 
-        let real_date = NaiveDate::parse_from_str(date, "%d.%m.%y").unwrap();
+        let real_date = database_utils::database_date_string_to_naive_date(date).unwrap();
 
         for i in 0..exercise_ids.len() {
             if exercise_ids[i] == exercise_id {
@@ -205,7 +206,7 @@ pub async fn add_workout_to_exercise_log(
         .fetch_optional(&mut *transaction)
         .await?;
 
-    let string_date = date.format("%d.%m.%y").to_string();
+    let string_date = database_utils::format_naive_date_for_database(&date);
 
     let mut next_id: i64 = match max_id_row {
         Some(r) => r.get("max_id"),
@@ -257,7 +258,7 @@ pub async fn add_exercise_log(
         .await?;
 
     let id: i64 = row.get("id");
-    let date_str = date.format("%d.%m.%y").to_string();
+    let date_str = database_utils::format_naive_date_for_database(&date);
     sqlx::query(
         "INSERT INTO exerciseLog (date, username, reps, exercise_id, weight_in_kg, workout_id)
             VALUES (?, ?, ?, ?, ?, ?)",

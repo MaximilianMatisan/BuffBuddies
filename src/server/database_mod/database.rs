@@ -145,12 +145,13 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     .await?;
 
     sqlx::query(
-        "CREATE TABLE IF NOT EXISTS weightLog (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT NOT NULL,
+        "CREATE TABLE IF NOT EXISTS logs (
         username TEXT NOT NULL,
-        weight FLOAT NOT NULL,
+        date TEXT NOT NULL,
+        value FLOAT NOT NULL,
+        log_type TEXT NOT NULL,
 
+        PRIMARY KEY(username, date),
         FOREIGN KEY (username) REFERENCES users(username)
     );",
     )
@@ -178,24 +179,6 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 }
 
 #[allow(dead_code)]
-pub async fn add_weight_log(
-    pool: &SqlitePool,
-    username: &str,
-    weight: f32,
-    date: &str,
-) -> Result<(), sqlx::Error> {
-    sqlx::query(
-        "INSERT INTO weightLog (date, username, weight)
-         VALUES (?, ?, ?)",
-    )
-    .bind(date)
-    .bind(username)
-    .bind(weight)
-    .execute(pool)
-    .await?;
-
-    Ok(())
-}
 pub async fn reset_database(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("DROP TABLE IF EXISTS friendship")
         .execute(pool)

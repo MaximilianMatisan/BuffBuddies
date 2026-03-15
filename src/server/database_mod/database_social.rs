@@ -5,6 +5,9 @@ use crate::server::database_mod::database::get_exercises_stats;
 use crate::server::database_mod::database_mascot::mascot_from_string;
 use crate::server::database_mod::database_user_goals::get_user_goals;
 use sqlx::{Row, SqlitePool};
+use crate::common::user_mod::user_goals::GoalType;
+use crate::common::user_mod::user_log::UserLog;
+use crate::server::database_mod::database_user_logs::get_user_log;
 
 #[allow(dead_code)]
 pub async fn add_friend(
@@ -67,6 +70,13 @@ pub async fn get_single_foreign_user(
     }
 
     let user_goals = get_user_goals(pool, target_username).await?;
+    
+    let user_logs = UserLog {
+        weight_log: get_user_log(pool, target_username, GoalType::Weight).await?,
+        water_log: vec![],
+        step_log: vec![],
+        sleep_log: vec![],
+    };
 
     Ok(ForeignUser {
         user_information: UserInformation {
@@ -85,6 +95,7 @@ pub async fn get_single_foreign_user(
                 &exercise_stats,
                 user_goals.weekly_workouts as u32,
             ),
+            user_logs,
             user_goals,
         },
         selected_mascot: mascot_from_string(row.get("selected_mascot")),
