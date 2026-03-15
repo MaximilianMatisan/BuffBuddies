@@ -4,9 +4,9 @@ use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::profile_picture::ProfilePictureTypes;
 use crate::common::user_mod::user_goals::UserGoals;
+use crate::common::user_mod::user_log::UserLog;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter, EnumString};
-use crate::common::user_mod::user_log::UserLog;
 
 pub const MAX_DESCRIPTION_CHARACTERS: usize = 300;
 #[derive(
@@ -63,6 +63,7 @@ impl UserInformation {
     }
 }
 /// Necessary information about non-logged-in users for the logged-in user
+/// TODO refactor
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ForeignUser {
     pub user_information: UserInformation,

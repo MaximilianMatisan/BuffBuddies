@@ -580,6 +580,10 @@ impl SettingsMessage {
                     // Profile Picture
                     user_info.profile_picture_path = pending_user_info.profile_picture_path;
 
+                    user_info
+                        .user_logs
+                        .update_log(&GoalType::Weight, user_info.weight)
+                        .expect("Update log expect");
                     update_progress_bar_goals_after_updated_user_info(app);
 
                     if let Some(jwt) = opt_jwt {
