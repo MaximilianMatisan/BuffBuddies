@@ -6,6 +6,7 @@ use crate::common::profile_picture::ProfilePictureTypes;
 use crate::common::user_mod::user_goals::UserGoals;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter, EnumString};
+use crate::common::user_mod::user_log::UserLog;
 
 pub const MAX_DESCRIPTION_CHARACTERS: usize = 300;
 #[derive(
@@ -36,6 +37,7 @@ pub struct UserInformation {
     pub coin_balance: u32,
     pub favorite_mascot: Mascot,
     pub user_goals: UserGoals,
+    pub user_logs: UserLog,
     //Doesn't include "new" data only for performance, doesn't need to be in db
     pub profile_stat_manager: ProfileStatManager,
 }
@@ -55,6 +57,7 @@ impl UserInformation {
                 exercise_data,
                 default_user_goals.weekly_workouts as u32,
             ),
+            user_logs: UserLog::default(),
             user_goals: default_user_goals,
         }
     }

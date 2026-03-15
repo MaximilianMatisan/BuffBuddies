@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter};
 
 /// GoalsTypes of a user also see UserGoals
-#[derive(Debug, Clone, Display, EnumIter)]
+#[derive(PartialEq, Debug, Clone, Display, EnumIter)]
 pub enum GoalType {
     #[strum(to_string = "Weekly workouts")]
     WeeklyWorkouts,

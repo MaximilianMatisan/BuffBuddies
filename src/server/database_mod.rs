@@ -7,3 +7,5 @@ pub mod database_user;
 pub mod database_user_goals;
 pub mod import_exercises;
 pub mod init_demo_account;
+mod database_user_logs;
+mod database_utils;

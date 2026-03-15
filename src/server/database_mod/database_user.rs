@@ -2,15 +2,17 @@ use crate::client::backend::profile_stat_manager::ProfileStatManager;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::user_mod::user::{Gender, UserInformation};
-use crate::common::user_mod::user_goals::UserGoals;
+use crate::common::user_mod::user_goals::{GoalType, UserGoals};
 use crate::server::database_mod::database::get_exercises_stats;
 use crate::server::database_mod::database_mascot::{add_mascot_to_user, mascot_from_string};
 use crate::server::database_mod::database_user_goals::get_user_goals;
 use sqlx::Row;
 use sqlx::SqlitePool;
 use std::str::FromStr;
+use chrono::{Local, NaiveDate};
+use crate::common::user_mod::user_log::UserLog;
+use crate::server::database_mod::database_user_logs::{add_user_log, get_user_log};
 
-#[allow(dead_code)]
 pub async fn add_user(
     pool: &SqlitePool,
     username: &str,
@@ -51,13 +53,11 @@ pub async fn add_user(
     Ok(())
 }
 
-#[allow(dead_code)]
 pub enum RequestPasswordAnswer {
     UserNotFound,
     Password(String),
 }
 
-#[allow(dead_code)]
 pub async fn get_password(
     pool: &SqlitePool,
     username: &str,
@@ -72,7 +72,6 @@ pub async fn get_password(
     }
 }
 
-#[allow(dead_code)]
 pub async fn get_all_usernames(pool: &SqlitePool) -> Result<Vec<String>, sqlx::Error> {
     let rows = sqlx::query("SELECT * from users").fetch_all(pool).await?;
     let mut names: Vec<String> = Vec::new();
@@ -157,8 +156,12 @@ pub async fn update_user_weight(
         .bind(username)
         .execute(pool)
         .await?;
+
+    add_user_log(pool, username, new_weight, Local::now().date_naive(), GoalType::Weight).await?;
+
     Ok(())
 }
+
 #[allow(dead_code)]
 pub async fn update_user_profile_picture(
     pool: &SqlitePool,
@@ -281,6 +284,13 @@ pub async fn get_user_information(
     let exercise_stats = get_exercises_stats(pool, username).await?;
 
     let user_goals = get_user_goals(pool, username).await?;
+    
+    let user_logs = UserLog {
+        weight_log: get_user_log(pool, username, GoalType::Weight).await?,
+        water_log: vec![],
+        step_log: vec![],
+        sleep_log: vec![],
+    };
 
     Ok(UserInformation {
         username: row.get("username"),
@@ -298,6 +308,7 @@ pub async fn get_user_information(
             &exercise_stats,
             user_goals.weekly_workouts as u32,
         ),
+        user_logs,
         user_goals,
     })
 }
