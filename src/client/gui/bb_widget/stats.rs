@@ -135,9 +135,9 @@ pub fn health_stat_container<'a>() -> Container<'a, Message> {
     let all_time_sleep_text =
         format_description_text(text("All-time-sleep")).size(DESCRIPTION_TEXT_SIZE);
 
-    let water_value = format_button_text(text("3.402 L")).size(DESCRIPTION_TEXT_SIZE);
-    let steps_value = format_button_text(text("5.982.231")).size(DESCRIPTION_TEXT_SIZE);
-    let sleep_value = format_button_text(text("11.948 h")).size(DESCRIPTION_TEXT_SIZE);
+    let water_value = format_button_text(text("coming soon")).size(DESCRIPTION_TEXT_SIZE);
+    let steps_value = format_button_text(text("coming soon")).size(DESCRIPTION_TEXT_SIZE);
+    let sleep_value = format_button_text(text("coming soon")).size(DESCRIPTION_TEXT_SIZE);
 
     let headers_column = Column::new()
         .push(stats_header)

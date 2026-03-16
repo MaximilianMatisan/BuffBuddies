@@ -372,9 +372,7 @@ pub fn create_progress_bar_environment<'a>(
         .width(BUTTON_WIDTH)
         .height(BUTTON_HEIGHT)
         .on_press(Widget(ProgressBar(
-            ProgressBarMessage::IncrementCurrentValue(
-                progress_bar_widget.progress_bar_type.clone(),
-            ),
+            ProgressBarMessage::IncrementCurrentValue(progress_bar_widget.progress_bar_type),
         )));
 
         let decrement_button = create_text_button(
@@ -391,9 +389,7 @@ pub fn create_progress_bar_environment<'a>(
         .width(BUTTON_WIDTH)
         .height(BUTTON_HEIGHT)
         .on_press(Widget(ProgressBar(
-            ProgressBarMessage::DecrementCurrentValue(
-                progress_bar_widget.progress_bar_type.clone(),
-            ),
+            ProgressBarMessage::DecrementCurrentValue(progress_bar_widget.progress_bar_type),
         )));
 
         header = header

@@ -10,6 +10,7 @@ use crate::client::gui::bb_widget::activity_widget::date_utils::DateScope;
 use crate::client::gui::bb_widget::bmi_calculator::BMIWidget;
 use crate::client::gui::bb_widget::chart_widget::chart::chart_environment_widget;
 use crate::client::gui::bb_widget::circle_widget;
+use crate::client::gui::bb_widget::circle_widget::CircleStart;
 use crate::client::gui::bb_widget::preset_workout_rows::view_preset_row;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
@@ -17,7 +18,6 @@ use iced::Element;
 use iced::widget::{Column, Row, Space, container, row, text};
 use iced_core::alignment::Vertical;
 use iced_core::{Length, Padding};
-use crate::client::gui::bb_widget::circle_widget::CircleStart;
 
 const WELCOME_BACK_TEXT_SIZE: f32 = 42.0;
 const SECONDARY_TEXT_SIZE: f32 = 31.0;
