@@ -88,10 +88,23 @@ impl GraphMessage {
             GraphMessage::GraphCursorMoved(_point) => {}
 
             GraphMessage::GraphKeyPressed(Key::Character(char)) => match char.as_str() {
-                "d" => graph_state.invert_visible_points(),
+                "d" => match data_points_type {
+                    DataPointsType::Exercise(_) => graph_state.invert_visible_points(),
+                    DataPointsType::Health(_, _) => {}
+                },
                 "c" => graph_state.invert_visible_cursor_information(),
-                "v" => graph_state.invert_visible_vertical_lines(),
-                "b" => graph_state.data_points_type = DataPointsType::Exercise(ChartTypes::Bar),
+                "v" => match data_points_type {
+                    DataPointsType::Exercise(_) => graph_state.invert_visible_vertical_lines(),
+                    DataPointsType::Health(_, _) => {}
+                },
+                "b" => {
+                    graph_state.data_points_type = match data_points_type {
+                        DataPointsType::Exercise(_) => DataPointsType::Exercise(ChartTypes::Bar),
+                        DataPointsType::Health(_, goal_type) => {
+                            DataPointsType::Health(ChartTypes::Bar, goal_type)
+                        }
+                    }
+                }
                 _ => {}
             },
             GraphMessage::IncrementCounter => {
@@ -148,9 +161,15 @@ impl GraphWidgetState {
         GraphWidgetState {
             graph_cache: Cache::default(),
             animation_progress: Animated::new(0.0, animation_motion),
-            visible_points: true,
+            visible_points: match data_points_type {
+                DataPointsType::Exercise(_) => true,
+                DataPointsType::Health(_, _) => false,
+            },
             visible_cursor_information: true,
-            visible_vertical_lines: true,
+            visible_vertical_lines: match data_points_type {
+                DataPointsType::Exercise(_) => true,
+                DataPointsType::Health(_, _) => false,
+            },
             points_to_draw: 9,
             data_points_type,
         }
@@ -524,14 +543,62 @@ fn draw_connections(
         .collect::<Vec<(Point, Point)>>();
 
     for (start, end) in point_tuples {
-        frame.stroke(
-            &Path::line(
-                translate_point(start, SHADOW_OFFSET),
-                translate_point(end, SHADOW_OFFSET),
-            ),
-            shadow_stroke,
-        );
+        //CONNECTIONS
         frame.stroke(&Path::line(start, end), connection_stroke);
+
+        match graph_widget_state.data_points_type {
+            DataPointsType::Exercise(_) => {
+                //SHADOWS
+                frame.stroke(
+                    &Path::line(
+                        translate_point(start, SHADOW_OFFSET),
+                        translate_point(end, SHADOW_OFFSET),
+                    ),
+                    shadow_stroke,
+                );
+            }
+            DataPointsType::Health(_, _) => {
+                let center_x = GRAPH_WIDTH / 2.0;
+
+                let gradient_start = Point {
+                    x: center_x,
+                    y: GRAPH_START_Y,
+                };
+                let gradient_end = Point {
+                    x: center_x,
+                    y: GRAPH_END_Y,
+                };
+
+                let color_start = Color {
+                    a: 0.0,
+                    ..mascot.get_primary_color()
+                };
+                let color_end = Color {
+                    a: 0.3,
+                    ..mascot.get_primary_color()
+                };
+
+                let color_stops = create_color_stops(vec![(color_start, 0.0), (color_end, 1.0)]);
+
+                let gradient = create_canvas_gradient(gradient_start, gradient_end, color_stops);
+
+                let fill_path = Path::new(|builder| {
+                    builder.move_to(Point {
+                        x: start.x,
+                        y: GRAPH_END_Y,
+                    }); // bottom-left
+                    builder.line_to(start); // up to data point
+                    builder.line_to(end); // across to next data point
+                    builder.line_to(Point {
+                        x: end.x,
+                        y: GRAPH_END_Y,
+                    }); // back down to bottom-right
+                    builder.close(); // close along the bottom
+                });
+
+                frame.fill(&fill_path, gradient);
+            }
+        }
     }
 }
 
@@ -650,7 +717,7 @@ fn draw_cursor_information(
         cursor_information_text.y += cursor_information_box_size.width / 10.0;
 
         let format_value: fn(f32) -> f32 = |value| (value * 10.0).round() / 10.0;
-        let content = format!("{} Kg", format_value(cursor_position_in_graph.y));
+        let content = format!("{} Kg", format_value(cursor_position_in_graph.y.max(0.0)));
 
         frame.fill_text(canvas::Text {
             content,
@@ -847,8 +914,13 @@ impl canvas::Program<Message> for GraphWidget<'_> {
                         _data_points_amount => {
                             let weights = extract_weights(self.data_points);
 
-                            //DRAW_BACKGROUND
-                            draw_background(frame, self);
+                            //ONLY DRAWS THE GRADIENT COMING UP FROM THE X-AXIS
+                            match self.graph_state.data_points_type {
+                                DataPointsType::Exercise(_) => {
+                                    draw_background(frame, self);
+                                }
+                                DataPointsType::Health(_, _) => {}
+                            }
 
                             //LABELS
                             draw_axis_labels(
