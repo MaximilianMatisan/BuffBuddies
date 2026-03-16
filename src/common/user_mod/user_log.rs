@@ -13,6 +13,15 @@ pub struct UserLog {
 }
 
 impl UserLog {
+    pub fn get_log_by_goal_type(&self, goal_type: &GoalType) -> Option<&Log> {
+        Some(match goal_type {
+            GoalType::Weight => &self.weight_log,
+            GoalType::Water => &self.water_log,
+            GoalType::Steps => &self.step_log,
+            GoalType::Sleep => &self.sleep_log,
+            GoalType::WeeklyWorkouts => return None,
+        })
+    }
     pub fn get_log_by_goal_type_mut(&mut self, goal_type: &GoalType) -> Option<&mut Log> {
         Some(match goal_type {
             GoalType::Weight => &mut self.weight_log,
