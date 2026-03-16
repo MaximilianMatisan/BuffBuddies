@@ -410,18 +410,23 @@ pub fn view_graph_widget_settings<'a>(
         GraphMessage::ToggleVerticalLines,
     ))));
 
-    let settings_row = Row::new()
+    let mut settings_row = Row::new()
         .width(Length::Fixed(CHART_WIDGET_WIDTH))
         .push(Space::new().width(Length::Fixed(LARGE_INDENT)))
         .push(counter_with_buttons)
         .push(Space::new().width(Length::FillPortion(1)))
-        .push(toggle_dots_button)
-        .push(Space::new().width(Length::FillPortion(1)))
         .push(toggle_cursor_button)
-        .push(Space::new().width(Length::FillPortion(1)))
-        .push(toggle_vertical_lines)
-        .push(Space::new().width(Length::FillPortion(15)))
-        .align_y(Vertical::Bottom);
+        .push(Space::new().width(Length::FillPortion(1)));
+
+    if let DataPointsType::Exercise(_) = data_points_type {
+        settings_row = settings_row
+            .push(toggle_dots_button)
+            .push(Space::new().width(Length::FillPortion(1)))
+            .push(toggle_vertical_lines)
+            .align_y(Vertical::Bottom);
+    }
+
+    settings_row = settings_row.push(Space::new().width(Length::FillPortion(15)));
 
     let settings_row_with_padding = Column::new()
         .push(Space::new().height(21.5))
