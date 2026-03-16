@@ -136,6 +136,7 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
             let bar_chart: Element<Message> = BarChart::new(
                 app.mascot_manager.selected_mascot,
                 &app.exercise_manager.data_points,
+                "kg".to_string(),
             )
             .into();
             let column = Column::new()
@@ -439,11 +440,20 @@ pub fn health_chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message>
     };
     let title_content: String = goal_type.to_string();
 
+    // Unwrap fine as user won't be able to select a goal type without a log
+    let displayed_log = app
+        .user_manager
+        .user_info
+        .user_logs
+        .get_log_by_goal_type(goal_type)
+        .unwrap();
+
     let chart: Element<'a, Message> = match chart_type {
         ChartTypes::Bar => {
             let bar_chart: Element<Message> = BarChart::new(
                 app.mascot_manager.selected_mascot,
-                &app.user_manager.user_info.user_logs.weight_log,
+                displayed_log,
+                goal_type.get_unit(),
             )
             .into();
             let column = Column::new()

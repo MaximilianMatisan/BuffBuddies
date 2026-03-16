@@ -151,7 +151,7 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         value FLOAT NOT NULL,
         log_type TEXT NOT NULL,
 
-        PRIMARY KEY(username, date),
+        PRIMARY KEY(username, date, log_type),
         FOREIGN KEY (username) REFERENCES users(username)
     );",
     )

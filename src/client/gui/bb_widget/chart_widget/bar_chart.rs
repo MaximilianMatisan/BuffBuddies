@@ -35,18 +35,20 @@ where
     height: f32,
     active_mascot: Mascot,
     data_points: &'a DateWeightPoints,
+    unit: String,
     font: <Renderer>::Font,
 }
 impl<'a, Renderer> BarChart<'a, Renderer>
 where
     Renderer: text::Renderer<Font = iced::Font>,
 {
-    pub fn new(active_mascot: Mascot, data_points: &'a DateWeightPoints) -> Self {
+    pub fn new(active_mascot: Mascot, data_points: &'a DateWeightPoints, unit: String) -> Self {
         BarChart {
             width: CHART_WIDGET_WIDTH,
             height: CHART_WIDGET_HEIGHT,
             active_mascot,
             data_points,
+            unit,
             font: text_format::FIRA_SANS_EXTRABOLD,
         }
     }
@@ -231,12 +233,13 @@ where
                         (val - lightest_weight) as f32 / range as f32
                     };
 
-                    let weight_string = format!("{} kg", val);
-                    let weight_bounds = Size::new(widget_y_axis_padding - INDENT, AXIS_FONT_SIZE);
+                    let value_unit_string = format!("{val} {}", self.unit);
+                    let value_unit_bounds =
+                        Size::new(widget_y_axis_padding - INDENT, AXIS_FONT_SIZE);
                     renderer.fill_text(
                         Text {
-                            content: weight_string,
-                            bounds: weight_bounds,
+                            content: value_unit_string,
+                            bounds: value_unit_bounds,
                             size: AXIS_FONT_SIZE.into(),
                             line_height: Default::default(),
                             font: self.font,
