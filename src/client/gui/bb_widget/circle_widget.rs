@@ -30,14 +30,14 @@ const BOTTOM_DEGREE_START_TRANSLATION: f32 = 90.0;
 
 pub enum CircleStart {
     Top,
-    Bottom
+    Bottom,
 }
 pub struct CircleWidget<'a> {
     active_mascot: Mascot,
     circle_widget_state: &'a CircleWidgetState,
     completed_exercises: u32,
     total_exercises: u32,
-    circle_start: CircleStart
+    circle_start: CircleStart,
 }
 
 #[derive(Clone, Debug)]
@@ -56,7 +56,7 @@ impl<'a> CircleWidget<'a> {
                 .profile_stat_manager
                 .workouts_this_week,
             total_exercises: app.user_manager.user_info.user_goals.weekly_workouts as u32, //CANNOT BE ZERO OR ELSE APP CRASHES
-            circle_start
+            circle_start,
         }
     }
     pub(crate) fn view(self) -> Element<'a, Message> {
@@ -169,21 +169,21 @@ fn draw_arc_completed_exercises(
     center_of_circle: Point,
     circle_widget: &CircleWidget,
 ) {
-
     let translation_start = match circle_widget.circle_start {
-        CircleStart::Top => {TOP_DEGREE_START_TRANSLATION}
-        CircleStart::Bottom => {BOTTOM_DEGREE_START_TRANSLATION}
+        CircleStart::Top => TOP_DEGREE_START_TRANSLATION,
+        CircleStart::Bottom => BOTTOM_DEGREE_START_TRANSLATION,
     };
 
-    let start_padding_between_arcs = match circle_widget.circle_start  {
-        CircleStart::Top => { PADDING_BETWEEN_ARCS }
-        CircleStart::Bottom => {BOTTOM_PADDING_BETWEEN_ARCS}
+    let start_padding_between_arcs = match circle_widget.circle_start {
+        CircleStart::Top => PADDING_BETWEEN_ARCS,
+        CircleStart::Bottom => BOTTOM_PADDING_BETWEEN_ARCS,
     };
 
-    let end_padding_between_arcs = match circle_widget.completed_exercises >= circle_widget.total_exercises {
-        true => {BOTTOM_PADDING_BETWEEN_ARCS}
-        false => {PADDING_BETWEEN_ARCS}
-    };
+    let end_padding_between_arcs =
+        match circle_widget.completed_exercises >= circle_widget.total_exercises {
+            true => BOTTOM_PADDING_BETWEEN_ARCS,
+            false => PADDING_BETWEEN_ARCS,
+        };
 
     if circle_widget.completed_exercises > 0 {
         let start_angle = translation_start
@@ -214,20 +214,19 @@ fn draw_arc_not_completed_exercises(
     center_of_circle: Point,
     circle_widget: &CircleWidget,
 ) {
-
     let translation_start = match circle_widget.circle_start {
-        CircleStart::Top => {TOP_DEGREE_START_TRANSLATION}
-        CircleStart::Bottom => {BOTTOM_DEGREE_START_TRANSLATION}
+        CircleStart::Top => TOP_DEGREE_START_TRANSLATION,
+        CircleStart::Bottom => BOTTOM_DEGREE_START_TRANSLATION,
     };
 
     let start_padding_between_arcs = match circle_widget.completed_exercises > 0 {
         true => PADDING_BETWEEN_ARCS,
-        false => BOTTOM_PADDING_BETWEEN_ARCS
+        false => BOTTOM_PADDING_BETWEEN_ARCS,
     };
 
-    let end_padding_between_arcs = match circle_widget.circle_start  {
-        CircleStart::Top => { PADDING_BETWEEN_ARCS }
-        CircleStart::Bottom => {BOTTOM_PADDING_BETWEEN_ARCS}
+    let end_padding_between_arcs = match circle_widget.circle_start {
+        CircleStart::Top => PADDING_BETWEEN_ARCS,
+        CircleStart::Bottom => BOTTOM_PADDING_BETWEEN_ARCS,
     };
 
     if circle_widget.total_exercises > circle_widget.completed_exercises {

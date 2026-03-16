@@ -28,7 +28,7 @@ use std::cmp::PartialEq;
 pub const CHART_WIDGET_WIDTH: f32 = 700.0;
 pub const CHART_WIDGET_HEIGHT: f32 = 500.0;
 
-#[derive(Eq, PartialEq, Clone, Debug)]
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum DataPointsType {
     Exercise(ChartTypes),
     Health(ChartTypes, GoalType),
@@ -40,7 +40,7 @@ impl Default for DataPointsType {
     }
 }
 
-#[derive(Default, Eq, PartialEq, Clone, Debug)]
+#[derive(Default, Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ChartTypes {
     #[default]
     Graph,
@@ -59,7 +59,7 @@ impl ChartTypes {
 #[derive(Debug, Clone)]
 pub enum ChartMessage {
     SelectExercise(String),
-    Graph(GraphMessage),
+    Graph(DataPointsType, GraphMessage),
     ChangeShownChartType(DataPointsType),
     ChangeShownGoalType(ChartTypes, GoalType),
 }
@@ -72,7 +72,9 @@ impl ChartMessage {
                 Task::none()
             }
 
-            ChartMessage::Graph(graph_message) => GraphMessage::update_graph(graph_message, app),
+            ChartMessage::Graph(data_points_type, graph_message) => {
+                GraphMessage::update_graph(data_points_type, graph_message, app)
+            }
 
             ChartMessage::ChangeShownChartType(data_points_type) => {
                 match data_points_type {
@@ -144,8 +146,18 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         }
         ChartTypes::Graph => {
             let column = Column::new()
-                .push(view_graph_widget_settings(app))
-                .push(GraphWidget::new(app).view());
+                .push(view_graph_widget_settings(
+                    DataPointsType::Exercise(ChartTypes::Graph),
+                    app,
+                ))
+                .push(
+                    GraphWidget::new(
+                        &app.widget_manager.exercise_graph_widget_state,
+                        &app.exercise_manager.data_points,
+                        app.mascot_manager.selected_mascot,
+                    )
+                    .view(),
+                );
 
             column.into()
         }
@@ -167,7 +179,7 @@ pub fn chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message> {
         .push(Space::new().width(Length::FillPortion(2)))
         .push(chart_type_buttons(
             app,
-            DataPointsType::Exercise(chart_type.clone()),
+            DataPointsType::Exercise(*chart_type),
         ))
         .push(Space::new().width(Length::FillPortion(2)))
         .push(search_bar)
@@ -211,7 +223,7 @@ fn chart_type_buttons(app: &App, data_points_type: DataPointsType) -> Row<'_, Me
             match &data_points_type {
                 DataPointsType::Exercise(_) => DataPointsType::Exercise(chart_type),
                 DataPointsType::Health(_, goal_type) => {
-                    DataPointsType::Health(chart_type, goal_type.clone())
+                    DataPointsType::Health(chart_type, *goal_type)
                 }
             },
         )))
@@ -270,7 +282,7 @@ fn goal_type_buttons(app: &App) -> Row<'_, Message> {
         Some(BUTTON_RADIUS_RIGHT_ZERO),
     )
     .on_press(Widget(Chart(ChartMessage::ChangeShownGoalType(
-        chart_type.clone(),
+        *chart_type,
         GoalType::Sleep,
     ))));
 
@@ -281,7 +293,7 @@ fn goal_type_buttons(app: &App) -> Row<'_, Message> {
         Some(BUTTON_RADIUS_BOTH_ZERO),
     )
     .on_press(Widget(Chart(ChartMessage::ChangeShownGoalType(
-        chart_type.clone(),
+        *chart_type,
         GoalType::Water,
     ))));
 
@@ -292,7 +304,7 @@ fn goal_type_buttons(app: &App) -> Row<'_, Message> {
         Some(BUTTON_RADIUS_LEFT_ZERO),
     )
     .on_press(Widget(Chart(ChartMessage::ChangeShownGoalType(
-        chart_type.clone(),
+        *chart_type,
         GoalType::Weight,
     ))));
 
@@ -302,14 +314,16 @@ fn goal_type_buttons(app: &App) -> Row<'_, Message> {
         .push(weight_button)
 }
 
-pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
-    let counter = format_button_text(text!(
-        "{}",
-        app.widget_manager
-            .exercise_graph_widget_state
-            .points_to_draw
-    ))
-    .size(19);
+pub fn view_graph_widget_settings<'a>(
+    data_points_type: DataPointsType,
+    app: &App,
+) -> Element<'a, Message> {
+    let graph_state = match data_points_type {
+        DataPointsType::Exercise(_) => &app.widget_manager.exercise_graph_widget_state,
+        DataPointsType::Health(_, _) => &app.widget_manager.health_graph_widget_state,
+    };
+
+    let counter = format_button_text(text!("{}", graph_state.points_to_draw)).size(19);
 
     let increment_button = create_text_button(
         &app.mascot_manager.selected_mascot,
@@ -317,7 +331,10 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         ButtonStyle::Active,
         Some(BUTTON_RADIUS_LEFT_ZERO),
     )
-    .on_press(Widget(Chart(Graph(GraphMessage::IncrementCounter))));
+    .on_press(Widget(Chart(Graph(
+        data_points_type,
+        GraphMessage::IncrementCounter,
+    ))));
 
     let decrement_button = create_text_button(
         &app.mascot_manager.selected_mascot,
@@ -325,7 +342,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         ButtonStyle::Active,
         Some(BUTTON_RADIUS_RIGHT_ZERO),
     )
-    .on_press(Widget(Chart(Graph(DecrementCounter))));
+    .on_press(Widget(Chart(Graph(data_points_type, DecrementCounter))));
 
     let row_counter_with_buttons = row![
         decrement_button,
@@ -344,11 +361,7 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         ))
         .width(Length::Fixed(100.0));
 
-    let button_style_dots_button = match app
-        .widget_manager
-        .exercise_graph_widget_state
-        .visible_points
-    {
+    let button_style_dots_button = match graph_state.visible_points {
         true => ButtonStyle::Active,
         _ => ButtonStyle::InactiveTab,
     };
@@ -359,13 +372,12 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         button_style_dots_button,
         Some(10.0.into()),
     )
-    .on_press(Widget(Chart(Graph(GraphMessage::ToggleDots))));
+    .on_press(Widget(Chart(Graph(
+        data_points_type,
+        GraphMessage::ToggleDots,
+    ))));
 
-    let button_style_cursor_button = match app
-        .widget_manager
-        .exercise_graph_widget_state
-        .visible_cursor_information
-    {
+    let button_style_cursor_button = match graph_state.visible_cursor_information {
         true => ButtonStyle::Active,
         _ => ButtonStyle::InactiveTab,
     };
@@ -376,13 +388,12 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         button_style_cursor_button,
         Some(10.0.into()),
     )
-    .on_press(Widget(Chart(Graph(GraphMessage::ToggleCursor))));
+    .on_press(Widget(Chart(Graph(
+        data_points_type,
+        GraphMessage::ToggleCursor,
+    ))));
 
-    let button_style_vertical_lines_button = match app
-        .widget_manager
-        .exercise_graph_widget_state
-        .visible_vertical_lines
-    {
+    let button_style_vertical_lines_button = match graph_state.visible_vertical_lines {
         true => ButtonStyle::Active,
         _ => ButtonStyle::InactiveTab,
     };
@@ -393,7 +404,10 @@ pub fn view_graph_widget_settings<'a>(app: &App) -> Element<'a, Message> {
         button_style_vertical_lines_button,
         Some(10.0.into()),
     )
-    .on_press(Widget(Chart(Graph(GraphMessage::ToggleVerticalLines))));
+    .on_press(Widget(Chart(Graph(
+        data_points_type,
+        GraphMessage::ToggleVerticalLines,
+    ))));
 
     let settings_row = Row::new()
         .width(Length::Fixed(CHART_WIDGET_WIDTH))
@@ -429,7 +443,7 @@ pub fn health_chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message>
         ChartTypes::Bar => {
             let bar_chart: Element<Message> = BarChart::new(
                 app.mascot_manager.selected_mascot,
-                &app.exercise_manager.data_points,
+                &app.user_manager.user_info.user_logs.weight_log,
             )
             .into();
             let column = Column::new()
@@ -440,8 +454,18 @@ pub fn health_chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message>
         }
         ChartTypes::Graph => {
             let column = Column::new()
-                .push(view_graph_widget_settings(app))
-                .push(GraphWidget::new(app).view());
+                .push(view_graph_widget_settings(
+                    DataPointsType::Health(ChartTypes::Graph, GoalType::Weight),
+                    app,
+                ))
+                .push(
+                    GraphWidget::new(
+                        &app.widget_manager.health_graph_widget_state,
+                        &app.user_manager.user_info.user_logs.weight_log,
+                        app.mascot_manager.selected_mascot,
+                    )
+                    .view(),
+                );
 
             column.into()
         }
@@ -457,7 +481,7 @@ pub fn health_chart_environment_widget<'a>(app: &'a App) -> Element<'a, Message>
         .push(Space::new().width(Length::FillPortion(1)))
         .push(chart_type_buttons(
             app,
-            DataPointsType::Health(chart_type.clone(), goal_type.clone()),
+            DataPointsType::Health(*chart_type, *goal_type),
         ))
         .push(Space::new().width(Length::FillPortion(5)))
         .push(goal_type_buttons(app))

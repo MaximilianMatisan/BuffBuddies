@@ -1,21 +1,13 @@
+use crate::client::backend::pop_up_manager::PopUpType;
+use crate::client::backend::widget_state::widget_state_manager::WidgetMessage::Chart;
+use crate::client::gui::app::App;
+use crate::client::gui::bb_theme;
 use crate::client::gui::bb_theme::color::{
     CONTAINER_COLOR, DARK_SHADOW, DASHED_LINES_COLOR, DESCRIPTION_TEXT_COLOR,
     HIGHLIGHTED_CONTAINER_COLOR, TEXT_COLOR, create_canvas_gradient, create_color_stops,
     create_gradient_stroke_style, create_solid_stroke_style, transform_alpha,
 };
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
-use iced::Renderer;
-use iced::advanced::graphics::geometry::Frame;
-use iced::widget::canvas::{Cache, Event, Geometry, Path};
-use iced::{Task, mouse};
-use iced_core::Color;
-use std::time::Duration;
-
-use crate::client::backend::exercise_manager::ExerciseManager;
-use crate::client::backend::pop_up_manager::PopUpType;
-use crate::client::backend::widget_state::widget_state_manager::WidgetMessage::Chart;
-use crate::client::gui::app::App;
-use crate::client::gui::bb_theme;
 use crate::client::gui::bb_widget::canvas_utils::{
     draw_line, draw_text, generate_dashed_stroke, generate_stroke, translate_point,
 };
@@ -33,14 +25,22 @@ use crate::common::exercise_mod::exercise::DateWeightPoints;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
+use crate::common::user_mod::user_goals::GoalType;
+use chrono::NaiveDate;
 use iced::Element;
+use iced::Renderer;
+use iced::advanced::graphics::geometry::Frame;
+use iced::widget::canvas::{Cache, Event, Geometry, Path};
 use iced::widget::{Action, canvas};
+use iced::{Task, mouse};
 use iced_anim::{Animated, Animation, Motion};
+use iced_core::Color;
 use iced_core::alignment::Vertical;
 use iced_core::keyboard::Key;
 use iced_core::mouse::Cursor;
 use iced_core::text::Alignment;
 use iced_core::{Point, Rectangle, Size, Theme};
+use std::time::Duration;
 
 pub(crate) const GRAPH_PADDING: f32 = 50.0;
 const AXIS_FONT_SIZE: f32 = 12.0;
@@ -68,42 +68,35 @@ pub enum GraphMessage {
     GraphKeyPressed(Key),
     IncrementCounter,
     DecrementCounter,
-    UpdateAnimatedSelection(iced_anim::Event<f32>),
+    AnimateGraph(iced_anim::Event<f32>),
     ToggleDots,
     ToggleCursor,
     ToggleVerticalLines,
 }
 impl GraphMessage {
-    pub fn update_graph(graph_message: GraphMessage, app: &mut App) -> Task<Message> {
+    pub fn update_graph(
+        data_points_type: DataPointsType,
+        graph_message: GraphMessage,
+        app: &mut App,
+    ) -> Task<Message> {
+        let graph_state = match data_points_type {
+            DataPointsType::Exercise(_) => &mut app.widget_manager.exercise_graph_widget_state,
+            DataPointsType::Health(_, _) => &mut app.widget_manager.health_graph_widget_state,
+        };
+
         match graph_message {
             GraphMessage::GraphCursorMoved(_point) => {}
 
             GraphMessage::GraphKeyPressed(Key::Character(char)) => match char.as_str() {
-                "d" => app
-                    .widget_manager
-                    .exercise_graph_widget_state
-                    .invert_visible_points(),
-                "c" => app
-                    .widget_manager
-                    .exercise_graph_widget_state
-                    .invert_visible_cursor_information(),
-                "v" => app
-                    .widget_manager
-                    .exercise_graph_widget_state
-                    .invert_visible_vertical_lines(),
-                "b" => {
-                    app.widget_manager
-                        .exercise_graph_widget_state
-                        .data_points_type = DataPointsType::Exercise(ChartTypes::Bar)
-                }
+                "d" => graph_state.invert_visible_points(),
+                "c" => graph_state.invert_visible_cursor_information(),
+                "v" => graph_state.invert_visible_vertical_lines(),
+                "b" => graph_state.data_points_type = DataPointsType::Exercise(ChartTypes::Bar),
                 _ => {}
             },
             GraphMessage::IncrementCounter => {
-                if app.widget_manager.exercise_graph_widget_state.get_counter() < MAX_AMOUNT_POINTS
-                {
-                    app.widget_manager
-                        .exercise_graph_widget_state
-                        .increment_counter();
+                if graph_state.get_counter() < MAX_AMOUNT_POINTS {
+                    graph_state.increment_counter();
                 } else {
                     app.pop_up_manager.new_pop_up(
                         PopUpType::Minor,
@@ -113,36 +106,20 @@ impl GraphMessage {
                 }
             }
             GraphMessage::DecrementCounter => {
-                if app.widget_manager.exercise_graph_widget_state.get_counter() > 1 {
-                    app.widget_manager
-                        .exercise_graph_widget_state
-                        .decrement_counter();
+                if graph_state.get_counter() > 1 {
+                    graph_state.decrement_counter();
                 }
             }
-            GraphMessage::UpdateAnimatedSelection(event) => {
-                app.widget_manager
-                    .exercise_graph_widget_state
-                    .animation_progress
-                    .update(event);
-                app.widget_manager
-                    .exercise_graph_widget_state
-                    .update_graph();
+            GraphMessage::AnimateGraph(event) => {
+                graph_state.animation_progress.update(event);
+                graph_state.update_graph();
             }
 
-            GraphMessage::ToggleDots => app
-                .widget_manager
-                .exercise_graph_widget_state
-                .invert_visible_points(),
+            GraphMessage::ToggleDots => graph_state.invert_visible_points(),
 
-            GraphMessage::ToggleCursor => app
-                .widget_manager
-                .exercise_graph_widget_state
-                .invert_visible_cursor_information(),
+            GraphMessage::ToggleCursor => graph_state.invert_visible_cursor_information(),
 
-            GraphMessage::ToggleVerticalLines => app
-                .widget_manager
-                .exercise_graph_widget_state
-                .invert_visible_vertical_lines(),
+            GraphMessage::ToggleVerticalLines => graph_state.invert_visible_vertical_lines(),
 
             GraphMessage::GraphKeyPressed(_) => {} //other key_enums
         };
@@ -205,30 +182,36 @@ impl GraphWidgetState {
 }
 pub struct GraphWidget<'a> {
     active_mascot: Mascot,
-    exercise_manager: &'a ExerciseManager,
+    data_points: &'a Vec<(NaiveDate, f32)>,
     graph_state: &'a GraphWidgetState,
 }
 
 impl<'a> GraphWidget<'a> {
-    pub(crate) fn new(app: &'a App) -> Self {
+    pub(crate) fn new(
+        graph_widget_state: &'a GraphWidgetState,
+        data_points: &'a Vec<(chrono::NaiveDate, f32)>,
+        mascot: Mascot,
+    ) -> Self {
         GraphWidget {
-            active_mascot: app.mascot_manager.selected_mascot,
-            exercise_manager: &app.exercise_manager,
-            graph_state: &app.widget_manager.exercise_graph_widget_state,
+            active_mascot: mascot,
+            data_points,
+            graph_state: graph_widget_state,
         }
     }
 
     pub(crate) fn view(self) -> Element<'a, Message> {
         let draw_percentage = &self.graph_state.animation_progress;
+        let data_points_type = self.graph_state.data_points_type;
 
         let canvas = canvas(self)
             .width(CHART_WIDGET_WIDTH)
             .height(CHART_WIDGET_HEIGHT);
 
         Animation::new(draw_percentage, canvas)
-            .on_update(|event| {
+            .on_update(move |event| {
                 Widget(Chart(ChartMessage::Graph(
-                    GraphMessage::UpdateAnimatedSelection(event),
+                    data_points_type,
+                    GraphMessage::AnimateGraph(event),
                 )))
             })
             .into()
@@ -806,18 +789,21 @@ impl canvas::Program<Message> for GraphWidget<'_> {
         match event {
             canvas::Event::Mouse(mouse::Event::CursorMoved { position }) => {
                 Some(Action::publish(Widget(Chart(ChartMessage::Graph(
+                    self.graph_state.data_points_type,
                     GraphMessage::GraphCursorMoved(*position),
                 )))))
             }
 
             canvas::Event::Keyboard(iced::keyboard::Event::KeyPressed { key, .. }) => {
                 Some(Action::publish(Widget(Chart(ChartMessage::Graph(
+                    self.graph_state.data_points_type,
                     GraphMessage::GraphKeyPressed(key.clone()),
                 )))))
             }
 
             _ => Some(Action::publish(Widget(Chart(ChartMessage::Graph(
-                GraphMessage::UpdateAnimatedSelection(iced_anim::Event::Target(1.0)),
+                self.graph_state.data_points_type,
+                GraphMessage::AnimateGraph(iced_anim::Event::Target(1.0)),
             ))))),
         }
     }
@@ -839,65 +825,76 @@ impl canvas::Program<Message> for GraphWidget<'_> {
                 let center_y = frame.height() / 2.0;
                 let center = Point::new(center_x, center_y);
 
-                match self.exercise_manager.data_points.len() {
-                    0 => draw_text(
-                        frame,
-                        "NO DATA".to_string(),
-                        40.0,
-                        center,
-                        DESCRIPTION_TEXT_COLOR,
-                    ),
-
-                    _data_points_amount => {
-                        let weights = extract_weights(&self.exercise_manager.data_points);
-
-                        //DRAW_BACKGROUND
-                        draw_background(frame, self);
-
-                        //LABELS
-                        draw_axis_labels(
+                match self.graph_state.data_points_type {
+                    DataPointsType::Health(_, GoalType::Water)
+                    | DataPointsType::Health(_, GoalType::Sleep) => {
+                        draw_text(
                             frame,
-                            self.graph_state,
-                            &self.exercise_manager.data_points,
-                            &self.active_mascot,
+                            "Coming soon".to_string(),
+                            40.0,
+                            center,
+                            DESCRIPTION_TEXT_COLOR,
                         );
-
-                        //DASHED LINES
-                        draw_dashed_lines(self.graph_state, frame);
-
-                        //CONNECTIONS BETWEEN POINTS
-                        draw_connections(
-                            self.graph_state,
+                    }
+                    _ => match self.data_points.len() {
+                        0 => draw_text(
                             frame,
-                            weights.clone(),
-                            &self.active_mascot,
-                        );
+                            "NO DATA".to_string(),
+                            40.0,
+                            center,
+                            DESCRIPTION_TEXT_COLOR,
+                        ),
+                        _data_points_amount => {
+                            let weights = extract_weights(self.data_points);
 
-                        let draw_percentage = self.graph_state.animation_progress.value();
-                        //AXIS
-                        draw_axis(*draw_percentage, &self.active_mascot, frame);
+                            //DRAW_BACKGROUND
+                            draw_background(frame, self);
 
-                        //POINTS
-                        if self.graph_state.visible_points {
-                            draw_points(
+                            //LABELS
+                            draw_axis_labels(
+                                frame,
+                                self.graph_state,
+                                self.data_points,
+                                &self.active_mascot,
+                            );
+
+                            //DASHED LINES
+                            draw_dashed_lines(self.graph_state, frame);
+
+                            //CONNECTIONS BETWEEN POINTS
+                            draw_connections(
                                 self.graph_state,
                                 frame,
                                 weights.clone(),
                                 &self.active_mascot,
                             );
-                        }
 
-                        //CURSOR
-                        if self.graph_state.visible_cursor_information {
-                            draw_cursor_information(
-                                weights, //unwrap() in draw_cursor_information can't fail since the list can't be empty
-                                self.graph_state,
-                                bounds,
-                                cursor,
-                                frame,
-                            );
+                            let draw_percentage = self.graph_state.animation_progress.value();
+                            //AXIS
+                            draw_axis(*draw_percentage, &self.active_mascot, frame);
+
+                            //POINTS
+                            if self.graph_state.visible_points {
+                                draw_points(
+                                    self.graph_state,
+                                    frame,
+                                    weights.clone(),
+                                    &self.active_mascot,
+                                );
+                            }
+
+                            //CURSOR
+                            if self.graph_state.visible_cursor_information {
+                                draw_cursor_information(
+                                    weights, //unwrap() in draw_cursor_information can't fail since the list can't be empty
+                                    self.graph_state,
+                                    bounds,
+                                    cursor,
+                                    frame,
+                                );
+                            }
                         }
-                    }
+                    },
                 }
             });
 

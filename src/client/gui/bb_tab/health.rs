@@ -16,6 +16,7 @@ use crate::client::gui::bb_theme::scrollable::{
 use crate::client::gui::bb_theme::text_format::FIRA_SANS_EXTRABOLD;
 use crate::client::gui::bb_widget::bmi_calculator;
 use crate::client::gui::bb_widget::chart_widget::chart::health_chart_environment_widget;
+use crate::client::gui::bb_widget::circle_widget::{CircleStart, CircleWidget};
 use crate::client::gui::bb_widget::progress_bar::{
     ProgressBarWidget, create_progress_bar_environment,
 };
@@ -27,12 +28,11 @@ use crate::common::mascot_mod::epic_mascot::EpicMascot::Capybara;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::rare_mascot::RareMascot::{Chameleon, Whale};
 use crate::common::user_mod::user_goals::GoalType;
-use iced::widget::{Column, Row, row, text, Space};
+use iced::widget::{Column, Row, Space, container, image, row, text};
 use iced::{Element, Task};
 use iced_core::alignment::Vertical;
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
-use crate::client::gui::bb_widget::circle_widget::{CircleStart, CircleWidget};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum HealthMessage {
@@ -117,6 +117,8 @@ impl App {
 
         let mut content = Column::new().push(health_header);
 
+        let mut edit_buttons_row = Row::new();
+
         if edit_mode {
             let save_changes_button_content = row![
                 iced::widget::image(Handle::from_path("assets/images/check_box.png")),
@@ -146,7 +148,7 @@ impl App {
                 .push(discard_changes_button)
                 .spacing(10.0);
 
-            content = content.push(button_row)
+            edit_buttons_row = button_row
         } else {
             let edit_mode_image =
                 iced::widget::image(Handle::from_path("assets/images/pen_tool.png")).width(30.0);
@@ -164,23 +166,46 @@ impl App {
             .height(50.0)
             .on_press(HealthTab(HealthMessage::SwitchEditMode));
 
-            content = content.push(edit_mode_button)
+            edit_buttons_row = edit_buttons_row.push(edit_mode_button)
         }
 
-        let circle_widget = CircleWidget::new(self,CircleStart::Bottom).view();
+        let circle_widget = CircleWidget::new(self, CircleStart::Bottom).view();
         let circle_widgets_column = Column::new()
             .push(bmi_widget)
             .push(circle_widget)
-            .spacing(INDENT);;
+            .spacing(INDENT);
 
         let circle_widgets_with_graph = Row::new()
             .push(circle_widgets_column)
             .push(health_chart_environment_widget(self))
             .spacing(INDENT);
 
-        content = content
-            .push(health_stat_container())
-            .push(circle_widgets_with_graph)
+        let mascot_handle = self
+            .image_manager
+            .cropped_mascot_image_handles
+            .get(&self.mascot_manager.selected_mascot)
+            .unwrap();
+        let mascot_image = image(mascot_handle).width(300);
+
+        let edit_buttons_with_stats = Column::new()
+            .push(edit_buttons_row)
+            .push(container(health_stat_container()).padding(Padding {
+                bottom: LARGE_INDENT,
+                ..0.0.into()
+            }))
+            .spacing(LARGE_INDENT);
+
+        let stat_container_with_mascot = Row::new()
+            .push(edit_buttons_with_stats)
+            .push(mascot_image)
+            .spacing(20.0)
+            .align_y(Vertical::Bottom);
+
+        let circles_with_stats_with_graph = Column::new()
+            .push(stat_container_with_mascot)
+            .push(circle_widgets_with_graph);
+
+        let progress_bars = Column::new()
             .push(create_progress_bar_environment(
                 water_progress_bar,
                 &Mascot::Rare(Whale),
@@ -196,6 +221,11 @@ impl App {
                 &Mascot::Epic(Capybara),
                 edit_mode,
             ))
+            .spacing(15.0);
+
+        content = content
+            .push(circles_with_stats_with_graph)
+            .push(progress_bars)
             .padding(Padding {
                 top: LARGE_INDENT,
                 bottom: FRAME_PADDING,

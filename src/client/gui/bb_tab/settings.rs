@@ -345,7 +345,7 @@ fn edit_goals_column(app: &App) -> Column<'_, SettingsMessage> {
             number_inc_decrementer_buttons(
                 &app.mascot_manager.selected_mascot,
                 goal.get_formatted_user_goal_strings(&pending_info.user_goals),
-                SettingsMessage::IncrementGoalValue(goal.clone()),
+                SettingsMessage::IncrementGoalValue(goal),
                 SettingsMessage::DecrementGoalValue(goal),
             )
             .into(),
