@@ -101,7 +101,7 @@ impl WidgetMessage {
                 ProgressBarMessage::update_progress_bar_message(progress_bar_message, app)
             }
             WidgetMessage::BackgroundAnimation(background_message) =>
-                BackgroundAnimationMessage::update(background_message, app),
+                BackgroundAnimationMessage::update(background_message, &mut app.widget_manager.background_animation_state),
             WidgetMessage::ToggleGeneralExerciseInfo(id) => {
                 let extended_set = &mut app.exercise_manager.extended_general_exercise_infos;
                 if extended_set.contains(&id) {
