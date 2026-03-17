@@ -2,6 +2,9 @@ use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::backend::profile_stat_manager::calculate_activity_data;
 use crate::client::backend::widget_state::progress_bar_manager::ProgressBarStateManager;
 use crate::client::gui::app::App;
+use crate::client::gui::bb_theme::animated_background::{
+    BackgroundAnimationMessage, BackgroundAnimationState,
+};
 use crate::client::gui::bb_widget::activity_widget::activity::{ActivityMessage, ActivityWidget};
 use crate::client::gui::bb_widget::bmi_calculator::{BMIMessage, BMIWidgetState};
 use crate::client::gui::bb_widget::chart_widget::chart::{ChartMessage, DataPointsType};
@@ -21,6 +24,7 @@ pub struct WidgetManager {
     pub bmi_widget_state: BMIWidgetState,
     pub progress_bar_state_manager: ProgressBarStateManager,
     pub pending_progress_bar_state_manager: Option<ProgressBarStateManager>,
+    pub background_animation_state: BackgroundAnimationState,
 }
 
 impl WidgetManager {
@@ -45,6 +49,7 @@ impl WidgetManager {
             bmi_widget_state: BMIWidgetState::new(),
             progress_bar_state_manager: ProgressBarStateManager::new(user_information),
             pending_progress_bar_state_manager: None,
+            background_animation_state: BackgroundAnimationState::default(),
         }
     }
 }
@@ -67,6 +72,7 @@ pub enum WidgetMessage {
     Circle(CircleMessage),
     Bmi(BMIMessage),
     ProgressBar(ProgressBarMessage),
+    BackgroundAnimation(BackgroundAnimationMessage),
     ToggleGeneralExerciseInfo(u32),
 }
 
@@ -94,6 +100,16 @@ impl WidgetMessage {
             WidgetMessage::ProgressBar(progress_bar_message) => {
                 ProgressBarMessage::update_progress_bar_message(progress_bar_message, app)
             }
+            WidgetMessage::BackgroundAnimation(background_message) => match background_message {
+                BackgroundAnimationMessage::UpdateAnimation(event) => {
+                    app.widget_manager
+                        .background_animation_state
+                        .animation_progress
+                        .update(event);
+                    app.widget_manager.background_animation_state.cache.clear();
+                    Task::none()
+                }
+            },
             WidgetMessage::ToggleGeneralExerciseInfo(id) => {
                 let extended_set = &mut app.exercise_manager.extended_general_exercise_infos;
                 if extended_set.contains(&id) {
