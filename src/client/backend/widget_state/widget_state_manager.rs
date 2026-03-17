@@ -2,9 +2,6 @@ use crate::client::backend::exercise_manager::ExerciseManager;
 use crate::client::backend::profile_stat_manager::calculate_activity_data;
 use crate::client::backend::widget_state::progress_bar_manager::ProgressBarStateManager;
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::animated_background::{
-    BackgroundAnimationMessage, BackgroundAnimationState,
-};
 use crate::client::gui::bb_widget::activity_widget::activity::{ActivityMessage, ActivityWidget};
 use crate::client::gui::bb_widget::bmi_calculator::{BMIMessage, BMIWidgetState};
 use crate::client::gui::bb_widget::chart_widget::chart::{ChartMessage, DataPointsType};
@@ -15,6 +12,7 @@ use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::user_mod::user::UserInformation;
 use iced::Task;
+use crate::client::gui::bb_widget::animated_background_mod::animated_background::{BackgroundAnimationMessage, BackgroundAnimationState};
 
 pub struct WidgetManager {
     pub activity_widget: ActivityWidget,
