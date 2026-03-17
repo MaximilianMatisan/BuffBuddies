@@ -1,4 +1,3 @@
-pub mod animated_background;
 pub mod color;
 pub mod combo_box;
 pub mod container;

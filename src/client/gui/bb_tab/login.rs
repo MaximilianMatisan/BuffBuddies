@@ -1,7 +1,6 @@
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::tab::Tab;
-use crate::client::gui::bb_theme::animated_background::animated_line_background;
 use crate::client::gui::bb_theme::color::{BACKGROUND_COLOR, ERROR_COLOR, TEXT_COLOR};
 use crate::client::gui::bb_theme::combo_box::create_text_input_style;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
@@ -15,6 +14,7 @@ use crate::common::login::{RequestValidRegisterError, RequestValidUserError};
 use iced::widget::{Column, Space, container, stack, text, text_input};
 use iced::{Element, Task};
 use iced_core::Length::Fill;
+use crate::client::gui::bb_widget::animated_background_mod::animated_background::animated_line_background;
 
 const MAX_USERNAME_LENGTH: usize = 15;
 const MAX_PASSWORD_LENGTH: usize = 100;

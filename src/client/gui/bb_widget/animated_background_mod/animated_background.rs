@@ -5,7 +5,7 @@ use crate::client::gui::user_interface::Message;
 use crate::client::gui::user_interface::Message::Widget;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use iced::widget::canvas::{Cache, Frame, Geometry, LineCap, LineJoin, Path, Stroke, Style};
+use iced::widget::canvas::{Cache, Geometry, LineCap, LineJoin, Path, Stroke, Style};
 use iced::widget::{Action, canvas, container};
 use iced::{Element, Renderer, Task};
 use iced_anim::{Animated, Animation, Event, Motion};
@@ -16,8 +16,10 @@ use iced::advanced::graphics::Gradient;
 use iced::advanced::graphics::gradient::Linear;
 use iced_core::gradient::ColorStop;
 use rand::RngExt;
-use crate::client::gui::bb_theme::color::create_color_stops;
+use crate::client::gui::bb_widget::animated_background_mod::line::AnimatedLine;
 
+const ANIMATION_VALUE_TO_SPAWN_NEW_LINE: f32 = 0.7;
+const BASE_LINE_WIDTH: f32 = 70.0;
 pub struct BackgroundAnimation<'a> {
     state: &'a BackgroundAnimationState,
     mascot: Mascot,
@@ -31,7 +33,7 @@ impl<'a> BackgroundAnimation<'a> {
     }
 
     pub fn view(self) -> Element<'a, Message> {
-        let draw_percentage = &self.state.animation_progress;
+        let draw_percentage = &self.state.overall_animation;
 
         let canvas = canvas(self).width(Length::Fill).height(Length::Fill);
 
@@ -45,26 +47,42 @@ impl<'a> BackgroundAnimation<'a> {
     }
 }
 pub struct BackgroundAnimationState {
-    start_point: Option<Point>,
-    end_point: Option<Point>,
+    lines: Vec<AnimatedLine>,
+    frame_size: Option<Size>,
 
     // Animation State
     pub cache: Cache,
-    pub animation_progress: Animated<f32>,
+    pub overall_animation: Animated<f32>,
 }
 
 impl Default for BackgroundAnimationState {
     fn default() -> Self {
         let animation_motion = Motion {
-            response: Duration::from_millis(5000),
+            response: Duration::from_millis(500000),
             damping: Motion::BOUNCY.damping(),
         };
 
         Self {
-            start_point: None,
-            end_point: None,
+            lines: vec![],
+            frame_size: None,
             cache: Cache::default(),
-            animation_progress: Animated::new(0.0, animation_motion),
+            overall_animation: Animated::new(0.0, animation_motion),
+        }
+    }
+}
+impl BackgroundAnimationState {
+    /// Spawns a line at the end of lines
+    fn spawn_line(&mut self) {
+        if let Some(frame_size) = self.frame_size {
+            let (start, end) = get_random_start_and_end_point_of_line(frame_size);
+            self.lines.push(AnimatedLine::new(start, Point::ORIGIN, end));
+        }
+    }
+
+    /// Updates all line animations with given Event
+    fn update_lines(&mut self, event: Event<f32>) {
+        for line in &mut self.lines {
+            line.animation_progress.update(event);
         }
     }
 }
@@ -81,10 +99,10 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
     ) -> Option<Action<Message>> {
         self.state.cache.clear();
 
-        if self.state.start_point.is_none() || *self.state.animation_progress.value() >= 0.999 {
+        if self.state.frame_size.is_none() {
             return Some(Action::publish(
                 Widget(WidgetMessage::BackgroundAnimation(
-                    BackgroundAnimationMessage::Init(bounds.size()),
+                    BackgroundAnimationMessage::GetFrameSize(bounds.size()),
                 ))
             ));
         }
@@ -101,63 +119,74 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
         bounds: Rectangle,
         _cursor: Cursor,
     ) -> Vec<Geometry<Renderer>> {
-        let line = self.state.cache.draw(renderer, bounds.size(), |frame| {
-            let start = self.state.start_point.unwrap_or(Point::ORIGIN);
-            let end = self.state.end_point.unwrap_or(Point::ORIGIN);
-            let control = frame.center();
-            let progress = self.state.animation_progress.value();
+        let drawing = self.state.cache.draw(renderer, bounds.size(), |frame| {
+            for line in &self.state.lines {
+                let start = line.start;
+                let control = line.control;
+                let end = line.end;
+                let progress = line.animation_progress.value();
 
-            let current = Point::new(
-                start.x + (end.x - start.x) * progress,
-                start.y + (end.y - start.y) * progress,
-            );
-            let path = Path::new(|builder| {
-                builder.move_to(self.state.start_point.unwrap_or(Point::ORIGIN));
-                builder.line_to(
-                    current
+                let current = Point::new(
+                    start.x + (end.x - start.x) * progress,
+                    start.y + (end.y - start.y) * progress,
                 );
-            });
-            let line_stroke = Stroke {
-                style: Style::Gradient(Gradient::Linear(Linear {
-                    start: Point::new(0.0, 0.0),
-                    end: Point::new(bounds.size().width, bounds.size().height),
-                    stops: [
-                        Some(ColorStop { offset: 0.0, color: self.mascot.get_primary_color()}),
-                        Some(ColorStop { offset: 1.0, color: self.mascot.get_secondary_color()}),
-                        None, None, None, None, None, None
-                    ],
-                })),
-                width: 65.0,
-                line_cap: LineCap::Round,
-                line_join: LineJoin::Round,
-                line_dash: Default::default(),
-            };
+                let path = Path::new(|builder| {
+                    builder.move_to(start);
+                    builder.line_to(current);
+                });
+                let line_stroke = Stroke {
+                    style: Style::Gradient(Gradient::Linear(Linear {
+                        start: Point::new(0.0, 0.0),
+                        end: Point::new(bounds.size().width, bounds.size().height),
+                        stops: [
+                            Some(ColorStop { offset: 0.0, color: self.mascot.get_primary_color().scale_alpha((1.0-progress))}),
+                            Some(ColorStop { offset: 1.0, color: self.mascot.get_secondary_color().scale_alpha((1.0-progress))}),
+                            None, None, None, None, None, None
+                        ],
+                    })),
+                    width: BASE_LINE_WIDTH,
+                    line_cap: LineCap::Round,
+                    line_join: LineJoin::Round,
+                    line_dash: Default::default(),
+                };
 
-            frame.stroke(&path, line_stroke)
+                frame.stroke(&path, line_stroke)
+            }
         });
 
-        vec![line]
+        vec![drawing]
     }
 }
 #[derive(Clone, Debug)]
 pub enum BackgroundAnimationMessage {
-    Init(Size),
+    GetFrameSize(Size),
     UpdateAnimation(Event<f32>),
 }
 impl BackgroundAnimationMessage {
     pub fn update(self, state: &mut BackgroundAnimationState) -> Task<Message> {
         match self {
-            BackgroundAnimationMessage::Init(size) => {
-                *state = BackgroundAnimationState::default();
-                let start_and_end_point = get_random_start_and_end_point_of_line(size);
-                state.start_point = Some(start_and_end_point.0);
-                state.end_point = Some(start_and_end_point.1);
+            BackgroundAnimationMessage::GetFrameSize(size) => {
+                state.frame_size = Some(size);
             }
             BackgroundAnimationMessage::UpdateAnimation(event) => {
-                state
-                    .animation_progress
-                    .update(event);
-                state.cache.clear();
+                // Spawn lines if necessary
+                let mut should_spawn_line = false;
+                for line in &mut state.lines {
+                    if *line.animation_progress.value() > 0.7 && !line.has_spawned_line {
+                        line.has_spawned_line = true;
+                        should_spawn_line = true;
+                    }
+                }
+                if should_spawn_line || state.lines.is_empty() {
+                    state.spawn_line();
+                }
+
+                // Delete lines which finished their animation
+                state.lines.retain(|line| *line.animation_progress.value() < 0.99);
+
+                // Update animations
+                state.update_lines(event);
+                state.overall_animation .update(event);
             }
         }
         Task::none()
