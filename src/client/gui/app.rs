@@ -10,7 +10,7 @@ use crate::client::gui::bb_tab::tab::Tab;
 use crate::client::server_communication::request_data::LoginServerRequestData;
 
 pub struct App {
-    /// Every connection to the server after the login has to contain this jwt in its json header
+    /// Every connection to the server after the login has to contain this jwt in its JSON header
     /// to qualify as a valid request. E.g. see user_communicator::get_user_information_from_server
     pub jsonwebtoken: Option<String>,
     /// Contains the currently viewed tab in logged-in view

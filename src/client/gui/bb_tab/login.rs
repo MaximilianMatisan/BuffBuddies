@@ -125,7 +125,7 @@ impl LoginMessage {
 pub fn view_login(app: &App) -> Element<'_, Message> {
     let centered_login_container = container(view_login_container(app)).center(Fill);
 
-    let line_background = animated_line_background(&app.mascot_manager.selected_mascot);
+    let line_background = animated_line_background(app);
 
     stack!(line_background, centered_login_container).into()
 }
