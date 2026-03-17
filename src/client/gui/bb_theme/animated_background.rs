@@ -46,6 +46,7 @@ impl<'a> BackgroundAnimation<'a> {
 }
 pub struct BackgroundAnimationState {
     start_point: Option<Point>,
+    end_point: Option<Point>,
 
     // Animation State
     pub cache: Cache,
@@ -61,6 +62,7 @@ impl Default for BackgroundAnimationState {
 
         Self {
             start_point: None,
+            end_point: None,
             cache: Cache::default(),
             animation_progress: Animated::new(0.0, animation_motion),
         }
@@ -79,7 +81,7 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
     ) -> Option<Action<Message>> {
         self.state.cache.clear();
 
-        if self.state.start_point.is_none() {
+        if self.state.start_point.is_none() || *self.state.animation_progress.value() >= 0.999 {
             return Some(Action::publish(
                 Widget(WidgetMessage::BackgroundAnimation(
                     BackgroundAnimationMessage::Init(bounds.size()),
@@ -101,7 +103,8 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
     ) -> Vec<Geometry<Renderer>> {
         let line = self.state.cache.draw(renderer, bounds.size(), |frame| {
             let start = self.state.start_point.unwrap_or(Point::ORIGIN);
-            let end = frame.center();
+            let end = self.state.end_point.unwrap_or(Point::ORIGIN);
+            let control = frame.center();
             let progress = self.state.animation_progress.value();
 
             let current = Point::new(
@@ -145,7 +148,10 @@ impl BackgroundAnimationMessage {
     pub fn update(self, state: &mut BackgroundAnimationState) -> Task<Message> {
         match self {
             BackgroundAnimationMessage::Init(size) => {
-                state.start_point = Some(get_random_start_point_of_line(size));
+                *state = BackgroundAnimationState::default();
+                let start_and_end_point = get_random_start_and_end_point_of_line(size);
+                state.start_point = Some(start_and_end_point.0);
+                state.end_point = Some(start_and_end_point.1);
             }
             BackgroundAnimationMessage::UpdateAnimation(event) => {
                 state
@@ -172,21 +178,41 @@ pub fn animated_line_background(app: &App) -> Element<'_, Message> {
         .into()
 }
 
-/// Returns a random point on an edge of the frame
-fn get_random_start_point_of_line(size: Size) -> Point {
+/// Returns a random start and end points on an edge of the frame
+fn get_random_start_and_end_point_of_line(size: Size) -> (Point, Point) {
     let mut rng = rand::rng();
+    let start_point_horizontal_start = rng.random_bool(0.5);
+    let start_point_first_edge = rng.random_bool(0.5);
+    let start_point = random_point_on_edge(size, start_point_horizontal_start, start_point_first_edge);
 
-    // Whether the Point should start on a horizontal or vertical line
-    let horizontal_start = rng.random_bool(0.5);
+    let end_point_horizontal_start = rng.random_bool(0.5);
+    let end_point_first_edge = if start_point_horizontal_start == end_point_horizontal_start {
+        // End Point shouldn't be on the same edge as start!
+        !start_point_first_edge
+    } else {
+        rng.random_bool(0.5)
+    };
+    let end_point = random_point_on_edge(size, end_point_horizontal_start, end_point_first_edge);
 
-    // Whether the Point should start on the
-    //  * top(first) or bottom(second)
-    //  * left(first) or right(second)
-    // edge, interpretation depends on `horizontal_start`
-    let first_edge = rng.random_bool(0.5);
+    (start_point, end_point)
+}
 
+/// Returns a random point on a specified edge of the given Size
+/// ## Arguments
+///
+/// ### horizontal_start
+/// Whether the Point should start on a horizontal or vertical line
+///
+/// ### first_edge
+/// Whether the Point should start on the
+///
+///  * top(first) or bottom(second)
+///  * left(first) or right(second)
+///
+/// edge, interpretation depends on `horizontal_start`
+fn random_point_on_edge(size: Size, horizontal_start: bool, first_edge: bool) -> Point {
+    let mut rng = rand::rng();
     let offset_on_edge: f32 = rng.random_range(0.0..=1.0);
-
     match (horizontal_start, first_edge) {
         (true, true) => Point::new(size.width * offset_on_edge, 0.0), // Top
         (true, false) => Point::new(size.width * offset_on_edge, size.height), // Bottom
