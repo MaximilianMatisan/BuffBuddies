@@ -100,16 +100,8 @@ impl WidgetMessage {
             WidgetMessage::ProgressBar(progress_bar_message) => {
                 ProgressBarMessage::update_progress_bar_message(progress_bar_message, app)
             }
-            WidgetMessage::BackgroundAnimation(background_message) => match background_message {
-                BackgroundAnimationMessage::UpdateAnimation(event) => {
-                    app.widget_manager
-                        .background_animation_state
-                        .animation_progress
-                        .update(event);
-                    app.widget_manager.background_animation_state.cache.clear();
-                    Task::none()
-                }
-            },
+            WidgetMessage::BackgroundAnimation(background_message) =>
+                BackgroundAnimationMessage::update(background_message, app),
             WidgetMessage::ToggleGeneralExerciseInfo(id) => {
                 let extended_set = &mut app.exercise_manager.extended_general_exercise_infos;
                 if extended_set.contains(&id) {
