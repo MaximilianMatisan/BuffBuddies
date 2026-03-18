@@ -6,6 +6,7 @@ use crate::client::gui::bb_theme::combo_box::create_text_input_style;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_button_text};
+use crate::client::gui::bb_widget::animated_background_mod::animated_background::animated_line_background;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::client::server_communication::request_data::request_login_data;
@@ -14,7 +15,6 @@ use crate::common::login::{RequestValidRegisterError, RequestValidUserError};
 use iced::widget::{Column, Space, container, stack, text, text_input};
 use iced::{Element, Task};
 use iced_core::Length::Fill;
-use crate::client::gui::bb_widget::animated_background_mod::animated_background::animated_line_background;
 
 const MAX_USERNAME_LENGTH: usize = 15;
 const MAX_PASSWORD_LENGTH: usize = 100;

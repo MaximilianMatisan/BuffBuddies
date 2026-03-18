@@ -1,4 +1,5 @@
 pub mod activity_widget;
+pub mod animated_background_mod;
 pub mod bmi_calculator;
 mod canvas_utils;
 pub mod chart_widget;
@@ -13,4 +14,3 @@ pub mod social_elements;
 pub mod stats;
 pub mod widget_utils;
 pub mod workout;
-pub mod animated_background_mod;

@@ -3,6 +3,9 @@ use crate::client::backend::profile_stat_manager::calculate_activity_data;
 use crate::client::backend::widget_state::progress_bar_manager::ProgressBarStateManager;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_widget::activity_widget::activity::{ActivityMessage, ActivityWidget};
+use crate::client::gui::bb_widget::animated_background_mod::animated_background::{
+    BackgroundAnimationMessage, BackgroundAnimationState,
+};
 use crate::client::gui::bb_widget::bmi_calculator::{BMIMessage, BMIWidgetState};
 use crate::client::gui::bb_widget::chart_widget::chart::{ChartMessage, DataPointsType};
 use crate::client::gui::bb_widget::chart_widget::graph::GraphWidgetState;
@@ -12,7 +15,6 @@ use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::user_mod::user::UserInformation;
 use iced::Task;
-use crate::client::gui::bb_widget::animated_background_mod::animated_background::{BackgroundAnimationMessage, BackgroundAnimationState};
 
 pub struct WidgetManager {
     pub activity_widget: ActivityWidget,
@@ -98,8 +100,12 @@ impl WidgetMessage {
             WidgetMessage::ProgressBar(progress_bar_message) => {
                 ProgressBarMessage::update_progress_bar_message(progress_bar_message, app)
             }
-            WidgetMessage::BackgroundAnimation(background_message) =>
-                BackgroundAnimationMessage::update(background_message, &mut app.widget_manager.background_animation_state),
+            WidgetMessage::BackgroundAnimation(background_message) => {
+                BackgroundAnimationMessage::update(
+                    background_message,
+                    &mut app.widget_manager.background_animation_state,
+                )
+            }
             WidgetMessage::ToggleGeneralExerciseInfo(id) => {
                 let extended_set = &mut app.exercise_manager.extended_general_exercise_infos;
                 if extended_set.contains(&id) {
