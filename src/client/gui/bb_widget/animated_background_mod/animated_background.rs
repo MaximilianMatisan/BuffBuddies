@@ -1,22 +1,22 @@
 use crate::client::backend::widget_state::widget_state_manager::WidgetMessage;
 use crate::client::gui::app::App;
-use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
+use crate::client::gui::bb_theme::container::{create_container_style, ContainerStyle};
+use crate::client::gui::bb_widget::animated_background_mod::line::AnimatedLine;
 use crate::client::gui::user_interface::Message;
 use crate::client::gui::user_interface::Message::Widget;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
-use iced::widget::canvas::{Cache, Geometry, LineCap, LineJoin, Path, Stroke, Style};
-use iced::widget::{Action, canvas, container};
+use iced::advanced::graphics::gradient::Linear;
+use iced::advanced::graphics::Gradient;
+use iced::widget::canvas::{Cache, Geometry, LineCap, LineJoin, Stroke, Style};
+use iced::widget::{canvas, container, Action};
 use iced::{Element, Renderer, Task};
 use iced_anim::{Animated, Animation, Event, Motion};
+use iced_core::gradient::ColorStop;
 use iced_core::mouse::Cursor;
 use iced_core::{Length, Point, Rectangle, Size, Theme};
-use std::time::Duration;
-use iced::advanced::graphics::Gradient;
-use iced::advanced::graphics::gradient::Linear;
-use iced_core::gradient::ColorStop;
 use rand::RngExt;
-use crate::client::gui::bb_widget::animated_background_mod::line::AnimatedLine;
+use std::time::Duration;
 
 const ANIMATION_VALUE_TO_SPAWN_NEW_LINE: f32 = 0.7;
 const BASE_LINE_WIDTH: f32 = 70.0;
@@ -75,7 +75,11 @@ impl BackgroundAnimationState {
     fn spawn_line(&mut self) {
         if let Some(frame_size) = self.frame_size {
             let (start, end) = get_random_start_and_end_point_of_line(frame_size);
-            self.lines.push(AnimatedLine::new(start, Point::ORIGIN, end));
+            let center = Point::new(
+                frame_size.width / 2.0,
+                frame_size.height / 2.0,
+            );
+            self.lines.push(AnimatedLine::new(start, center, end));
         }
     }
 
@@ -106,6 +110,14 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
                 ))
             ));
         }
+        if let Some(size) = self.state.frame_size
+            && size != bounds.size() {
+            return Some(Action::publish(
+                Widget(WidgetMessage::BackgroundAnimation(
+                    BackgroundAnimationMessage::Init(bounds.size()),
+                ))
+            ));
+        }
 
         Some(Action::publish(Widget(WidgetMessage::BackgroundAnimation(
             BackgroundAnimationMessage::UpdateAnimation(Event::Target(1.0)),
@@ -121,19 +133,9 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
     ) -> Vec<Geometry<Renderer>> {
         let drawing = self.state.cache.draw(renderer, bounds.size(), |frame| {
             for line in &self.state.lines {
-                let start = line.start;
-                let control = line.control;
-                let end = line.end;
                 let progress = line.animation_progress.value();
+                let path = line.bezier_curve();
 
-                let current = Point::new(
-                    start.x + (end.x - start.x) * progress,
-                    start.y + (end.y - start.y) * progress,
-                );
-                let path = Path::new(|builder| {
-                    builder.move_to(start);
-                    builder.line_to(current);
-                });
                 let line_stroke = Stroke {
                     style: Style::Gradient(Gradient::Linear(Linear {
                         start: Point::new(0.0, 0.0),
@@ -159,12 +161,17 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
 }
 #[derive(Clone, Debug)]
 pub enum BackgroundAnimationMessage {
+    Init(Size),
     GetFrameSize(Size),
     UpdateAnimation(Event<f32>),
 }
 impl BackgroundAnimationMessage {
     pub fn update(self, state: &mut BackgroundAnimationState) -> Task<Message> {
         match self {
+            BackgroundAnimationMessage::Init(size) => {
+                *state = BackgroundAnimationState::default();
+                state.frame_size = Some(size)
+            }
             BackgroundAnimationMessage::GetFrameSize(size) => {
                 state.frame_size = Some(size);
             }
@@ -172,7 +179,7 @@ impl BackgroundAnimationMessage {
                 // Spawn lines if necessary
                 let mut should_spawn_line = false;
                 for line in &mut state.lines {
-                    if *line.animation_progress.value() > 0.7 && !line.has_spawned_line {
+                    if *line.animation_progress.value() > ANIMATION_VALUE_TO_SPAWN_NEW_LINE && !line.has_spawned_line {
                         line.has_spawned_line = true;
                         should_spawn_line = true;
                     }
@@ -243,9 +250,9 @@ fn random_point_on_edge(size: Size, horizontal_start: bool, first_edge: bool) ->
     let mut rng = rand::rng();
     let offset_on_edge: f32 = rng.random_range(0.0..=1.0);
     match (horizontal_start, first_edge) {
-        (true, true) => Point::new(size.width * offset_on_edge, 0.0), // Top
-        (true, false) => Point::new(size.width * offset_on_edge, size.height), // Bottom
-        (false, true) => Point::new(0.0, size.height * offset_on_edge), // Left
-        (false, false) => Point::new(size.width, size.height * offset_on_edge), // Right
+        (true, true) => Point::new(size.width * offset_on_edge, -BASE_LINE_WIDTH), // Top
+        (true, false) => Point::new(size.width * offset_on_edge, size.height + BASE_LINE_WIDTH), // Bottom
+        (false, true) => Point::new(-BASE_LINE_WIDTH, size.height * offset_on_edge), // Left
+        (false, false) => Point::new(size.width + BASE_LINE_WIDTH, size.height * offset_on_edge), // Right
     }
 }
