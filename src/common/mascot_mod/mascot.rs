@@ -2,6 +2,7 @@ use crate::common::mascot_mod::epic_mascot::EpicMascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::mascot_mod::rare_mascot::RareMascot;
 use iced_core::Color;
+use rand::prelude::IteratorRandom;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
@@ -108,5 +109,14 @@ impl Mascot {
         RareMascot::iter()
             .map(Mascot::Rare)
             .chain(EpicMascot::iter().map(Mascot::Epic))
+    }
+    pub fn get_random_mascot() -> Mascot {
+        let mut rng = rand::rng();
+
+        Mascot::iter()
+            .collect::<Vec<Mascot>>()
+            .into_iter()
+            .choose(&mut rng)
+            .unwrap_or_default()
     }
 }

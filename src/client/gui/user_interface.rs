@@ -145,7 +145,10 @@ impl App {
             return view_pop_up(self);
         }
         if self.login_state.state == LoginStates::NotLoggedIn && self.screen != Tab::Loading {
-            return view_login(self);
+            return view_login(
+                &self.widget_manager.background_animation_state,
+                &self.login_state,
+            );
         }
         if self.screen == Tab::Loading {
             return self.view_loading_screen();

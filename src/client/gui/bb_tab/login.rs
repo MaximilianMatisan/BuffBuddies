@@ -1,3 +1,4 @@
+use crate::client::backend::login_state::LoginState;
 use crate::client::backend::pop_up_manager::PopUpType;
 use crate::client::gui::app::App;
 use crate::client::gui::bb_tab::tab::Tab;
@@ -6,12 +7,15 @@ use crate::client::gui::bb_theme::combo_box::create_text_input_style;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
 use crate::client::gui::bb_theme::custom_button::{ButtonStyle, create_element_button};
 use crate::client::gui::bb_theme::text_format::{FIRA_SANS_EXTRABOLD, format_button_text};
-use crate::client::gui::bb_widget::animated_background_mod::animated_background::animated_line_background;
+use crate::client::gui::bb_widget::animated_background_mod::animated_background::{
+    BackgroundAnimationState, animated_line_background,
+};
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::client::server_communication::request_data::request_login_data;
 use crate::client::server_communication::user_communicator::{valid_login, valid_register};
 use crate::common::login::{RequestValidRegisterError, RequestValidUserError};
+use crate::common::mascot_mod::mascot::Mascot;
 use iced::widget::{Column, Space, container, stack, text, text_input};
 use iced::{Element, Task};
 use iced_core::Length::Fill;
@@ -122,14 +126,30 @@ impl LoginMessage {
     }
 }
 
-pub fn view_login(app: &App) -> Element<'_, Message> {
-    let centered_login_container = container(view_login_container(app)).center(Fill);
+pub fn view_login<'a>(
+    background_state: &'a BackgroundAnimationState,
+    login_state: &'a LoginState,
+) -> Element<'a, Message> {
+    let selected_mascot_animated_buttons = if *background_state.color_animation.value() < 0.5 {
+        &background_state.current_mascot
+    } else {
+        &background_state.next_mascot
+    };
 
-    let line_background = animated_line_background(app);
+    let centered_login_container = container(view_login_container(
+        selected_mascot_animated_buttons,
+        login_state,
+    ))
+    .center(Fill);
+
+    let line_background = animated_line_background(background_state);
 
     stack!(line_background, centered_login_container).into()
 }
-fn view_login_container(app: &App) -> Element<'_, Message> {
+fn view_login_container<'a>(
+    mascot: &'a Mascot,
+    login_state: &'a LoginState,
+) -> Element<'a, Message> {
     let login_text: Element<Message> = text("LOGIN")
         .color(TEXT_COLOR)
         .font(FIRA_SANS_EXTRABOLD)
@@ -138,61 +158,43 @@ fn view_login_container(app: &App) -> Element<'_, Message> {
         .center()
         .into();
 
-    let error_text: Element<Message> = text(&app.login_state.error_text)
+    let error_text: Element<Message> = text(&login_state.error_text)
         .font(FIRA_SANS_EXTRABOLD)
         .width(Fill)
         .center()
         .color(ERROR_COLOR)
         .into();
 
-    let username_field: Element<Message> =
-        text_input("Enter username...", &app.login_state.username)
-            .style(create_text_input_style(
-                &app.mascot_manager.selected_mascot,
-                BACKGROUND_COLOR,
-            ))
-            .font(FIRA_SANS_EXTRABOLD)
-            .on_input(|new_name| -> Message {
-                Message::Login(LoginMessage::UsernameEntered(new_name))
-            })
-            .into();
+    let username_field: Element<Message> = text_input("Enter username...", &login_state.username)
+        .style(create_text_input_style(mascot, BACKGROUND_COLOR))
+        .font(FIRA_SANS_EXTRABOLD)
+        .on_input(|new_name| -> Message { Message::Login(LoginMessage::UsernameEntered(new_name)) })
+        .into();
 
-    let password_field: Element<Message> =
-        text_input("Enter password...", &app.login_state.password)
-            .style(create_text_input_style(
-                &app.mascot_manager.selected_mascot,
-                BACKGROUND_COLOR,
-            ))
-            .font(FIRA_SANS_EXTRABOLD)
-            .on_input(|new_password| -> Message {
-                Message::Login(LoginMessage::PasswordEntered(new_password))
-            })
-            .on_submit(Message::Login(LoginMessage::TryLogin))
-            .secure(true)
-            .into();
+    let password_field: Element<Message> = text_input("Enter password...", &login_state.password)
+        .style(create_text_input_style(mascot, BACKGROUND_COLOR))
+        .font(FIRA_SANS_EXTRABOLD)
+        .on_input(|new_password| -> Message {
+            Message::Login(LoginMessage::PasswordEntered(new_password))
+        })
+        .on_submit(Message::Login(LoginMessage::TryLogin))
+        .secure(true)
+        .into();
 
     let login_button_text: Element<Message> = format_button_text(text("Login")).width(Fill).into();
-    let login_button = create_element_button(
-        &app.mascot_manager.selected_mascot,
-        login_button_text,
-        ButtonStyle::Active,
-        None,
-    )
-    .on_press(Message::Login(LoginMessage::TryLogin))
-    .width(Fill)
-    .height(40);
+    let login_button =
+        create_element_button(mascot, login_button_text, ButtonStyle::InactiveTab, None)
+            .on_press(Message::Login(LoginMessage::TryLogin))
+            .width(Fill)
+            .height(40);
 
     let register_button_text: Element<Message> =
         format_button_text(text("Register")).width(Fill).into();
-    let register_button = create_element_button(
-        &app.mascot_manager.selected_mascot,
-        register_button_text,
-        ButtonStyle::Active,
-        None,
-    )
-    .on_press(Message::Login(LoginMessage::TryRegister))
-    .width(Fill)
-    .height(40);
+    let register_button =
+        create_element_button(mascot, register_button_text, ButtonStyle::InactiveTab, None)
+            .on_press(Message::Login(LoginMessage::TryRegister))
+            .width(Fill)
+            .height(40);
 
     let login_elements = Column::new()
         .push(login_text)
