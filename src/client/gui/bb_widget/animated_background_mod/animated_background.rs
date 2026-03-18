@@ -1,7 +1,9 @@
 use crate::client::backend::widget_state::widget_state_manager::WidgetMessage;
-use crate::client::gui::app::App;
+use crate::client::gui::bb_theme::color::interpolate_colors;
 use crate::client::gui::bb_theme::container::{ContainerStyle, create_container_style};
-use crate::client::gui::bb_widget::animated_background_mod::line::AnimatedLine;
+use crate::client::gui::bb_widget::animated_background_mod::line::{
+    AnimatedLine, get_random_start_and_end_point_of_line,
+};
 use crate::client::gui::user_interface::Message;
 use crate::client::gui::user_interface::Message::Widget;
 use crate::common::mascot_mod::mascot::Mascot;
@@ -15,20 +17,18 @@ use iced_anim::{Animated, Animation, Event, Motion};
 use iced_core::gradient::ColorStop;
 use iced_core::mouse::Cursor;
 use iced_core::{Length, Point, Rectangle, Size, Theme};
-use rand::RngExt;
 use std::time::Duration;
 
 const ANIMATION_VALUE_TO_SPAWN_NEW_LINE: f32 = 0.5;
-const BASE_LINE_WIDTH: f32 = 200.0;
+pub const BASE_LINE_WIDTH: f32 = 200.0;
+
 pub struct BackgroundAnimation<'a> {
     state: &'a BackgroundAnimationState,
-    mascot: Mascot,
 }
 impl<'a> BackgroundAnimation<'a> {
-    pub fn new(app: &'a App) -> Self {
+    pub fn new(background_animation_state: &'a BackgroundAnimationState) -> Self {
         Self {
-            mascot: app.mascot_manager.selected_mascot,
-            state: &app.widget_manager.background_animation_state,
+            state: background_animation_state,
         }
     }
 
@@ -49,6 +49,9 @@ impl<'a> BackgroundAnimation<'a> {
 pub struct BackgroundAnimationState {
     lines: Vec<AnimatedLine>,
     frame_size: Option<Size>,
+    pub current_mascot: Mascot,
+    pub next_mascot: Mascot,
+    pub color_animation: Animated<f32>,
 
     // Animation State
     pub cache: Cache,
@@ -57,14 +60,22 @@ pub struct BackgroundAnimationState {
 
 impl Default for BackgroundAnimationState {
     fn default() -> Self {
+        let color_animation_motion = Motion {
+            response: Duration::from_secs(60),
+            damping: Motion::SMOOTH.damping(),
+        };
+
         let animation_motion = Motion {
-            response: Duration::from_millis(500000),
-            damping: Motion::BOUNCY.damping(),
+            response: Duration::from_mins(10),
+            damping: Motion::SMOOTH.damping(),
         };
 
         Self {
             lines: vec![],
             frame_size: None,
+            current_mascot: Mascot::default(),
+            next_mascot: Mascot::get_random_mascot(),
+            color_animation: Animated::new(0.0, color_animation_motion),
             cache: Cache::default(),
             overall_animation: Animated::new(0.0, animation_motion),
         }
@@ -112,7 +123,6 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
                 BackgroundAnimationMessage::Init(bounds.size()),
             ))));
         }
-
         Some(Action::publish(Widget(WidgetMessage::BackgroundAnimation(
             BackgroundAnimationMessage::UpdateAnimation(Event::Target(1.0)),
         ))))
@@ -127,7 +137,6 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
     ) -> Vec<Geometry<Renderer>> {
         let drawing = self.state.cache.draw(renderer, bounds.size(), |frame| {
             for line in &self.state.lines {
-                let progress = line.animation_progress.value();
                 let path = line.bezier_curve();
 
                 let line_stroke = Stroke {
@@ -137,14 +146,21 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
                         stops: [
                             Some(ColorStop {
                                 offset: 0.0,
-                                color: self.mascot.get_primary_color().scale_alpha(1.0 - progress),
+                                color: interpolate_colors(
+                                    self.state.current_mascot.get_primary_color(),
+                                    self.state.next_mascot.get_primary_color(),
+                                    *self.state.color_animation.value(),
+                                )
+                                .scale_alpha(1.0 - line.animation_progress.value()),
                             }),
                             Some(ColorStop {
                                 offset: 1.0,
-                                color: self
-                                    .mascot
-                                    .get_secondary_color()
-                                    .scale_alpha(1.0 - progress),
+                                color: interpolate_colors(
+                                    self.state.current_mascot.get_secondary_color(),
+                                    self.state.next_mascot.get_secondary_color(),
+                                    *self.state.color_animation.value(),
+                                )
+                                .scale_alpha(1.0 - line.animation_progress.value()),
                             }),
                             None,
                             None,
@@ -184,6 +200,14 @@ impl BackgroundAnimationMessage {
                 state.frame_size = Some(size);
             }
             BackgroundAnimationMessage::UpdateAnimation(event) => {
+                if *state.overall_animation.value() > 0.99 {
+                    *state = BackgroundAnimationState::default()
+                }
+                if *state.color_animation.value() > 0.99 {
+                    state.current_mascot = state.next_mascot;
+                    state.next_mascot = Mascot::get_random_mascot();
+                    state.color_animation.settle_at(0.0);
+                }
                 // Spawn lines if necessary
                 let mut should_spawn_line = false;
                 for line in &mut state.lines {
@@ -204,6 +228,7 @@ impl BackgroundAnimationMessage {
                     .retain(|line| *line.animation_progress.value() < 0.99);
 
                 // Update animations
+                state.color_animation.update(event);
                 state.update_lines(event);
                 state.overall_animation.update(event);
             }
@@ -212,8 +237,11 @@ impl BackgroundAnimationMessage {
     }
 }
 
-pub fn animated_line_background(app: &App) -> Element<'_, Message> {
-    let animated_line: Element<Message> = BackgroundAnimation::new(app).view();
+pub fn animated_line_background(
+    background_animation_state: &BackgroundAnimationState,
+) -> Element<'_, Message> {
+    let animated_line: Element<Message> =
+        BackgroundAnimation::new(background_animation_state).view();
 
     container(animated_line)
         .width(Length::Fill)
@@ -224,48 +252,4 @@ pub fn animated_line_background(app: &App) -> Element<'_, Message> {
             None,
         ))
         .into()
-}
-
-/// Returns a random start and end points on an edge of the frame
-fn get_random_start_and_end_point_of_line(size: Size) -> (Point, Point) {
-    let mut rng = rand::rng();
-    let start_point_horizontal_start = rng.random_bool(0.5);
-    let start_point_first_edge = rng.random_bool(0.5);
-    let start_point =
-        random_point_on_edge(size, start_point_horizontal_start, start_point_first_edge);
-
-    let end_point_horizontal_start = rng.random_bool(0.5);
-    let end_point_first_edge = if start_point_horizontal_start == end_point_horizontal_start {
-        // End Point shouldn't be on the same edge as start!
-        !start_point_first_edge
-    } else {
-        rng.random_bool(0.5)
-    };
-    let end_point = random_point_on_edge(size, end_point_horizontal_start, end_point_first_edge);
-
-    (start_point, end_point)
-}
-
-/// Returns a random point on a specified edge of the given Size
-/// ## Arguments
-///
-/// ### horizontal_start
-/// Whether the Point should start on a horizontal or vertical line
-///
-/// ### first_edge
-/// Whether the Point should start on the
-///
-///  * top(first) or bottom(second)
-///  * left(first) or right(second)
-///
-/// edge, interpretation depends on `horizontal_start`
-fn random_point_on_edge(size: Size, horizontal_start: bool, first_edge: bool) -> Point {
-    let mut rng = rand::rng();
-    let offset_on_edge: f32 = rng.random_range(0.0..=1.0);
-    match (horizontal_start, first_edge) {
-        (true, true) => Point::new(size.width * offset_on_edge, -BASE_LINE_WIDTH), // Top
-        (true, false) => Point::new(size.width * offset_on_edge, size.height + BASE_LINE_WIDTH), // Bottom
-        (false, true) => Point::new(-BASE_LINE_WIDTH, size.height * offset_on_edge), // Left
-        (false, false) => Point::new(size.width + BASE_LINE_WIDTH, size.height * offset_on_edge), // Right
-    }
 }

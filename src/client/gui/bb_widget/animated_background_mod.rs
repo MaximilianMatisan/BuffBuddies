@@ -1,2 +1,2 @@
 pub mod animated_background;
-mod line;
+pub mod line;

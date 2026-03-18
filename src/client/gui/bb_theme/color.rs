@@ -72,3 +72,17 @@ pub fn create_gradient_stroke_style(
 ) -> iced::widget::canvas::stroke::Style {
     iced::widget::canvas::stroke::Style::Gradient(gradient)
 }
+
+/// Creates a mixture of both colors with
+///  * progress = 0.0 being the `from` Color
+///  * progress = 1.0 being the `to` Color
+pub fn interpolate_colors(from: Color, to: Color, progress: f32) -> Color {
+    let valid_progress = progress.clamp(0.0, 1.0);
+
+    Color {
+        r: from.r + (to.r - from.r) * valid_progress,
+        b: from.b + (to.b - from.b) * valid_progress,
+        g: from.g + (to.g - from.g) * valid_progress,
+        a: from.a + (to.a - from.a) * valid_progress,
+    }
+}
