@@ -182,16 +182,15 @@ fn view_login_container<'a>(
         .into();
 
     let login_button_text: Element<Message> = format_button_text(text("Login")).width(Fill).into();
-    let login_button =
-        create_element_button(mascot, login_button_text, ButtonStyle::InactiveTab, None)
-            .on_press(Message::Login(LoginMessage::TryLogin))
-            .width(Fill)
-            .height(40);
+    let login_button = create_element_button(mascot, login_button_text, ButtonStyle::Active, None)
+        .on_press(Message::Login(LoginMessage::TryLogin))
+        .width(Fill)
+        .height(40);
 
     let register_button_text: Element<Message> =
         format_button_text(text("Register")).width(Fill).into();
     let register_button =
-        create_element_button(mascot, register_button_text, ButtonStyle::InactiveTab, None)
+        create_element_button(mascot, register_button_text, ButtonStyle::Active, None)
             .on_press(Message::Login(LoginMessage::TryRegister))
             .width(Fill)
             .height(40);

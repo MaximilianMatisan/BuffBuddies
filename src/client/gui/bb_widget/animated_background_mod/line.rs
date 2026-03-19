@@ -44,7 +44,7 @@ impl AnimatedLine {
     }
     pub fn bezier_curve(&self) -> Path {
         let progress = self.animation_progress.value();
-        let steps = 500;
+        let steps = 10;
 
         Path::new(|builder| {
             builder.move_to(self.start);
