@@ -66,7 +66,7 @@ impl Default for BackgroundAnimationState {
         };
 
         let animation_motion = Motion {
-            response: Duration::from_mins(10),
+            response: Duration::from_mins(5),
             damping: Motion::SMOOTH.damping(),
         };
 
@@ -109,8 +109,6 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
         bounds: Rectangle,
         _cursor: Cursor,
     ) -> Option<Action<Message>> {
-        self.state.cache.clear();
-
         if self.state.frame_size.is_none() {
             return Some(Action::publish(Widget(WidgetMessage::BackgroundAnimation(
                 BackgroundAnimationMessage::GetFrameSize(bounds.size()),
@@ -123,9 +121,15 @@ impl<'a> canvas::Program<Message> for BackgroundAnimation<'a> {
                 BackgroundAnimationMessage::Init(bounds.size()),
             ))));
         }
-        Some(Action::publish(Widget(WidgetMessage::BackgroundAnimation(
-            BackgroundAnimationMessage::UpdateAnimation(Event::Target(1.0)),
-        ))))
+        if self.state.overall_animation.is_animating()
+            || *self.state.overall_animation.value() < 0.01
+        {
+            Some(Action::publish(Widget(WidgetMessage::BackgroundAnimation(
+                BackgroundAnimationMessage::UpdateAnimation(Event::Target(1.0)),
+            ))))
+        } else {
+            None
+        }
     }
     fn draw(
         &self,
@@ -200,9 +204,6 @@ impl BackgroundAnimationMessage {
                 state.frame_size = Some(size);
             }
             BackgroundAnimationMessage::UpdateAnimation(event) => {
-                if *state.overall_animation.value() > 0.99 {
-                    *state = BackgroundAnimationState::default()
-                }
                 if *state.color_animation.value() > 0.99 {
                     state.current_mascot = state.next_mascot;
                     state.next_mascot = Mascot::get_random_mascot();
@@ -231,6 +232,7 @@ impl BackgroundAnimationMessage {
                 state.color_animation.update(event);
                 state.update_lines(event);
                 state.overall_animation.update(event);
+                state.cache.clear();
             }
         }
         Task::none()
