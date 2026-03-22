@@ -3,7 +3,7 @@ use crate::common::exercise_mod::exercise::Exercise;
 use crate::common::exercise_mod::weight::Kg;
 use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::profile_picture::ProfilePictureTypes;
-use crate::common::user_mod::user_goals::UserGoals;
+use crate::common::user_mod::user_goals::{GoalType, UserGoals};
 use crate::common::user_mod::user_log::UserLog;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter, EnumString};
@@ -81,7 +81,7 @@ impl Default for ForeignUser {
             profile_picture_path: ProfilePictureTypes::ManBuff.get_image_path(),
             profile_stat_manager: ProfileStatManager::new(
                 &vec![],
-                4, //TODO get by GoalType
+                GoalType::WeeklyWorkouts.get_default_goal_value() as u32,
             ),
             favorite_mascot: Mascot::default(),
             owned_mascots: vec![Mascot::default()],
