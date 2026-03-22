@@ -15,41 +15,38 @@ use iced::widget::{Column, Row, Space, column, image, text};
 use iced_core::Length;
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
+use iced_core::text::Wrapping;
 
 const FRIEND_BUTTON_WIDTH: f32 = 200.0;
 const FRIEND_BUTTON_HEIGHT: f32 = 300.0;
 const USER_BUTTON_WIDTH: f32 = 700.0;
-const MAX_DISPLAYED_NAME_CHARS: usize = 8;
 
 pub fn friend_user_button<'a>(
     app: &App,
     user: &ForeignUser,
 ) -> iced_anim::widget::Button<'a, Message> {
-    let profile_picture: Element<Message> = image(Handle::from_path(
-        &user.user_information.profile_picture_path,
-    ))
-    .width(MEDIUM_PROFILE_PICTURE_DIMENSION)
-    .height(MEDIUM_PROFILE_PICTURE_DIMENSION)
-    .into();
+    const USERNAME_FONT_SIZE: f32 = 24.0;
 
-    let cropped_username: String = user
-        .user_information
-        .username
-        .chars()
-        .take(MAX_DISPLAYED_NAME_CHARS)
-        .collect();
-    let name = format_button_text(text(cropped_username)).size(24);
+    let profile_picture: Element<Message> = image(Handle::from_path(&user.profile_picture_path))
+        .width(MEDIUM_PROFILE_PICTURE_DIMENSION)
+        .height(MEDIUM_PROFILE_PICTURE_DIMENSION)
+        .into();
+
+    let name = format_button_text(text(user.username.clone()))
+        .wrapping(Wrapping::WordOrGlyph)
+        .width(FRIEND_BUTTON_WIDTH)
+        .height(USERNAME_FONT_SIZE)
+        .size(USERNAME_FONT_SIZE);
+
     let streak = format_description_text(text(format!(
         "{}-week-streak",
-        user.user_information
-            .profile_stat_manager
-            .weekly_workout_streak
+        user.profile_stat_manager.weekly_workout_streak
     )));
 
     let mascot_handle = app
         .image_manager
         .cropped_mascot_image_handles
-        .get(&user.user_information.favorite_mascot)
+        .get(&user.favorite_mascot)
         .unwrap();
 
     let mascot_image = image(mascot_handle).width(FRIEND_BUTTON_WIDTH - 2.0 * INDENT);
@@ -64,7 +61,7 @@ pub fn friend_user_button<'a>(
         .align_x(Horizontal::Center);
 
     create_element_button(
-        &user.user_information.favorite_mascot,
+        &user.favorite_mascot,
         contents.into(),
         ButtonStyle::InactiveTab,
         Some(DEFAULT_CONTAINER_RADIUS.into()),
@@ -72,26 +69,22 @@ pub fn friend_user_button<'a>(
     .width(FRIEND_BUTTON_WIDTH)
     .height(FRIEND_BUTTON_HEIGHT)
     .on_press(Message::Social(SocialMessage::ViewProfile(
-        UserType::Other(user.user_information.username.clone()),
+        UserType::Other(user.username.clone()),
     )))
 }
 pub fn user_profile_button<'a>(
     active_mascot: &Mascot,
     user: &'a ForeignUser,
 ) -> iced_anim::widget::Button<'a, Message> {
-    let profile_picture: Element<Message> = image(Handle::from_path(
-        &user.user_information.profile_picture_path,
-    ))
-    .width(SMALL_PROFILE_PICTURE_DIMENSION)
-    .height(SMALL_PROFILE_PICTURE_DIMENSION)
-    .into();
+    let profile_picture: Element<Message> = image(Handle::from_path(&user.profile_picture_path))
+        .width(SMALL_PROFILE_PICTURE_DIMENSION)
+        .height(SMALL_PROFILE_PICTURE_DIMENSION)
+        .into();
 
-    let name = format_button_text(text(&user.user_information.username));
+    let name = format_button_text(text(&user.username));
     let streak = format_description_text(text(format!(
         "{}-week-streak",
-        user.user_information
-            .profile_stat_manager
-            .weekly_workout_streak
+        user.profile_stat_manager.weekly_workout_streak
     )));
 
     let text_column = Column::new().push(name).push(streak);
@@ -103,7 +96,7 @@ pub fn user_profile_button<'a>(
         Some(DEFAULT_CONTAINER_RADIUS.into()),
     )
     .on_press(Message::Social(SocialMessage::AddUserAsFriend(
-        user.user_information.username.clone(),
+        user.username.clone(),
     )));
 
     let contents = Row::new()
@@ -123,7 +116,7 @@ pub fn user_profile_button<'a>(
     .width(USER_BUTTON_WIDTH)
     .height(Length::Shrink)
     .on_press(Message::Social(SocialMessage::ViewProfile(
-        UserType::Other(user.user_information.username.clone()),
+        UserType::Other(user.username.clone()),
     )))
 }
 

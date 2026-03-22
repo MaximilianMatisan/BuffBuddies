@@ -10,7 +10,7 @@ use crate::client::gui::bb_widget::social_elements::profile_tab_button;
 use crate::client::gui::bb_widget::widget_utils::INDENT;
 use crate::client::gui::user_interface::Message;
 use crate::common::mascot_mod::mascot::Mascot;
-use crate::common::user_mod::user::{UserInformation, UserType};
+use crate::common::user_mod::user::{DisplayUserProfileData, UserInformation, UserType};
 use iced::Element;
 use iced::widget::{Column, Row, Space, container, row};
 use iced_core::alignment::{Horizontal, Vertical};
@@ -151,26 +151,22 @@ pub fn view_tab_content(app: &App) -> Option<Element<'_, Message>> {
         Tab::ViewProfile => {
             let user_type = &app.user_manager.most_recently_viewed_user;
 
-            match user_type {
-                UserType::Own => Some(view_profile(
-                    app,
-                    &app.user_manager.user_info,
-                    &app.mascot_manager.owned_mascots,
-                    false,
-                )),
+            let user_profile_data = match user_type {
+                UserType::Own => DisplayUserProfileData::from_logged_in_user(
+                    app.user_manager.user_info.clone(),
+                    app.mascot_manager.owned_mascots.clone(),
+                ),
                 UserType::Other(username) => {
                     let viewed_profile = app.user_manager.get_user_by_username(username);
-
-                    viewed_profile.map(|profile| {
-                        view_profile(
-                            app,
-                            &profile.user_information,
-                            &profile.owned_mascots,
-                            profile.friends_with_active_user,
-                        )
-                    })
+                    if let Some(profile) = viewed_profile {
+                        DisplayUserProfileData::from(profile.clone())
+                    } else {
+                        DisplayUserProfileData::default()
+                    }
                 }
-            }
+            };
+
+            Some(view_profile(app, user_profile_data))
         }
     };
     tab_window

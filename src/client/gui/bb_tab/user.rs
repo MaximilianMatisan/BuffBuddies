@@ -9,37 +9,31 @@ use crate::client::gui::bb_theme::text_format::{
 use crate::client::gui::bb_widget::stats::{PROFILE_STAT_CONTAINER_HEIGHT, profile_stat_container};
 use crate::client::gui::bb_widget::widget_utils::{INDENT, LARGE_INDENT};
 use crate::client::gui::user_interface::Message;
-use crate::common::mascot_mod::mascot::Mascot;
 use crate::common::mascot_mod::mascot_trait::MascotTrait;
 use crate::common::profile_picture::LARGE_PROFILE_PICTURE_DIMENSION;
-use crate::common::user_mod::user::UserInformation;
+use crate::common::user_mod::user::DisplayUserProfileData;
 use iced::Element;
 use iced::widget::{Column, Container, Row, Space, column, container, image, row, text};
 use iced_core::alignment::{Horizontal, Vertical};
 use iced_core::image::Handle;
 use iced_core::{Length, Padding};
 
-pub fn view_profile<'a>(
-    app: &'a App,
-    user: &'a UserInformation,
-    owned_mascots: &[Mascot],
-    friends_with_logged_in_user: bool,
-) -> Element<'a, Message> {
+pub fn view_profile(app: &App, user: DisplayUserProfileData) -> Element<'_, Message> {
     let profile_picture = container(
-        image(&user.profile_picture_path)
+        image(user.profile_picture_path)
             .width(Length::Shrink)
             .height(Length::Fill),
     )
     .padding([0, 40]);
 
     let mut username = Row::new().push(
-        text(&user.username)
+        text(user.username.clone())
             .font(FIRA_SANS_EXTRABOLD)
             .color(TEXT_COLOR)
             .size(40),
     );
 
-    if friends_with_logged_in_user {
+    if user.friends_with_active_user {
         let delete_friend_button = create_text_button(
             &user.favorite_mascot,
             "Remove Friend".to_string(),
@@ -47,7 +41,7 @@ pub fn view_profile<'a>(
             None,
         )
         .on_press(Message::Social(SocialMessage::RemoveUserAsFriend(
-            user.username.clone(),
+            user.username,
         )));
 
         username = username
@@ -57,7 +51,7 @@ pub fn view_profile<'a>(
     }
 
     let description_container: Container<Message> =
-        container(format_description_text(text(&user.description)))
+        container(format_description_text(text(user.description)))
             .style(create_container_style(
                 ContainerStyle::Background,
                 None,
@@ -92,7 +86,7 @@ pub fn view_profile<'a>(
     );
     let total_mascots_stat = profile_stat_container(
         Handle::from_path("assets/images/stats/golden_dog.png"),
-        owned_mascots.len().to_string(),
+        user.owned_mascots.len().to_string(),
         "mascots",
         "owned",
     );
@@ -105,7 +99,7 @@ pub fn view_profile<'a>(
     let best_pr_stat = profile_stat_container(
         Handle::from_path("assets/images/stats/golden_stats.png"),
         kg_to_string(user.profile_stat_manager.best_pr.1),
-        user.profile_stat_manager.best_pr.0.as_str(),
+        user.profile_stat_manager.best_pr.0,
         "best pr",
     );
     let total_reps_stat = profile_stat_container(
