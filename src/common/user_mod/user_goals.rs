@@ -30,6 +30,15 @@ impl GoalType {
             GoalType::Sleep => hours_to_string(user_goals.sleep),
         }
     }
+    pub fn get_default_goal_value(&self) -> f32 {
+        match self {
+            GoalType::WeeklyWorkouts => 4.0,
+            GoalType::Weight => 65.0,
+            GoalType::Water => 3.0,
+            GoalType::Steps => 10000.0,
+            GoalType::Sleep => 8.0,
+        }
+    }
     pub fn get_increment_decrement_step(&self) -> f32 {
         match self {
             GoalType::WeeklyWorkouts => 1.0,
@@ -92,11 +101,11 @@ pub struct UserGoals {
 impl Default for UserGoals {
     fn default() -> Self {
         UserGoals {
-            weekly_workouts: 4.0,
-            weight: 60.0,
-            water: 3.0,
-            steps: 10000.0,
-            sleep: 9.0,
+            weekly_workouts: GoalType::WeeklyWorkouts.get_default_goal_value(),
+            weight: GoalType::Weight.get_default_goal_value(),
+            water: GoalType::Water.get_default_goal_value(),
+            steps: GoalType::Steps.get_default_goal_value(),
+            sleep: GoalType::Sleep.get_default_goal_value(),
         }
     }
 }
