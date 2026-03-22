@@ -52,7 +52,7 @@ async fn configure_goals_for_demo_user(
         weekly_workouts: 2.0,
         ..Default::default()
     };
-    database_user_goals::update_user_goals(pool, username, goals).await?;
+    database_user_goals::update_user_goals(pool, username, &goals).await?;
     Ok(())
 }
 

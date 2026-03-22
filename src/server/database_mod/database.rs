@@ -500,7 +500,7 @@ mod tests {
             sleep: 5.0,
         };
 
-        update_user_goals(&pool, "testuser", test_goals)
+        update_user_goals(&pool, "testuser", &test_goals)
             .await
             .expect("updating user goals failed");
 
