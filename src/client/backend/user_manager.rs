@@ -32,18 +32,14 @@ impl UserManager {
 
 impl UserManager {
     pub fn get_user_by_username(&self, username: &str) -> Option<&ForeignUser> {
-        self.loaded_users.iter().find(|user| {
-            user.user_information
-                .username
-                .eq_ignore_ascii_case(username)
-        })
+        self.loaded_users
+            .iter()
+            .find(|user| user.username.eq_ignore_ascii_case(username))
     }
     pub fn get_user_by_username_mut(&mut self, username: &str) -> Option<&mut ForeignUser> {
-        self.loaded_users.iter_mut().find(|user| {
-            user.user_information
-                .username
-                .eq_ignore_ascii_case(username)
-        })
+        self.loaded_users
+            .iter_mut()
+            .find(|user| user.username.eq_ignore_ascii_case(username))
     }
     pub fn get_friends(&self) -> Vec<&ForeignUser> {
         self.loaded_users

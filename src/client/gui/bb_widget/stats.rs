@@ -14,6 +14,7 @@ use iced_core::Padding;
 use iced_core::alignment::Horizontal;
 use iced_core::border::Radius;
 use iced_core::image::Handle;
+use iced_core::text::Wrapping;
 
 const DISPLAYED_EXERCISE_STATS: usize = 5;
 const DISPLAYED_EXERCISE_STAT_LAST_INDEX: usize = DISPLAYED_EXERCISE_STATS - 1;
@@ -92,20 +93,17 @@ pub const PROFILE_STAT_CONTAINER_HEIGHT: f32 = 180.0;
 
 pub fn profile_stat_container<'a>(
     image_handle: Handle,
-    value: String,
-    description_line_one: &'a str,
-    description_line_two: &'a str,
+    value: impl Into<String> + text::IntoFragment<'a>,
+    description_line_one: impl Into<String> + text::IntoFragment<'a>,
+    description_line_two: impl Into<String> + text::IntoFragment<'a>,
 ) -> Container<'a, Message> {
     let image = image(image_handle).height(PROFILE_STAT_CONTAINER_HEIGHT / 2.0);
 
-    let font_size_line_one = if description_line_one.len() <= 15 {
-        18
-    } else {
-        10
-    };
     let value_text_element = format_button_text(text(value)).size(20);
-    let description_one_text_element =
-        format_button_text(text(description_line_one).size(font_size_line_one));
+    let description_one_text_element = format_button_text(text(description_line_one))
+        .wrapping(Wrapping::WordOrGlyph)
+        .width(PROFILE_STAT_CONTAINER_WIDTH)
+        .height(16);
     let description_two_text_element = format_button_text(text(description_line_two));
 
     let contents = Column::new()

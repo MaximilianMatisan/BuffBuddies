@@ -63,22 +63,69 @@ impl UserInformation {
     }
 }
 /// Necessary information about non-logged-in users for the logged-in user
-/// TODO refactor
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ForeignUser {
-    pub user_information: UserInformation,
-    pub selected_mascot: Mascot,
+    pub username: String,
+    pub description: String,
+    pub profile_picture_path: String,
+    pub profile_stat_manager: ProfileStatManager,
+    pub favorite_mascot: Mascot,
     pub owned_mascots: Vec<Mascot>,
     pub friends_with_active_user: bool,
 }
 impl Default for ForeignUser {
     fn default() -> Self {
-        let exercise_data = vec![];
-        ForeignUser {
-            user_information: UserInformation::default(&exercise_data),
-
-            selected_mascot: Default::default(),
+        Self {
+            username: "Default_user".to_string(),
+            description: "".to_string(),
+            profile_picture_path: ProfilePictureTypes::ManBuff.get_image_path(),
+            profile_stat_manager: ProfileStatManager::new(
+                &vec![],
+                4, //TODO get by GoalType
+            ),
+            favorite_mascot: Mascot::default(),
             owned_mascots: vec![Mascot::default()],
+            friends_with_active_user: false,
+        }
+    }
+}
+
+pub struct DisplayUserProfileData {
+    pub username: String,
+    pub description: String,
+    pub profile_picture_path: String,
+    pub profile_stat_manager: ProfileStatManager,
+    pub favorite_mascot: Mascot,
+    pub owned_mascots: Vec<Mascot>,
+    pub friends_with_active_user: bool,
+}
+impl Default for DisplayUserProfileData {
+    fn default() -> Self {
+        Self::from(ForeignUser::default())
+    }
+}
+impl From<ForeignUser> for DisplayUserProfileData {
+    fn from(value: ForeignUser) -> Self {
+        Self {
+            username: value.username,
+            description: value.description,
+            profile_picture_path: value.profile_picture_path,
+            profile_stat_manager: value.profile_stat_manager,
+            favorite_mascot: value.favorite_mascot,
+            owned_mascots: value.owned_mascots,
+            friends_with_active_user: value.friends_with_active_user,
+        }
+    }
+}
+impl DisplayUserProfileData {
+    pub fn from_logged_in_user(value: UserInformation, owned_mascots: Vec<Mascot>) -> Self {
+        Self {
+            username: value.username,
+            description: value.description,
+            profile_picture_path: value.profile_picture_path,
+            profile_stat_manager: value.profile_stat_manager,
+            favorite_mascot: value.favorite_mascot,
+            owned_mascots,
             friends_with_active_user: false,
         }
     }

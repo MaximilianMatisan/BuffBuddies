@@ -176,11 +176,8 @@ impl SocialMessage {
                         let opt_user = app.user_manager.get_user_by_username(&username);
                         if let Some(user) = opt_user {
                             app.widget_manager.activity_widget.update_data(
-                                user.user_information.favorite_mascot,
-                                user.user_information
-                                    .profile_stat_manager
-                                    .activity_data
-                                    .clone(),
+                                user.favorite_mascot,
+                                user.profile_stat_manager.activity_data.clone(),
                             );
                         }
                         app.user_manager.most_recently_viewed_user =
