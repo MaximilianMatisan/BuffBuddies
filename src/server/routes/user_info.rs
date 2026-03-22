@@ -27,47 +27,15 @@ pub async fn update_user_info(
     user_authentication: UserAuthenticationRequestPath,
     Json(new_user_info): Json<UserInformation>,
 ) -> Result<(), ApiError> {
-    //TODO create a database function that combines these fields in one update query
-    database_user::update_user_favorite_mascot(
-        &pool,
-        &user_authentication.username,
-        &new_user_info.favorite_mascot,
-    )
-    .await?;
-
-    database_user::update_user_gender(
-        &pool,
-        &user_authentication.username,
-        &new_user_info.gender.to_string(),
-    )
-    .await?;
-
-    database_user::update_user_profile_picture(
-        &pool,
-        &user_authentication.username,
-        &new_user_info.profile_picture_path,
-    )
-    .await?;
-
-    database_user::update_user_height(&pool, &user_authentication.username, new_user_info.height)
-        .await?;
-
-    database_user::update_user_weight(&pool, &user_authentication.username, new_user_info.weight)
-        .await?;
-
-    database_user::update_user_description(
-        &pool,
-        &user_authentication.username,
-        &new_user_info.description,
-    )
-    .await?;
-
     database_user_goals::update_user_goals(
         &pool,
         &user_authentication.username,
-        new_user_info.user_goals,
+        &new_user_info.user_goals,
     )
     .await?;
+
+    database_user::update_user_info_settings(&pool, &user_authentication.username, new_user_info)
+        .await?;
 
     println!(
         "{}: Updated UserInformation was saved in the database!",

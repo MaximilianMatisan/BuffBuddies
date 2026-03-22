@@ -5,7 +5,7 @@ use sqlx::{Row, SqlitePool};
 pub async fn update_user_goals(
     pool: &SqlitePool,
     username: &str,
-    user_goals: UserGoals,
+    user_goals: &UserGoals,
 ) -> Result<(), sqlx::Error> {
     sqlx::query("UPDATE user_goals SET weekly_workouts = ? , weight = ? , water = ?, steps = ? , sleep = ? WHERE username = ?")
         .bind(user_goals.weekly_workouts)

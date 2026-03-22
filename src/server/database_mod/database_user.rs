@@ -145,7 +145,37 @@ pub async fn get_user_profile_picture(
     Ok(row.get("profile_picture"))
 }
 
-#[allow(dead_code)]
+pub async fn update_user_info_settings(
+    pool: &SqlitePool,
+    username: &str,
+    new_user_info: UserInformation,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "UPDATE users
+    SET
+    favorite_mascot = ?,
+    gender = ?,
+    weight = ?,
+    height = ?,
+    description = ?,
+    profile_picture = ?
+    WHERE
+        username = ?
+    ",
+    )
+    .bind(new_user_info.favorite_mascot.to_string())
+    .bind(new_user_info.gender.to_string())
+    .bind(new_user_info.weight)
+    .bind(new_user_info.height)
+    .bind(new_user_info.description)
+    .bind(new_user_info.profile_picture_path)
+    .bind(username)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
 pub async fn update_user_weight(
     pool: &SqlitePool,
     username: &str,
